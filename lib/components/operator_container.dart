@@ -7,8 +7,6 @@ import 'package:docsprts/global_data.dart' as globals;
 
 const List<Color?> rarityColors = [null,Color(0xFF9c9c9c),Color(0xFFd8dd5a),Color(0xFF4aabea),Color(0xFFcfc2d1),Color(0xFFf1c644), Color.fromARGB(255, 255, 93, 12)];
 
-String ghLink = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/0b28f9562fcadbd644c6225f8f8aefbb500b4d22/avatars/';
-
 
 class OperatorContainer extends StatelessWidget {
   final Operator operator;
@@ -18,6 +16,13 @@ class OperatorContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    
+    final String ghAvatarLink = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/0b28f9562fcadbd644c6225f8f8aefbb500b4d22/avatars/${operator.id}.png';
+    final String ghPotraitLink = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/0b28f9562fcadbd644c6225f8f8aefbb500b4d22/portraits/${operator.id}_1.png';
+
+    String imgLink = '';
+    if (globals.operatorDisplayAvatar) {imgLink = ghAvatarLink;} 
+    else if (globals.operatorDisplayPotrait) {imgLink = ghPotraitLink;}
 
     return GlassContainer(
       isFrostedGlass: true,
@@ -30,8 +35,8 @@ class OperatorContainer extends StatelessWidget {
       ),
       borderColor: rarityColors[operator.rarity],
       borderGradient: operator.rarity == 6 ? const LinearGradient(
-        colors: [Color.fromARGB(255, 255, 93, 12), Color(0xffeea702), Color(0xffc5f503)],
-        stops: [0, 0.75, 1],
+        colors: [Color.fromARGB(255, 255, 93, 12), Color.fromARGB(255, 248, 215, 29), Color(0xffc5f503)],
+        stops: [0, 0.45, 1],
         begin: Alignment.topLeft,
         end: Alignment(1.0, 1.0),
       ) : null,
@@ -40,7 +45,7 @@ class OperatorContainer extends StatelessWidget {
       child: Stack(
         alignment: AlignmentDirectional.bottomCenter,
         children: [
-          Container(decoration: BoxDecoration(borderRadius: BorderRadius.circular(10.0)), clipBehavior: Clip.antiAlias, child: FadeInImage.memoryNetwork(placeholder: kTransparentImage, image: '$ghLink${operator.id}.png'), ),
+          Container(decoration: BoxDecoration(borderRadius: BorderRadius.circular(10.0)), clipBehavior: Clip.antiAlias, child: FadeInImage.memoryNetwork(placeholder: kTransparentImage, image: imgLink, imageErrorBuilder: (err, err2, err3){return const Center(child: Text('error loading img'));})),
           Container(decoration: BoxDecoration(borderRadius: BorderRadius.circular(10.0), gradient: const LinearGradient(colors: [Color.fromARGB(0, 0, 0, 0), Color.fromARGB(255, 0, 0, 0)],stops: [0.75, 1],begin: Alignment.topCenter,end: Alignment.bottomCenter,)),),
           Text(globals.operatorSearchDelegate <=4 ? operator.name : '')
         ],

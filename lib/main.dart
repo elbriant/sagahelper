@@ -33,7 +33,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  int refreshes = 1;
 
   void _navigationBB(int newIndx) {
     setState(() {
@@ -70,27 +69,55 @@ class _MyAppState extends State<MyApp> {
       home: Scaffold(
         extendBody: true,
         body: _pages[_currentPageIndx],
-        bottomNavigationBar: ClipRRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-            child: NavigationBar(
-              backgroundColor: globals.themeMode == ThemeMode.light ?  globals.currentTheme!.light.colorScheme.surface.withOpacity(0.5) : globals.currentTheme!.getDarkMode().colorScheme.surface.withOpacity(0.5),
-              elevation: 0,
-              labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-              onDestinationSelected: _navigationBB,
-              selectedIndex: _currentPageIndx,
-              destinations: const [
-                NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
-                NavigationDestination(icon: Icon(Icons.person_search), label: 'Operators'),
-                NavigationDestination(icon: Icon(Icons.receipt_long), label: 'More'),
-                NavigationDestination(icon: Icon(Icons.app_shortcut), label: 'Tools'),
-                NavigationDestination(icon: Icon(Icons.settings), label: 'Settings'),
-              ],
-            ),
-          ),
-        ),
+        bottomNavigationBar: globals.useTranslucentUi == true ? TranslucentWidget(sigma: 3, child: BottomNavBar(navigationBB: _navigationBB, currentPageIndx: _currentPageIndx, opacity: 0.5)) : BottomNavBar(navigationBB: _navigationBB, currentPageIndx: _currentPageIndx)
       ),
     );
   }
 }
 
+class TranslucentWidget extends StatelessWidget {
+  final Widget child;
+  final double sigma;
+  const TranslucentWidget({super.key, required this.child, this.sigma = 3});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
+        child: child
+      ),
+    );
+  }
+}
+
+class BottomNavBar extends StatelessWidget {
+  final void Function(int) navigationBB;
+  final int currentPageIndx;
+  final double opacity;
+
+  const BottomNavBar ({
+    super.key,
+    required this.navigationBB,
+    required this.currentPageIndx,
+    this.opacity = 1.0,
+    });
+
+  @override
+  Widget build(BuildContext context) {
+    return NavigationBar(
+      backgroundColor: globals.themeMode == ThemeMode.light ?  globals.currentTheme!.light.colorScheme.surface.withOpacity(opacity) : globals.currentTheme!.getDarkMode().colorScheme.surface.withOpacity(opacity),
+      elevation: 0,
+      labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+      onDestinationSelected: navigationBB,
+      selectedIndex: currentPageIndx,
+      destinations: const [
+        NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
+        NavigationDestination(icon: Icon(Icons.person_search), label: 'Operators'),
+        NavigationDestination(icon: Icon(Icons.receipt_long), label: 'More'),
+        NavigationDestination(icon: Icon(Icons.app_shortcut), label: 'Tools'),
+        NavigationDestination(icon: Icon(Icons.settings), label: 'Settings'),
+      ],
+    );
+  }
+}

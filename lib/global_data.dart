@@ -1,13 +1,18 @@
-library globals;
 import 'package:docsprts/themes.dart';
 import 'package:flutter/material.dart';
-
-import 'package:docsprts/main.dart' as main;
 
 bool? themePureDark = true;
 ThemeMode themeMode = ThemeMode.dark;
 CustomTheme? currentTheme;
+bool useTranslucentUi = true;
 
 
 // Operators Page Flags
 int operatorSearchDelegate = 2;
+
+bool operatorDisplayAvatar = true;
+bool operatorDisplayPotrait = false;
+void setDisplayChip (bool newState, String chip) {
+  chip != 'avatar' ? operatorDisplayAvatar = false : operatorDisplayAvatar = true;
+  chip != 'potrait' ? operatorDisplayPotrait = false : operatorDisplayPotrait = true;
+}
