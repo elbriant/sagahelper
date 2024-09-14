@@ -8,11 +8,11 @@ class ToolsPage extends StatelessWidget {
     return Scaffold(
       extendBody: true,
       appBar: AppBar(
-        title: Text('Tools'),
+        title: const Text('Tools'),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: Center(
+      body: const Center(
         child: Text('tools be tooling'),
       ),
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,

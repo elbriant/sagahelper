@@ -8,11 +8,11 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       extendBody: true,
       appBar: AppBar(
-        title: Text('News'),
+        title: const Text('News'),
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow.withOpacity(0.2),
         elevation: 0,
       ),
-      body: Center(
+      body: const Center(
         child: TestWidget(),
       ),
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
@@ -26,6 +26,6 @@ class TestWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Placeholder();
+    return const Placeholder();
   }
 }

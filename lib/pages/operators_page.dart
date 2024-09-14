@@ -1,16 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:ui';
 
 import 'package:docsprts/components/operator_container.dart';
+import 'package:docsprts/components/traslucent_ui.dart';
 import 'package:docsprts/global_data.dart' as globals;
-import 'package:docsprts/main.dart';
+import 'package:docsprts/providers/ui_provider.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import 'package:autoscale_tabbarview/autoscale_tabbarview.dart';
+import 'package:provider/provider.dart';
 /*
 for later
 item colors
@@ -133,14 +134,14 @@ class _OperatorsPageState extends State<OperatorsPage> {
           onChanged: (value) => filterOperatorListByText(value),
           onSubmitted: (value) => filterOperatorListByText(value),
         ) : const Text('Operators'),
-        flexibleSpace: globals.useTranslucentUi == true ? TranslucentWidget(sigma: 3,child: Container(color: Colors.transparent)) : null,
-        backgroundColor: globals.useTranslucentUi == true ? Colors.transparent : null,
+        flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3,child: Container(color: Colors.transparent)) : null,
+        backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surface.withOpacity(0.5) : null,
         elevation: 0,
         actions: [
           isSearching ? Container() : IconButton(onPressed: () => setState((){isSearching = true;}), icon: const Icon(Icons.search)),
           IconButton(onPressed: () => showFilters(context), icon: const Icon(Icons.filter_list)),
           MenuAnchor(
-              menuChildren: [],
+              menuChildren: const [],
               builder: (BuildContext context, MenuController controller,
                   Widget? child) {
                 return IconButton(
@@ -171,7 +172,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
               return OperatorListView(operators: isSearching ? (filteredOperatorList.isEmpty ? snapshot.data! : filteredOperatorList) : snapshot.data!);
             } else {
               return const Center(
-                child: CircularProgressIndicator(),
+                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [CircularProgressIndicator(), SizedBox(height: 30), Text('Loading operators')],),
               );
             }
           },
@@ -256,16 +257,16 @@ class _OperatorsPageState extends State<OperatorsPage> {
                         Wrap (
                           children: [
                             ListTile(
-                                leading: Icon(Icons.text_snippet_outlined),
-                                title: Text('test'),
+                                leading: const Icon(Icons.text_snippet_outlined),
+                                title: const Text('test'),
                                 onTap: () {}),
                             ListTile(
-                                leading: Icon(Icons.text_snippet_outlined),
-                                title: Text('test'),
+                                leading: const Icon(Icons.text_snippet_outlined),
+                                title: const Text('test'),
                                 onTap: () {}),
                             ListTile(
-                                leading: Icon(Icons.text_snippet_outlined),
-                                title: Text('test'),
+                                leading: const Icon(Icons.text_snippet_outlined),
+                                title: const Text('test'),
                                 onTap: () {}),
                           ],
                         ),
@@ -296,7 +297,7 @@ class OperatorListView extends StatelessWidget {
           bottom:
               132.0), //hard coded, for top and bottom should get appbar's height and bottomNavBar height respectively
       itemCount: operators.length,
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: globals.operatorSearchDelegate, childAspectRatio: globals.operatorDisplayPotrait ? 0.5 : 1.0),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: globals.operatorSearchDelegate, childAspectRatio: globals.operatorDisplayPotrait ? 0.55 : 1.0),
       itemBuilder: (context, index) {
         return OperatorContainer(index: index, operator: operators[index]);
       },

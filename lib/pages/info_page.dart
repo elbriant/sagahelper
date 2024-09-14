@@ -8,11 +8,11 @@ class InfoPage extends StatelessWidget {
     return Scaffold(
       extendBody: true,
       appBar: AppBar(
-        title: Text('More'),
+        title: const Text('Extra'),
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow.withOpacity(0.2),
         elevation: 0,
       ),
-      body: Center(
+      body: const Center(
         child: Text('test2'),
       ),
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,

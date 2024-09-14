@@ -1,14 +1,15 @@
-import 'dart:ui';
+import 'package:docsprts/components/traslucent_ui.dart';
 import 'package:docsprts/pages/home_page.dart';
 import 'package:docsprts/pages/operators_page.dart';
 import 'package:docsprts/pages/info_page.dart';
 import 'package:docsprts/pages/settings_page.dart';
 import 'package:docsprts/pages/tools_page.dart';
+import 'package:docsprts/providers/ui_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:docsprts/themes.dart';
-import 'package:docsprts/global_data.dart' as globals;
+import 'package:provider/provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,43 +54,34 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    
-    globals.currentTheme ??= CustomTheme(light: deepOrangeTheme.light, dark: deepOrangeTheme.dark, text: createTextTheme(context, "Noto Sans Hatran", "Noto Sans"));
-
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         systemNavigationBarColor: Colors.black
       ),
     );
 
-    return MaterialApp(
-      theme: globals.currentTheme?.light,
-      darkTheme: globals.currentTheme?.getDarkMode(),
-      themeMode: globals.themeMode,
-      home: Scaffold(
-        extendBody: true,
-        body: _pages[_currentPageIndx],
-        bottomNavigationBar: globals.useTranslucentUi == true ? TranslucentWidget(sigma: 3, child: BottomNavBar(navigationBB: _navigationBB, currentPageIndx: _currentPageIndx, opacity: 0.5)) : BottomNavBar(navigationBB: _navigationBB, currentPageIndx: _currentPageIndx)
-      ),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => UiProvider())
+      ],
+      builder: (context, child) {
+        if (context.read<UiProvider>().currentTheme == null) context.read<UiProvider>().currentTheme = deepOrangeTheme;
+        return  MaterialApp(
+          theme: context.watch<UiProvider>().currentTheme!.colorLight,
+          darkTheme: context.watch<UiProvider>().currentTheme!.getDarkMode(context.read<UiProvider>().isUsingPureDark),
+          themeMode: context.watch<UiProvider>().themeMode,
+          home: Scaffold(
+            extendBody: true,
+            body: _pages[_currentPageIndx],
+            bottomNavigationBar: context.watch<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3, child: BottomNavBar(navigationBB: _navigationBB, currentPageIndx: _currentPageIndx, opacity: 0.5)) : BottomNavBar(navigationBB: _navigationBB, currentPageIndx: _currentPageIndx)
+          ),
+        );
+      },
     );
   }
 }
 
-class TranslucentWidget extends StatelessWidget {
-  final Widget child;
-  final double sigma;
-  const TranslucentWidget({super.key, required this.child, this.sigma = 3});
 
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
-        child: child
-      ),
-    );
-  }
-}
 
 class BottomNavBar extends StatelessWidget {
   final void Function(int) navigationBB;
@@ -101,22 +93,22 @@ class BottomNavBar extends StatelessWidget {
     required this.navigationBB,
     required this.currentPageIndx,
     this.opacity = 1.0,
-    });
+  });
 
   @override
   Widget build(BuildContext context) {
     return NavigationBar(
-      backgroundColor: globals.themeMode == ThemeMode.light ?  globals.currentTheme!.light.colorScheme.surface.withOpacity(opacity) : globals.currentTheme!.getDarkMode().colorScheme.surface.withOpacity(opacity),
+      backgroundColor: Theme.of(context).colorScheme.surface.withOpacity(opacity),
       elevation: 0,
       labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
       onDestinationSelected: navigationBB,
       selectedIndex: currentPageIndx,
       destinations: const [
-        NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
-        NavigationDestination(icon: Icon(Icons.person_search), label: 'Operators'),
-        NavigationDestination(icon: Icon(Icons.receipt_long), label: 'More'),
-        NavigationDestination(icon: Icon(Icons.app_shortcut), label: 'Tools'),
-        NavigationDestination(icon: Icon(Icons.settings), label: 'Settings'),
+        NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home', selectedIcon: Icon(Icons.home)),
+        NavigationDestination(icon: Icon(Icons.person_search_outlined), label: 'Operators', selectedIcon: Icon(Icons.person_search)),
+        NavigationDestination(icon: Icon(Icons.receipt_long_outlined), label: 'Extra', selectedIcon: Icon(Icons.receipt_long)),
+        NavigationDestination(icon: Icon(Icons.app_shortcut_outlined), label: 'Tools', selectedIcon: Icon(Icons.app_shortcut)),
+        NavigationDestination(icon: Icon(Icons.settings_outlined), label: 'More', selectedIcon: Icon(Icons.settings)),
       ],
     );
   }

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:docsprts/pages/operators_page.dart';
 import 'package:flutter/material.dart';
 import 'package:glass_kit/glass_kit.dart';
@@ -17,8 +19,9 @@ class OperatorContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     
-    final String ghAvatarLink = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/0b28f9562fcadbd644c6225f8f8aefbb500b4d22/avatars/${operator.id}.png';
-    final String ghPotraitLink = 'https://raw.githubusercontent.com/Aceship/Arknight-Images/0b28f9562fcadbd644c6225f8f8aefbb500b4d22/portraits/${operator.id}_1.png';
+    // get Assets from github.com/yuanyan3060/ArknightsGameResource repo
+    final String ghAvatarLink = 'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/main/avatar/${operator.id}.png';
+    final String ghPotraitLink = 'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/main/portrait/${operator.id}_1.png';
 
     String imgLink = '';
     if (globals.operatorDisplayAvatar) {imgLink = ghAvatarLink;} 
@@ -45,9 +48,12 @@ class OperatorContainer extends StatelessWidget {
       child: Stack(
         alignment: AlignmentDirectional.bottomCenter,
         children: [
-          Container(decoration: BoxDecoration(borderRadius: BorderRadius.circular(10.0)), clipBehavior: Clip.antiAlias, child: FadeInImage.memoryNetwork(placeholder: kTransparentImage, image: imgLink, imageErrorBuilder: (err, err2, err3){return const Center(child: Text('error loading img'));})),
-          Container(decoration: BoxDecoration(borderRadius: BorderRadius.circular(10.0), gradient: const LinearGradient(colors: [Color.fromARGB(0, 0, 0, 0), Color.fromARGB(255, 0, 0, 0)],stops: [0.75, 1],begin: Alignment.topCenter,end: Alignment.bottomCenter,)),),
-          Text(globals.operatorSearchDelegate <=4 ? operator.name : '')
+          ClipRRect(borderRadius: BorderRadius.circular(10.0), child: FadeInImage.memoryNetwork(fit: BoxFit.fitWidth, placeholder: kTransparentImage, image: imgLink, imageErrorBuilder: (err, err2, err3){return const Center(child: Text('error loading img'));})),
+          Container(decoration: BoxDecoration(borderRadius: BorderRadius.circular(10.0), gradient: const LinearGradient(colors: [Color.fromARGB(0, 0, 0, 0), Color.fromARGB(255, 0, 0, 0)],stops: [0.65, 1],begin: Alignment.topCenter,end: Alignment.bottomCenter,)),),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 2.5),
+            child: Text(globals.operatorSearchDelegate <=4 ? operator.name : '', textAlign: TextAlign.center, textScaler: TextScaler.linear(operator.name.length <= 7 ? 1 : globals.operatorSearchDelegate >= 3 ? (clampDouble(8/operator.name.length, 0.6, 1)) : 1), style: const TextStyle(color: Colors.white),),
+          )
         ],
       ),
     );

@@ -1,11 +1,3 @@
-import 'package:docsprts/themes.dart';
-import 'package:flutter/material.dart';
-
-bool? themePureDark = true;
-ThemeMode themeMode = ThemeMode.dark;
-CustomTheme? currentTheme;
-bool useTranslucentUi = true;
-
 
 // Operators Page Flags
 int operatorSearchDelegate = 2;
