@@ -126,4 +126,4 @@ CustomTheme mizukiTheme = CustomTheme (
   displayFontString: "Noto Sans",
 );
 
-List<CustomTheme> allCustomThemesList = [deepOrangeTheme, deepOrangeTheme, mizukiTheme];
+List<CustomTheme> allCustomThemesList = [deepOrangeTheme, mizukiTheme];

@@ -135,7 +135,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
           onSubmitted: (value) => filterOperatorListByText(value),
         ) : const Text('Operators'),
         flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3,child: Container(color: Colors.transparent)) : null,
-        backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surface.withOpacity(0.5) : null,
+        backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
         elevation: 0,
         actions: [
           isSearching ? Container() : IconButton(onPressed: () => setState((){isSearching = true;}), icon: const Icon(Icons.search)),

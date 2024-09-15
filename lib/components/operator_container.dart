@@ -1,9 +1,11 @@
 import 'dart:ui';
 
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:docsprts/pages/operator_info.dart';
 import 'package:docsprts/pages/operators_page.dart';
 import 'package:flutter/material.dart';
 import 'package:glass_kit/glass_kit.dart';
-import 'package:transparent_image/transparent_image.dart';
+
 
 import 'package:docsprts/global_data.dart' as globals;
 
@@ -18,6 +20,10 @@ class OperatorContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    void openOperatorInfo (Operator currOp) {
+      Navigator.of(context).push(MaterialPageRoute(allowSnapshotting: false, builder: (context) => OperatorInfo(currOp)));
+    }
     
     // get Assets from github.com/yuanyan3060/ArknightsGameResource repo
     final String ghAvatarLink = 'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/main/avatar/${operator.id}.png';
@@ -48,11 +54,17 @@ class OperatorContainer extends StatelessWidget {
       child: Stack(
         alignment: AlignmentDirectional.bottomCenter,
         children: [
-          ClipRRect(borderRadius: BorderRadius.circular(10.0), child: FadeInImage.memoryNetwork(fit: BoxFit.fitWidth, placeholder: kTransparentImage, image: imgLink, imageErrorBuilder: (err, err2, err3){return const Center(child: Text('error loading img'));})),
+          ClipRRect(borderRadius: BorderRadius.circular(10.0), child: CachedNetworkImage(fit: BoxFit.fitWidth, placeholder: (context, url) => const Center(child: CircularProgressIndicator()), imageUrl: imgLink, errorWidget: (context, url, error) => const Center(child: Icon(Icons.error)))),
           Container(decoration: BoxDecoration(borderRadius: BorderRadius.circular(10.0), gradient: const LinearGradient(colors: [Color.fromARGB(0, 0, 0, 0), Color.fromARGB(255, 0, 0, 0)],stops: [0.65, 1],begin: Alignment.topCenter,end: Alignment.bottomCenter,)),),
           Padding(
             padding: const EdgeInsets.only(bottom: 2.5),
             child: Text(globals.operatorSearchDelegate <=4 ? operator.name : '', textAlign: TextAlign.center, textScaler: TextScaler.linear(operator.name.length <= 7 ? 1 : globals.operatorSearchDelegate >= 3 ? (clampDouble(8/operator.name.length, 0.6, 1)) : 1), style: const TextStyle(color: Colors.white),),
+          ),
+          Material(
+            type: MaterialType.transparency,
+            child: InkWell(
+              onTap: () => openOperatorInfo(operator),
+            ),
           )
         ],
       ),

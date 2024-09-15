@@ -56,7 +56,7 @@ class _AppearanceSettingsState extends State<AppearanceSettings> {
   void changeThemeWithIndex (int index) {
     if (context.read<UiProvider>().previewThemeIndexSelected == index) return;
     setState(() {
-      context.read<UiProvider>().previewThemeIndexSelected = index;
+      context.read<UiProvider>().previewThemeSelected(index);
       context.read<UiProvider>().changeTheme(newTheme: allCustomThemesList[index]);
     });
   }
