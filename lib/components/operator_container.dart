@@ -25,10 +25,12 @@ class OperatorContainer extends StatelessWidget {
       Navigator.of(context).push(MaterialPageRoute(allowSnapshotting: false, builder: (context) => OperatorInfo(currOp)));
     }
     
-    // get Assets from github.com/yuanyan3060/ArknightsGameResource repo
-    final String ghAvatarLink = 'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/main/avatar/${operator.id}.png';
-    final String ghPotraitLink = 'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/main/portrait/${operator.id}_1.png';
+    // get Assets from github.com/ArknightsAssets/ArknightsAssets repo
+    final String ghAvatarLink = 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/charavatars/${operator.id}.png';
+    final String ghPotraitLink = 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/charportraits/${operator.id}_1.png';
 
+
+    
     String imgLink = '';
     if (globals.operatorDisplayAvatar) {imgLink = ghAvatarLink;} 
     else if (globals.operatorDisplayPotrait) {imgLink = ghPotraitLink;}

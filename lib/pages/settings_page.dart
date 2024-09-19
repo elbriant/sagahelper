@@ -25,13 +25,14 @@ class _SettingsPageState extends State<SettingsPage> {
       ),
       body: ListView(
         children: [
-          const DrawerHeader(child: Icon(Icons.settings, size: 42)), // saga gif maybe
-          SwitchListTile(secondary: const Icon(Icons.wifi_off), title: const Text('Offline mode'), value: false, onChanged: (bools){}), 
+          SizedBox(height: 200, child: DrawerHeader(child: Image.asset('assets/gif/ceobe_more.gif', fit: BoxFit.fitHeight))), // i love seseren's gifs
+          SwitchListTile(secondary: const Icon(Icons.wifi_off), title: const Text('Offline mode'), subtitle: const Text('WIP'), value: false, onChanged: (bools){}), 
           const Divider(), // top : quick switches / bot: more
           ListTile(title: const Text('Appearance'),leading: const Icon(Icons.color_lens), onTap: () {Navigator.push(context, MaterialPageRoute(allowSnapshotting: false, builder: (context) => const AppearanceSettings()));}, ),
-          ListTile(title: const Text('Dunno'),leading: const Icon(Icons.device_unknown), onTap: () {}),
+          ListTile(title: const Text('Language'), subtitle: const Text('WIP'), leading: const Icon(Icons.language), onTap: (){}),
+          ListTile(title: const Text('Server'), subtitle: const Text('WIP'), leading: const Icon(Icons.settings_ethernet), onTap: () {}),
           const Divider(), // bot about and data
-          ListTile(title: const Text('About'),leading: const Icon(Icons.info_outline), onTap: () {}),
+          ListTile(title: const Text('About'),leading: const Icon(Icons.info_outline), onTap: () {Navigator.push(context, MaterialPageRoute(allowSnapshotting: false, builder: (context) => const AboutSettings()));}),
         ],
       ),
     );
@@ -86,10 +87,10 @@ class _AppearanceSettingsState extends State<AppearanceSettings> {
             children: [
               SegmentedButton(segments: const [ButtonSegment(value: ThemeMode.system, icon: Icon(Icons.auto_mode), label: Text('System')), ButtonSegment(value: ThemeMode.light, icon: Icon(Icons.light_mode), label: Text('Light')), ButtonSegment(value: ThemeMode.dark, icon: Icon(Icons.dark_mode), label: Text('Dark'))], selected: {context.read<UiProvider>().themeMode}, onSelectionChanged: (newSelection) => setState((){context.read<UiProvider>().setThemeMode(newThemeMode: newSelection.first);})),
               Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-                height: 200,
+                margin: const EdgeInsets.fromLTRB(20, 30, 20, 10),
+                padding: const EdgeInsets.all(8.0),
+                height: 220,
                 child: ListView (
-                  padding: const EdgeInsets.all(8.0),
                   scrollDirection: Axis.horizontal,
                   children: List<ThemePreview>.generate(allCustomThemesList.length, 
                   (index) => ThemePreview (
@@ -104,9 +105,40 @@ class _AppearanceSettingsState extends State<AppearanceSettings> {
             ]
           )
         ),
-        SwitchListTile(secondary: context.read<UiProvider>().isUsingPureDark ? const Icon(Icons.remove_red_eye) : const Icon(Icons.remove_red_eye_outlined), subtitle: const Text('makes everything more darker'), title: const Text('Pure dark mode'), value: context.read<UiProvider>().isUsingPureDark, onChanged: (state) => pureDarkChange(state)),
+        if (Theme.of(context).brightness == Brightness.dark) SwitchListTile(secondary: context.read<UiProvider>().isUsingPureDark ? const Icon(Icons.remove_red_eye) : const Icon(Icons.remove_red_eye_outlined), subtitle: const Text('makes everything more darker'), title: const Text('Pure dark mode'), value: context.read<UiProvider>().isUsingPureDark, onChanged: (state) => pureDarkChange(state)),
         SwitchListTile(secondary: context.read<UiProvider>().useTranslucentUi ? const Icon(Icons.blur_on) : const Icon(Icons.blur_off), subtitle: const Text('makes UI transparent and blurry (performance cost!)'), title: const Text('Traslucent UI'), value: context.read<UiProvider>().useTranslucentUi, onChanged: (state) => traslucentChange(state)),
       ]),
+    );
+  }
+}
+
+// -------------------------- About Settings Page ----------------------------
+class AboutSettings extends StatelessWidget {
+  const AboutSettings({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('About'), leading: IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.arrow_back))),
+      body: ListView(
+        children: [
+          SizedBox(height: 220, child: DrawerHeader(child: Image.asset('assets/gif/saga_about.gif', alignment: Alignment.center, fit: BoxFit.cover))),
+          const ListTile(title: Text('Version'), subtitle: Text('Beta 0.1')),
+          const ListTile(title: Text('Check updates'), subtitle: Text('WIP')),
+          const SizedBox(height: 16),
+          Center(
+            child: Text('Made with love ❤️', style: TextStyle(color: Theme.of(context).colorScheme.primary, fontSize: 18)),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(onPressed: (){}, icon: Icon(Icons.code, size: 42, color: Theme.of(context).colorScheme.primary,))
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

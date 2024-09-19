@@ -1,30 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:docsprts/components/operator_container.dart';
-import 'package:docsprts/components/traslucent_ui.dart';
 import 'package:docsprts/global_data.dart' as globals;
-import 'package:docsprts/providers/ui_provider.dart';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
-
 import 'package:autoscale_tabbarview/autoscale_tabbarview.dart';
 import 'package:provider/provider.dart';
-/*
-for later
-item colors
+import 'package:docsprts/providers/ui_provider.dart';
+import 'package:docsprts/components/traslucent_ui.dart';
 
-Low#9c9c9c
-Basic#d8dd5a
-Primary#4aabea
-Secondary#cfc2d1
-Advanced#f1c644
-
-
-
-*/
 
 const Map<String, int> rticonv = {
   "TIER_6": 6,
@@ -43,21 +28,56 @@ class Operator {
   final Map<String, dynamic> operatorDict;
   final String id;
   final String name;
+  final String? displayNumber;
+  final String description;
+  final String? nationId;
+  final String? groupId;
+  final String? teamId;
+  final String position;
+  final List<dynamic> tagList;
   final int rarity;
+  final String profession;
+  final String subProfessionId;
+  final String itemUsage;
+  final String itemDesc;
 
   const Operator({
     required this.operatorDict,
     required this.id,
     required this.name,
     required this.rarity,
+    required this.displayNumber,
+    required this.description,
+    required this.nationId,
+    required this.groupId,
+    required this.teamId,
+    required this.position,
+    required this.profession,
+    required this.subProfessionId,
+    required this.tagList,
+    required this.itemUsage,
+    required this.itemDesc
+
   });
 
   factory Operator.fromJson(String key, Map<String, dynamic> dict) {
     return Operator(
         operatorDict: dict,
         id: key,
-        name: dict['name'] as String,
-        rarity: rarityToInt(dict['rarity']));
+        name: dict['name'],
+        rarity: rarityToInt(dict['rarity']),
+        description: dict['description'],
+        displayNumber: dict['displayNumber'],
+        groupId: dict['groupId'],
+        nationId: dict['nationId'],
+        teamId: dict['teamId'],
+        position: dict['position'],
+        profession: dict['profession'],
+        subProfessionId: dict['subProfessionId'],
+        tagList: dict['tagList'],
+        itemUsage: dict['itemUsage'],
+        itemDesc: dict['itemDesc']
+    );
   }
 }
 
@@ -114,8 +134,8 @@ class _OperatorsPageState extends State<OperatorsPage> {
       extendBody: false,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        scrolledUnderElevation: 0,
         title: isSearching ? TextField(
+          autofocus: true,
           textAlignVertical: TextAlignVertical.center,
           controller: _textController,
           decoration: InputDecoration(
@@ -136,7 +156,6 @@ class _OperatorsPageState extends State<OperatorsPage> {
         ) : const Text('Operators'),
         flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3,child: Container(color: Colors.transparent)) : null,
         backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
-        elevation: 0,
         actions: [
           isSearching ? Container() : IconButton(onPressed: () => setState((){isSearching = true;}), icon: const Icon(Icons.search)),
           IconButton(onPressed: () => showFilters(context), icon: const Icon(Icons.filter_list)),
@@ -289,18 +308,26 @@ class OperatorListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.builder(
-      padding: const EdgeInsets.only(
-          top: 100.0,
-          left: 4.0,
-          right: 4.0,
-          bottom:
-              132.0), //hard coded, for top and bottom should get appbar's height and bottomNavBar height respectively
-      itemCount: operators.length,
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: globals.operatorSearchDelegate, childAspectRatio: globals.operatorDisplayPotrait ? 0.55 : 1.0),
-      itemBuilder: (context, index) {
-        return OperatorContainer(index: index, operator: operators[index]);
-      },
+    return RawScrollbar(
+      thickness: 12,
+      interactive: true,
+      radius: const Radius.circular(12),
+      minThumbLength: 48,
+      mainAxisMargin: 4,
+      thumbColor: Theme.of(context).colorScheme.secondary.withOpacity(0.8),
+      child: GridView.builder(
+        padding: const EdgeInsets.only(
+            top: 100.0,
+            left: 4.0,
+            right: 4.0,
+            bottom:
+                132.0), //hard coded, for top and bottom should get appbar's height and bottomNavBar height respectively
+        itemCount: operators.length,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: globals.operatorSearchDelegate, childAspectRatio: globals.operatorDisplayPotrait ? 0.55 : 1.0),
+        itemBuilder: (context, index) {
+          return OperatorContainer(index: index, operator: operators[index]);
+        },
+      ),
     );
   }
 }

@@ -14,21 +14,34 @@ class ThemePreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container (
-      width: 90,
-      height: 180,
+    return Container(
       margin: const EdgeInsets.only(right: 25),
-      clipBehavior: Clip.hardEdge,
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(strokeAlign: BorderSide.strokeAlignOutside , width: 6, color: thisSelected ? (Theme.of(context).brightness == Brightness.light ? previewedTheme.colorLight.colorScheme.primary : previewedTheme.getDarkMode(context.read<UiProvider>().isUsingPureDark).colorScheme.primary) : ((Theme.of(context).brightness == Brightness.light ? previewedTheme.colorLight.colorScheme.surfaceContainerHighest : previewedTheme.getDarkMode(context.read<UiProvider>().isUsingPureDark).colorScheme.surfaceContainerHighest)))),
-      child: Stack(
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          InnerCard(previewedTheme: previewedTheme, thisSelected: thisSelected),
-          Material(
-            type: MaterialType.transparency,
-            child: inkWellChild,
+          Expanded (
+            flex: 9,
+            child: Container (
+              width: 90,
+              height: 180,
+              clipBehavior: Clip.hardEdge,
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(strokeAlign: BorderSide.strokeAlignOutside , width: 6, color: thisSelected ? (Theme.of(context).brightness == Brightness.light ? previewedTheme.colorLight.colorScheme.primary : previewedTheme.getDarkMode(context.read<UiProvider>().isUsingPureDark).colorScheme.primary) : ((Theme.of(context).brightness == Brightness.light ? previewedTheme.colorLight.colorScheme.surfaceContainerHighest : previewedTheme.getDarkMode(context.read<UiProvider>().isUsingPureDark).colorScheme.surfaceContainerHighest)))),
+              child: Stack(
+                children: [
+                  InnerCard(previewedTheme: previewedTheme, thisSelected: thisSelected),
+                  Material(
+                    type: MaterialType.transparency,
+                    child: inkWellChild,
+                  ),
+                ],
+              ),
+            ),
           ),
+          const SizedBox(height: 16),
+          Expanded(flex: 1, child: Text(previewedTheme.name, style: TextStyle(color: Theme.of(context).brightness == Brightness.light ? (previewedTheme.colorLight.colorScheme.secondary) : (previewedTheme.colorDark.colorScheme.secondary))))
         ],
-      )
+      ),
     );
   }
 }

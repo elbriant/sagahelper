@@ -69,7 +69,7 @@ class _MyAppState extends State<MyApp> {
                   loadedConfigs = true;
                   return const MainWidget(errorDisplay: Text('Data corrupted!'));
                 }
-
+                
                 loadedConfigs = true;
                 
                 return const MainWidget();
@@ -139,7 +139,6 @@ class MainWidget extends StatefulWidget {
 }
 
 class _MainWidgetState extends State<MainWidget> {
-
   void _navigationBB(int newIndx) {
     setState(() {
       _currentPageIndx = newIndx;
@@ -178,7 +177,6 @@ class _MainWidgetState extends State<MainWidget> {
   }
 }
 
-
 class BottomNavBar extends StatelessWidget {
   final void Function(int) navigationBB;
   final int currentPageIndx;
@@ -195,7 +193,6 @@ class BottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return NavigationBar(
       backgroundColor: Theme.of(context).colorScheme.surfaceContainer.withOpacity(opacity),
-      elevation: 0,
       labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
       onDestinationSelected: navigationBB,
       selectedIndex: currentPageIndx,
@@ -215,10 +212,21 @@ class LoadingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrangeAccent, brightness: MediaQuery.platformBrightnessOf(context))
+      ),
       home: Scaffold(
         body: Center(
-          child: CircularProgressIndicator(),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Image.asset('assets/gif/saga_loading.gif', width: 200, height: 200),
+              const SizedBox(height: 40),
+              const CircularProgressIndicator()
+            ],
+          ),
         ),
       ),
     );
@@ -230,10 +238,21 @@ class ErrorScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrangeAccent, brightness: MediaQuery.platformBrightnessOf(context))
+      ),
       home: Scaffold(
         body: Center(
-          child: Text('Error, restart the app!'),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Image.asset('assets/gif/saga_err.gif', width: 200, height: 200),
+              const SizedBox(height: 40),
+              Text('An error has ocurred, restart the app!', style: TextStyle(color: Theme.of(context).colorScheme.error),)
+            ],
+          ),
         ),
       ),
     );
