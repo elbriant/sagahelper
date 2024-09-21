@@ -121,6 +121,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
   List<Operator> filteredOperatorList = [];
 
   bool isSearching = false;
+  String searchString = '';
 
   @override
   void initState() {
@@ -177,36 +178,76 @@ class _OperatorsPageState extends State<OperatorsPage> {
               }),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: FutureBuilder<List<Operator>>(
-          future: futureOperatorList,
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return const Center(
-                child: Text('An error has occurred!'),
-              );
-            } else if (snapshot.hasData) {
-              finishedFutureOperatorList = snapshot.data!;
-              return OperatorListView(operators: isSearching ? (filteredOperatorList.isEmpty ? snapshot.data! : filteredOperatorList) : snapshot.data!);
-            } else {
-              return const Center(
-                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [CircularProgressIndicator(), SizedBox(height: 30), Text('Loading operators')],),
-              );
-            }
-          },
+      body: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: FutureBuilder<List<Operator>>(
+            future: futureOperatorList,
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return const Center(
+                  child: Text('An error has occurred!'),
+                );
+              } else if (snapshot.hasData) {
+                finishedFutureOperatorList = snapshot.data!;
+        
+                if (isSearching && filteredOperatorList.isEmpty) {
+                  if (searchString == '') {
+                    return OperatorListView(operators: snapshot.data!);
+                  } else {
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset('assets/gif/saga_err.gif', width: 180),
+                          const SizedBox(height: 12),
+                          Text('operator not found', style: TextStyle(color: Theme.of(context).colorScheme.error))
+                        ],
+                      )
+                    );
+                  }
+                } else if (isSearching && filteredOperatorList.isNotEmpty) {
+                  return OperatorListView(operators: filteredOperatorList);
+                } else {
+                  return OperatorListView(operators: snapshot.data!);
+                }
+              } else {
+                return Column(
+                  children: [
+                    const Expanded(flex: 2, child: LinearProgressIndicator()),
+                    Expanded(
+                      flex: 13,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Image.asset('assets/gif/saga_loading.gif', width: 180),
+                            const SizedBox(height: 12),
+                            const Text('loading operators')
+                          ],
+                        )
+                      )
+                    )
+                  ],
+                );
+              }
+            },
+          ),
         ),
       ),
     );
   }
 
   void filterOperatorListByText(String searchText) {
+    searchString = searchText;
     if (searchText != "") {
       setState(() {
         filteredOperatorList = finishedFutureOperatorList.where((logObj) => logObj.name.toLowerCase().contains(searchText.toLowerCase())).toList();
       });
     } else {
-    setState(() {
+      setState(() {
         filteredOperatorList = finishedFutureOperatorList;
       });
     }
