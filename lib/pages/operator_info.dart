@@ -198,7 +198,7 @@ class ArchivePage extends StatelessWidget {
                           TabBar.secondary(
                             indicatorSize: TabBarIndicatorSize.tab,
                             tabs: [
-                              Tab(text: 'Lore'),
+                              Tab(text: 'File'),
                               Tab(text: 'Skills'),
                             ]
                           ),

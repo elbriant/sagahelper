@@ -1,4 +1,5 @@
 import 'package:docsprts/components/theme_preview.dart';
+import 'package:docsprts/providers/settings_provider.dart';
 import 'package:docsprts/providers/ui_provider.dart';
 import 'package:docsprts/themes.dart';
 import 'package:flutter/material.dart';
@@ -74,8 +75,17 @@ class _AppearanceSettingsState extends State<AppearanceSettings> {
     });
   }
 
+  void changeHourFormat (bool newState) {
+    setState(() {
+      context.read<SettingsProvider>().setHourFormat(newState);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+
+    final settings = context.read<SettingsProvider>();
+
     return Scaffold(
       appBar: AppBar(title: const Text('Appearance'), leading: IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.arrow_back))),
       body: ListView(children: [
@@ -107,6 +117,11 @@ class _AppearanceSettingsState extends State<AppearanceSettings> {
         ),
         if (Theme.of(context).brightness == Brightness.dark) SwitchListTile(secondary: context.read<UiProvider>().isUsingPureDark ? const Icon(Icons.remove_red_eye) : const Icon(Icons.remove_red_eye_outlined), subtitle: const Text('makes everything more darker'), title: const Text('Pure dark mode'), value: context.read<UiProvider>().isUsingPureDark, onChanged: (state) => pureDarkChange(state)),
         SwitchListTile(secondary: context.read<UiProvider>().useTranslucentUi ? const Icon(Icons.blur_on) : const Icon(Icons.blur_off), subtitle: const Text('makes UI transparent and blurry (performance cost!)'), title: const Text('Traslucent UI'), value: context.read<UiProvider>().useTranslucentUi, onChanged: (state) => traslucentChange(state)),
+        ListTile(title: const Text('Home settings'), textColor: Theme.of(context).colorScheme.primary),
+        SwitchListTile(secondary: const Icon(Icons.access_time), title: const Text('12-hour format'), value: settings.homeHour12Format, onChanged: (state) => setState((){settings.setHourFormat(state);})),
+        SwitchListTile(secondary: const Icon(Icons.date_range), title: const Text('Show server date'), value: settings.homeShowDate, onChanged: (state) => setState((){settings.sethomeShowDate(state);})),
+        SwitchListTile(title: const Text('Show seconds'), value: settings.homeShowSeconds, onChanged: (state) => setState((){settings.sethomeShowSeconds(state);})),
+        SwitchListTile(title: const Text('Compact mode'), value: settings.homeCompactMode, onChanged: (state) => setState((){settings.sethomeCompactMode(state);}))
       ]),
     );
   }

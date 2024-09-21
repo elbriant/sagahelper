@@ -3,16 +3,7 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:async';
 import 'dart:io';
 
-// Operators Page Flags
-int operatorSearchDelegate = 2;
 bool loadedConfigs = false;
-
-bool operatorDisplayAvatar = true;
-bool operatorDisplayPotrait = false;
-void setDisplayChip (bool newState, String chip) {
-  chip != 'avatar' ? operatorDisplayAvatar = false : operatorDisplayAvatar = true;
-  chip != 'potrait' ? operatorDisplayPotrait = false : operatorDisplayPotrait = true;
-}
 
 class LocalDataManager {
   final String configPath = 'configs.txt';

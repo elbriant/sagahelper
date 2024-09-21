@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:docsprts/components/operator_container.dart';
-import 'package:docsprts/global_data.dart' as globals;
+import 'package:docsprts/providers/settings_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
@@ -228,6 +228,8 @@ class _OperatorsPageState extends State<OperatorsPage> {
       builder: (BuildContext context) {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setModalState){
+            final readSearchProvider = context.read<SettingsProvider>();
+
             return DefaultTabController(
               initialIndex: 0,
               length: 3,
@@ -255,8 +257,8 @@ class _OperatorsPageState extends State<OperatorsPage> {
                                 child: Wrap (
                                   spacing: 10,
                                   children: [
-                                    ChoiceChip(label: const Text('Avatar'), selected: globals.operatorDisplayAvatar, onSelected: (bools){setState((){ setModalState((){globals.setDisplayChip(bools, 'avatar');}); });}),
-                                    ChoiceChip(label: const Text('Portrait'), selected: globals.operatorDisplayPotrait, onSelected: (bools){setState((){ setModalState((){globals.setDisplayChip(bools, 'potrait');}); });}),
+                                    ChoiceChip(label: const Text('Avatar'), selected: readSearchProvider.getDisplayChip('avatar'), onSelected: (_) => setModalState(() => readSearchProvider.setDisplayChip('avatar'))),
+                                    ChoiceChip(label: const Text('Portrait'), selected: readSearchProvider.getDisplayChip('portrait'), onSelected: (_) => setModalState(() => readSearchProvider.setDisplayChip('portrait'))),
                                   ],
                                 ),
                               ),
@@ -264,7 +266,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
                                 mainAxisSize: MainAxisSize.max,
                                 children: [
                                   const Expanded(flex: 3, child: Center(child: Text('row show'))),
-                                  Expanded(flex: 7, child: Center(child: Slider(min: 2, max: 5, divisions: 3, value: globals.operatorSearchDelegate.toDouble(), label: globals.operatorSearchDelegate.toString(), onChanged: (value) {setState((){ setModalState((){globals.operatorSearchDelegate = value.round().toInt();}); });}, allowedInteraction: SliderInteraction.tapAndSlide)))
+                                  Expanded(flex: 7, child: Center(child: Slider(min: 2, max: 5, divisions: 3, value: readSearchProvider.operatorSearchDelegate.toDouble(), label: readSearchProvider.operatorSearchDelegate.toString(), onChanged: (value) => setModalState(() => readSearchProvider.operatorSearchDelegate = value.round().toInt()), allowedInteraction: SliderInteraction.tapAndSlide)))
                                 ],
                               )
                             ],
@@ -298,7 +300,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
           }
         );
       },
-    );
+    ).whenComplete((){if (context.mounted) context.read<SettingsProvider>().writeOpPageSettings();});
   }
 }
 
@@ -308,6 +310,9 @@ class OperatorListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+  
+    final settings = context.watch<SettingsProvider>();
+
     return RawScrollbar(
       thickness: 12,
       interactive: true,
@@ -323,7 +328,7 @@ class OperatorListView extends StatelessWidget {
             bottom:
                 132.0), //hard coded, for top and bottom should get appbar's height and bottomNavBar height respectively
         itemCount: operators.length,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: globals.operatorSearchDelegate, childAspectRatio: globals.operatorDisplayPotrait ? 0.55 : 1.0),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: settings.operatorSearchDelegate, childAspectRatio: settings.getDisplayChip('portrait') ? 0.55 : 1.0),
         itemBuilder: (context, index) {
           return OperatorContainer(index: index, operator: operators[index]);
         },

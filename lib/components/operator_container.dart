@@ -3,11 +3,10 @@ import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:docsprts/pages/operator_info.dart';
 import 'package:docsprts/pages/operators_page.dart';
+import 'package:docsprts/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:glass_kit/glass_kit.dart';
-
-
-import 'package:docsprts/global_data.dart' as globals;
+import 'package:provider/provider.dart';
 
 const List<Color?> rarityColors = [null,Color(0xFF9c9c9c),Color(0xFFd8dd5a),Color(0xFF4aabea),Color(0xFFcfc2d1),Color(0xFFf1c644), Color.fromARGB(255, 255, 93, 12)];
 
@@ -29,11 +28,10 @@ class OperatorContainer extends StatelessWidget {
     final String ghAvatarLink = 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/charavatars/${operator.id}.png';
     final String ghPotraitLink = 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/charportraits/${operator.id}_1.png';
 
-
+    final settings = context.watch<SettingsProvider>();
     
-    String imgLink = '';
-    if (globals.operatorDisplayAvatar) {imgLink = ghAvatarLink;} 
-    else if (globals.operatorDisplayPotrait) {imgLink = ghPotraitLink;}
+    // TODO should change in case is not only two options
+    String imgLink = settings.getDisplayChip('avatar') ? ghAvatarLink : ghPotraitLink;
 
     return GlassContainer(
       isFrostedGlass: true,
@@ -60,7 +58,7 @@ class OperatorContainer extends StatelessWidget {
           Container(decoration: BoxDecoration(borderRadius: BorderRadius.circular(10.0), gradient: const LinearGradient(colors: [Color.fromARGB(0, 0, 0, 0), Color.fromARGB(255, 0, 0, 0)],stops: [0.65, 1],begin: Alignment.topCenter,end: Alignment.bottomCenter,)),),
           Padding(
             padding: const EdgeInsets.only(bottom: 2.5),
-            child: Text(globals.operatorSearchDelegate <=4 ? operator.name : '', textAlign: TextAlign.center, textScaler: TextScaler.linear(operator.name.length <= 7 ? 1 : globals.operatorSearchDelegate >= 3 ? (clampDouble(8/operator.name.length, 0.6, 1)) : 1), style: const TextStyle(color: Colors.white),),
+            child: Text(settings.operatorSearchDelegate <=4 ? operator.name : '', textAlign: TextAlign.center, textScaler: TextScaler.linear(operator.name.length <= 7 ? 1 : settings.operatorSearchDelegate >= 3 ? (clampDouble(8/operator.name.length, 0.6, 1)) : 1), style: const TextStyle(color: Colors.white),),
           ),
           Material(
             type: MaterialType.transparency,

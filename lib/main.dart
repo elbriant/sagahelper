@@ -4,10 +4,10 @@ import 'package:docsprts/pages/operators_page.dart';
 import 'package:docsprts/pages/info_page.dart';
 import 'package:docsprts/pages/settings_page.dart';
 import 'package:docsprts/pages/tools_page.dart';
+import 'package:docsprts/providers/settings_provider.dart';
 import 'package:docsprts/providers/ui_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:docsprts/themes.dart';
 import 'package:provider/provider.dart';
 import 'package:docsprts/global_data.dart';
 
@@ -44,7 +44,8 @@ class _MyAppState extends State<MyApp> {
     );
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => UiProvider())
+        ChangeNotifierProvider(create: (context) => UiProvider()),
+        ChangeNotifierProvider(create: (context) => SettingsProvider()),
       ],
       builder: (context, child) {
         if (loadedConfigs == true) {
@@ -57,21 +58,29 @@ class _MyAppState extends State<MyApp> {
                 resetConfigs(context);
                 return const ErrorScreen();
               } else if (snapshot.hasData) {
+                var errorString = '';
+
+                try {
+                  //ui
+                  context.read<UiProvider>().setValues((snapshot.data as Map)['ui_configs']);
+                } catch (e) {
+                  errorString += ' [ui error]';
+                }
+
                 try {
                   //settings
-                  context.read<UiProvider>().currentTheme = allCustomThemesList[(snapshot.data as Map)['currentTheme']];
-                  context.read<UiProvider>().themeMode = listAllThemeModes[(snapshot.data as Map)['themeMode']];
-                  context.read<UiProvider>().isUsingPureDark = (snapshot.data as Map)['isUsingPureDark'];
-                  context.read<UiProvider>().useTranslucentUi = (snapshot.data as Map)['useTranslucentUi'];
-                  context.read<UiProvider>().previewThemeIndexSelected = (snapshot.data as Map)['previewThemeIndexSelected'];
-                } catch (e) {
+                  context.read<SettingsProvider>().setValues((snapshot.data as Map)['settings_configs']);
+                }catch (e) {
+                  errorString += ' [settings error]';
+                }
+
+                if (errorString != '') {
                   resetConfigs(context);
                   loadedConfigs = true;
-                  return const MainWidget(errorDisplay: Text('Data corrupted!'));
+                  return MainWidget(errorDisplay: Text('Data corrupted! $errorString'));
                 }
                 
                 loadedConfigs = true;
-                
                 return const MainWidget();
               } else {
                 return const LoadingScreen();
@@ -85,45 +94,28 @@ class _MyAppState extends State<MyApp> {
 }
 
 resetConfigs(BuildContext context) async {
-  context.read<UiProvider>().currentTheme = allCustomThemesList[0];
-  context.read<UiProvider>().themeMode = listAllThemeModes[0];
-  context.read<UiProvider>().isUsingPureDark = false;
-  context.read<UiProvider>().useTranslucentUi = false;
-  context.read<UiProvider>().previewThemeIndexSelected = 0;
+  context.read<UiProvider>().setDefaultValues();
+  context.read<SettingsProvider>().setDefaultValues();
 
   final configs = LocalDataManager();
   await configs.resetConfig();
-  await configs.writeConfigMap({
-      'currentTheme': 0,
-      'themeMode': 0,
-      'isUsingPureDark': false,
-      'useTranslucentUi': false,
-      'previewThemeIndexSelected' : 0
-  });
+  await UiProvider().writeDefaultValues();
+  await SettingsProvider().writeDefaultValues();
 }
 
 loadConfigs() async {
   final configs = LocalDataManager();
-
   var firstcheck = await configs.existConfig();
 
   if (firstcheck != true) {
     // default first configs
-    await configs.writeConfigMap({
-      'currentTheme': 0,
-      'themeMode': 0,
-      'isUsingPureDark': false,
-      'useTranslucentUi': false,
-      'previewThemeIndexSelected' : 0
-    });
+    await UiProvider().writeDefaultValues();
+    await SettingsProvider().writeDefaultValues();
   }
 
   var loadedConfigs = {
-    'currentTheme': await configs.readConfig('currentTheme'),
-    'themeMode': await configs.readConfig('themeMode'),
-    'isUsingPureDark': await configs.readConfig('isUsingPureDark'),
-    'useTranslucentUi': await configs.readConfig('useTranslucentUi'),
-    'previewThemeIndexSelected' : await configs.readConfig('previewThemeIndexSelected')
+    'ui_configs' : await UiProvider().loadValues(),
+    'settings_configs' : await SettingsProvider().loadValues()
   };
 
   return loadedConfigs;

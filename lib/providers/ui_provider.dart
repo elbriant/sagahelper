@@ -18,6 +18,42 @@ class UiProvider extends ChangeNotifier {
     this.themeMode = ThemeMode.dark,
   });
 
+  writeDefaultValues () async {
+    return await _configs.writeConfigMap({
+      'currentTheme': 0,
+      'themeMode': 0,
+      'isUsingPureDark': false,
+      'useTranslucentUi': false,
+      'previewThemeIndexSelected' : 0,
+    });
+  }
+
+  setDefaultValues () {
+    currentTheme = allCustomThemesList[0];
+    themeMode = listAllThemeModes[0];
+    isUsingPureDark = false;
+    useTranslucentUi = false;
+    previewThemeIndexSelected = 0;
+  }
+
+  loadValues () async {
+    return {
+      'currentTheme': await _configs.readConfig('currentTheme'),
+      'themeMode': await _configs.readConfig('themeMode'),
+      'isUsingPureDark': await _configs.readConfig('isUsingPureDark'),
+      'useTranslucentUi': await _configs.readConfig('useTranslucentUi'),
+      'previewThemeIndexSelected' : await _configs.readConfig('previewThemeIndexSelected'),
+    };
+  }
+
+  setValues (Map configs) {
+    currentTheme = allCustomThemesList[configs['currentTheme']];
+    themeMode = listAllThemeModes[configs['themeMode']];
+    isUsingPureDark = configs['isUsingPureDark'];
+    useTranslucentUi = configs['useTranslucentUi'];
+    previewThemeIndexSelected = configs['previewThemeIndexSelected'];
+  }
+
   void changeTheme ({
     required CustomTheme newTheme,
   }) async {
