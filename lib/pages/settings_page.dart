@@ -1,4 +1,5 @@
 import 'package:docsprts/components/theme_preview.dart';
+import 'package:docsprts/components/traslucent_ui.dart';
 import 'package:docsprts/providers/settings_provider.dart';
 import 'package:docsprts/providers/ui_provider.dart';
 import 'package:docsprts/themes.dart';
@@ -31,7 +32,7 @@ class _SettingsPageState extends State<SettingsPage> {
           const Divider(), // top : quick switches / bot: more
           ListTile(title: const Text('Appearance'),leading: const Icon(Icons.color_lens), onTap: () {Navigator.push(context, MaterialPageRoute(allowSnapshotting: false, builder: (context) => const AppearanceSettings()));}, ),
           ListTile(title: const Text('Language'), subtitle: const Text('WIP'), leading: const Icon(Icons.language), onTap: (){}),
-          ListTile(title: const Text('Server'), subtitle: const Text('WIP'), leading: const Icon(Icons.settings_ethernet), onTap: () {}),
+          ListTile(title: const Text('Server'), leading: const Icon(Icons.settings_ethernet), onTap: () {Navigator.push(context, MaterialPageRoute(allowSnapshotting: false, builder: (context) => const ServerSettings()));}),
           const Divider(), // bot about and data
           ListTile(title: const Text('About'),leading: const Icon(Icons.info_outline), onTap: () {Navigator.push(context, MaterialPageRoute(allowSnapshotting: false, builder: (context) => const AboutSettings()));}),
         ],
@@ -87,7 +88,12 @@ class _AppearanceSettingsState extends State<AppearanceSettings> {
     final settings = context.read<SettingsProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Appearance'), leading: IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.arrow_back))),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3,child: Container(color: Colors.transparent)) : null,
+        backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
+        title: const Text('Appearance'), leading: IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.arrow_back))
+      ),
       body: ListView(children: [
         ListTile(title: const Text('Color scheme'), textColor: Theme.of(context).colorScheme.primary),
         Padding(
@@ -127,6 +133,44 @@ class _AppearanceSettingsState extends State<AppearanceSettings> {
   }
 }
 
+
+// -------------------------- Server Page ---------------------------------------
+
+class ServerSettings extends StatelessWidget {
+  const ServerSettings({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = context.read<SettingsProvider>();
+
+    void changedServer (int server) {
+      settings.changeServer(server);
+      Navigator.pop(context);
+    }
+
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3,child: Container(color: Colors.transparent)) : null,
+        backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
+        title: const Text('Server'), leading: IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.arrow_back))
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: ListView(
+          children: [
+            ListTile(title: const Text('EN'), subtitle: settings.currentServerString == 'en' ? Text('Selected', style: TextStyle(color: Theme.of(context).colorScheme.primary)) : null, onTap: ()=>changedServer(0)),
+            const Divider(),
+            ListTile(title: const Text('CN'), subtitle: settings.currentServerString == 'cn' ? Text('Selected', style: TextStyle(color: Theme.of(context).colorScheme.primary)) : null, onTap: ()=>changedServer(1)),
+            const Divider(),
+            ListTile(title: const Text('JP'), subtitle: settings.currentServerString == 'jp' ? Text('Selected', style: TextStyle(color: Theme.of(context).colorScheme.primary)) : null, onTap: ()=>changedServer(2)),
+          ]
+        ),
+      ),
+    );
+  }
+}
+
 // -------------------------- About Settings Page ----------------------------
 class AboutSettings extends StatelessWidget {
   const AboutSettings({super.key});
@@ -134,7 +178,12 @@ class AboutSettings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('About'), leading: IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.arrow_back))),
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3,child: Container(color: Colors.transparent)) : null,
+        backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
+        title: const Text('About'), leading: IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.arrow_back))
+      ),
       body: ListView(
         children: [
           SizedBox(height: 220, child: DrawerHeader(child: Image.asset('assets/gif/saga_about.gif', alignment: Alignment.center, fit: BoxFit.cover))),

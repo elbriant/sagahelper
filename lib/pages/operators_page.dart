@@ -178,9 +178,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
               }),
         ],
       ),
-      body: SafeArea(
-        top: false,
-        child: Padding(
+      body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: FutureBuilder<List<Operator>>(
             future: futureOperatorList,
@@ -213,30 +211,30 @@ class _OperatorsPageState extends State<OperatorsPage> {
                   return OperatorListView(operators: snapshot.data!);
                 }
               } else {
-                return Column(
-                  children: [
-                    const Expanded(flex: 2, child: LinearProgressIndicator()),
-                    Expanded(
-                      flex: 13,
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Image.asset('assets/gif/saga_loading.gif', width: 180),
-                            const SizedBox(height: 12),
-                            const Text('loading operators')
-                          ],
+                return SafeArea(
+                  child: Column(
+                    children: [
+                      const LinearProgressIndicator(),
+                      Expanded(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Image.asset('assets/gif/saga_loading.gif', width: 180),
+                              const SizedBox(height: 12),
+                              const Text('loading operators')
+                            ],
+                          )
                         )
                       )
-                    )
-                  ],
+                    ],
+                  ),
                 );
               }
             },
           ),
         ),
-      ),
     );
   }
 
@@ -362,12 +360,12 @@ class OperatorListView extends StatelessWidget {
       mainAxisMargin: 4,
       thumbColor: Theme.of(context).colorScheme.secondary.withOpacity(0.8),
       child: GridView.builder(
-        padding: const EdgeInsets.only(
-            top: 100.0,
+        padding: EdgeInsets.only(
+            top: MediaQuery.paddingOf(context).top+4.0,
             left: 4.0,
             right: 4.0,
-            bottom:
-                132.0), //hard coded, for top and bottom should get appbar's height and bottomNavBar height respectively
+            bottom: MediaQuery.paddingOf(context).bottom+4.0
+          ), //hard coded, for top and bottom should get appbar's height and bottomNavBar height respectively
         itemCount: operators.length,
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: settings.operatorSearchDelegate, childAspectRatio: settings.getDisplayChip('portrait') ? 0.55 : 1.0),
         itemBuilder: (context, index) {

@@ -45,7 +45,7 @@ class _HomePageState extends State<HomePage> {
     final settings = context.read<SettingsProvider>();
 
     return Scaffold(
-      extendBody: true,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text('News'),
         flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3,child: Container(color: Colors.transparent)) : null,
@@ -54,7 +54,7 @@ class _HomePageState extends State<HomePage> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: EdgeInsets.fromLTRB(24.0, MediaQuery.paddingOf(context).top+AppBar().preferredSize.height+24.0, 24.0, MediaQuery.paddingOf(context).bottom+24.0),
           child: Column(
             children: [
             SizedBox(
@@ -65,15 +65,15 @@ class _HomePageState extends State<HomePage> {
                       Expanded(
                         child: Row(
                           children: [
-                            Expanded(child: Text('Local Reset Time: $localResetString')),
-                            Expanded(child: Text('Server: ${settings.currentServerString.toUpperCase()}\n$serverTimeString'))
+                            Expanded(child: Center(child: Text('Local Reset Time: \n$localResetString'))),
+                            Expanded(child: Center(child: Text('Server: ${settings.currentServerString.toUpperCase()}\n$serverTimeString')))
                           ],
                         ),
                       ),
                       Expanded(
                         child: Row(
                           children: [
-                            Expanded(child: Text('Time until reset: $timeUntilReset')),
+                            Expanded(child: Center(child: Text('Time until reset: \n$timeUntilReset'))),
                           ],
                         ),
                       )
@@ -81,10 +81,6 @@ class _HomePageState extends State<HomePage> {
                   ),
               ),
             ),
-            ElevatedButton(onPressed: ()=> settings.changeServer(0), child: Text('en')),
-            ElevatedButton(onPressed: ()=> settings.changeServer(1), child: Text('cn')),
-            ElevatedButton(onPressed: ()=> settings.changeServer(2), child: Text('jp')),
-            SizedBox(height: 600, child: Placeholder(),)
           ]
           ),
         ),
