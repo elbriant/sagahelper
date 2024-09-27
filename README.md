@@ -8,6 +8,11 @@ A fanmade Arknights app tool
 ## Downloads
 Get the lastest version in [releases](https://github.com/elbriant/docsprts/releases)
 
+## Suggestions and contributions
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+Feel free to open a issue for suggestions or bugs reports!
+Before reporting a new issue, take a look at the already opened issues.
+
 ## To-do's
 - Story Reader
 - Penguin Logistics implementation
