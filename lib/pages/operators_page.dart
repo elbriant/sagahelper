@@ -9,20 +9,11 @@ import 'package:autoscale_tabbarview/autoscale_tabbarview.dart';
 import 'package:provider/provider.dart';
 import 'package:docsprts/providers/ui_provider.dart';
 import 'package:docsprts/components/traslucent_ui.dart';
+import 'package:docsprts/components/utils.dart';
 
-
-const Map<String, int> rticonv = {
-  "TIER_6": 6,
-  "TIER_5": 5,
-  "TIER_4": 4,
-  "TIER_3": 3,
-  "TIER_2": 2,
-  "TIER_1": 1,
-};
-
-int rarityToInt(String tier) {
-  return rticonv[tier]!;
-}
+const List<String> professionList = ['caster', 'medic', 'pioneer', 'sniper', 'special', 'support', 'tank', 'warrior'];
+//TODO complete this for filters
+const List<String> subProfessionList = ['agent', 'alchemist', 'aoesniper', 'artsfghter', 'artsprotector', 'bard', 'bearer', 'blastcaster', 'blessing', 'bombarder', 'centurion', 'chain', 'chainhealer', 'charger', ''];
 
 class Operator {
   final Map<String, dynamic> operatorDict;
@@ -40,8 +31,9 @@ class Operator {
   final String subProfessionId;
   final String itemUsage;
   final String itemDesc;
+  final List<String> names;
 
-  const Operator({
+  Operator({
     required this.operatorDict,
     required this.id,
     required this.name,
@@ -56,16 +48,79 @@ class Operator {
     required this.subProfessionId,
     required this.tagList,
     required this.itemUsage,
-    required this.itemDesc
-
+    required this.itemDesc,
+    required this.names
   });
 
+  String professionTranslate (String prof) => switch (prof) {
+    'pioneer' => 'Vanguard',
+    'special' => 'Specialist',
+    'support' => 'Supporter',
+    'tank' => 'Defender',
+    'warrior' => 'Guard',
+    String() => prof.capitalize(),
+  };
+
+  String get professionString => professionTranslate(profession.toLowerCase());
+
+  //TODO earthshaker subclass
+  String subProfessionTranslate(String subprof) => switch (subprof) {
+    'corecaster' => 'Core',
+    'splashcaster' => 'Splash',
+    'blastcaster' => 'Blast',
+    'funnel' => 'Mech-Accord',
+    'primcaster' => 'Primal',
+    'unyield' => 'Juggernaut',
+    'artsprotector' => 'Arts Protector',
+    'shotprotector' => 'Sentry Protector',
+    'fearless' => 'Dreadnought',
+    'artsfghter' => 'Arts Fighter',
+    'sword' => 'Swordmaster',
+    'musha' => 'Soloblade',
+    'librator' => 'Liberator',
+    'physician' => 'Medic',
+    'ringhealer' => 'Multi-Target',
+    'healer' => 'Therapist',
+    'wandermedic' => 'Wandering',
+    'incantationmedic' => 'Incantation',
+    'chainhealer' => 'Chain',
+    'fastshot' => 'Marksman',
+    'aoesniper' => 'Artilleryman',
+    'longrange' => 'Deadeye',
+    'closerange' => 'Heavyshooter',
+    'reaperrange' => 'Spreadshooter',
+    'siegesniper' => 'Besieger',
+    'bombarder' => 'Flinger',
+    'pusher' => 'Push Stroker',
+    'stalker' => 'Ambusher',
+    'traper' => 'Trapmaster',
+    'slower' => 'Dencel Binder',
+    'underminer' => 'Hexer',
+    'blessing' => 'Abjurer',
+    'craftsman' => 'Artificer',
+    'bearer' => 'Standard Bearer',
+    String() => subprof.capitalize()
+  };
+
+  String get subProfessionString => subProfessionTranslate(subProfessionId.toLowerCase());
+
   factory Operator.fromJson(String key, Map<String, dynamic> dict) {
+    //custom names
+    String name = dict['name'];
+    var names = <String>[name];
+
+    if (name == 'Pozëmka') names.addAll(['pozemka']);
+    if (name == 'Rosa') names.addAll(['poca']);
+    if (name == 'Ling') names.addAll(['blue woman']);
+    if (name == "Ch'en" || name == "Ch'en the Holungday") names.addAll(['chen', 'blue woman']);
+    if (name == 'Młynar') names.addAll(['mlynar', 'milnar']);
+
+
     return Operator(
         operatorDict: dict,
         id: key,
         name: dict['name'],
-        rarity: rarityToInt(dict['rarity']),
+        rarity: int.parse((dict['rarity'] as String).replaceAll('TIER_', '')),
         description: dict['description'],
         displayNumber: dict['displayNumber'],
         groupId: dict['groupId'],
@@ -76,7 +131,8 @@ class Operator {
         subProfessionId: dict['subProfessionId'],
         tagList: dict['tagList'],
         itemUsage: dict['itemUsage'],
-        itemDesc: dict['itemDesc']
+        itemDesc: dict['itemDesc'],
+        names: names,
     );
   }
 }
@@ -118,9 +174,11 @@ class _OperatorsPageState extends State<OperatorsPage> {
 
   late Future<List<Operator>> futureOperatorList;
   List<Operator> finishedFutureOperatorList = [];
+  List<Operator> sortedOperatorList = [];
   List<Operator> filteredOperatorList = [];
 
   bool isSearching = false;
+  bool sorted = false;
   String searchString = '';
 
   @override
@@ -189,10 +247,23 @@ class _OperatorsPageState extends State<OperatorsPage> {
                 );
               } else if (snapshot.hasData) {
                 finishedFutureOperatorList = snapshot.data!;
+
+                if (!sorted) {
+                  // sorting
+                  // by letters
+                  //finishedFutureOperatorList.sort((a,b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+                  // by rarity
+                  finishedFutureOperatorList.sort((a,b) => a.rarity.compareTo(b.rarity));
+                  finishedFutureOperatorList = finishedFutureOperatorList.reversed.toList();
+
+                  sortedOperatorList = finishedFutureOperatorList;
+                  sorted = true;
+                }
+                
         
                 if (isSearching && filteredOperatorList.isEmpty) {
                   if (searchString == '') {
-                    return OperatorListView(operators: snapshot.data!);
+                    return OperatorListView(operators: sortedOperatorList);
                   } else {
                     return Center(
                       child: Column(
@@ -208,7 +279,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
                 } else if (isSearching && filteredOperatorList.isNotEmpty) {
                   return OperatorListView(operators: filteredOperatorList);
                 } else {
-                  return OperatorListView(operators: snapshot.data!);
+                  return OperatorListView(operators: sortedOperatorList);
                 }
               } else {
                 return SafeArea(
@@ -242,19 +313,13 @@ class _OperatorsPageState extends State<OperatorsPage> {
     searchString = searchText;
     if (searchText != "") {
       setState(() {
-        filteredOperatorList = finishedFutureOperatorList.where((logObj) => logObj.name.toLowerCase().contains(searchText.toLowerCase())).toList();
+        filteredOperatorList = sortedOperatorList.where((logObj) => logObj.names.any((name) => name.toLowerCase().contains(searchText.toLowerCase()))).toList();
       });
     } else {
       setState(() {
-        filteredOperatorList = finishedFutureOperatorList;
+        filteredOperatorList = [];
       });
     }
-  }
-
-  void searchOperator() {
-    setState(() {
-      isSearching = true;
-    });
   }
 
   void showFilters(BuildContext context) {

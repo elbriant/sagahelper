@@ -79,6 +79,9 @@ flutter:
     - assets/gif/saga_err.gif
     - assets/gif/saga_loading.gif
     - assets/gif/ceobe_more.gif
+    - assets/orundum.webp
+    - assets/classes/
+    - assets/subclasses/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

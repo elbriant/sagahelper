@@ -191,7 +191,7 @@ class BottomNavBar extends StatelessWidget {
       destinations: const [
         NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home', selectedIcon: Icon(Icons.home)),
         NavigationDestination(icon: Icon(Icons.person_search_outlined), label: 'Operators', selectedIcon: Icon(Icons.person_search)),
-        NavigationDestination(icon: Icon(Icons.receipt_long_outlined), label: 'Extra', selectedIcon: Icon(Icons.receipt_long)),
+        NavigationDestination(icon: Icon(Icons.library_books_outlined), label: 'Extra', selectedIcon: Icon(Icons.library_books)),
         NavigationDestination(icon: Icon(Icons.app_shortcut_outlined), label: 'Tools', selectedIcon: Icon(Icons.app_shortcut)),
         NavigationDestination(icon: Icon(Icons.settings_outlined), label: 'More', selectedIcon: Icon(Icons.settings)),
       ],
@@ -209,6 +209,7 @@ class LoadingScreen extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrangeAccent, brightness: MediaQuery.platformBrightnessOf(context))
       ),
       home: Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.surfaceDim,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

@@ -47,6 +47,8 @@ class HeaderInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final professionStr = 'assets/classes/class_${operator.profession.toLowerCase()}.png';
+    final subprofessionStr = 'assets/subclasses/sub_${operator.subProfessionId.toLowerCase()}_icon.png';
 
     final String ghAvatarLink = 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/charavatars/${operator.id}.png';
     String? logo = operator.teamId ?? operator.groupId ?? operator.nationId;
@@ -62,7 +64,7 @@ class HeaderInfo extends StatelessWidget {
           logo != null ? Positioned(right: 1, top: 125, child: Container(decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: Theme.of(context).colorScheme.primary.withOpacity(0.25) , spreadRadius: 40, blurRadius: 55)]), child: CachedNetworkImage(colorBlendMode: BlendMode.modulate, color: const Color.fromARGB(150, 255, 255, 255), imageUrl: ghLogoLink, scale: 2.5,))) : Container(),
           Column(
             children: [
-              const SizedBox(height: 145),
+              SizedBox(height: const SliverAppBar.medium().toolbarHeight*2),
               Row(
                 children: [
                   Expanded(
@@ -120,29 +122,28 @@ class HeaderInfo extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('some info XD', style: Theme.of(context).brightness == Brightness.dark ? const TextStyle(shadows: [Shadow(color: Colors.black, blurRadius: 6)]) : null),
-                        Text('${operator.displayNumber} / ${operator.id}', style: Theme.of(context).brightness == Brightness.dark ? const TextStyle(shadows: [Shadow(color: Colors.black, blurRadius: 6)]) : null,)
-                      ],
-                    )
-                  )
+                  const Expanded(child: SizedBox())
                 ],
               ),
               Padding(
                 padding: const EdgeInsets.all(12.0),
-                child: Text(operator.itemUsage),
+                child: Text.rich(
+                  TextSpan(
+                    children: [
+                      TextSpan(text: '[${operator.displayNumber} / ${operator.id}]\n', style: TextStyle(color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.5) , fontStyle: FontStyle.italic)),
+                      TextSpan(text: operator.itemUsage),
+                      TextSpan(text: '\n${operator.itemDesc}', style: const TextStyle(fontStyle: FontStyle.italic))
+                    ]
+                  )
+                ),
               ),
               Wrap(
-                spacing: 12.0,
-                children: List.generate(operator.tagList.length+1, (indx) {
-                  if (indx == 0) {
-                    return ActionChip(label: Text(operator.position), side: BorderSide(color: operator.position == 'RANGED' ? Colors.yellow[600]! : Colors.red), onPressed: (){});
-                  }
-                  return ActionChip(label: Text(operator.tagList[indx-1]), side: BorderSide(color: Theme.of(context).colorScheme.tertiary), onPressed: (){});
+                spacing: 8.0,
+                children: List.generate(operator.tagList.length+3, (index) {
+                  if (index == 0) return ActionChip(label: Text(operator.professionString), avatar: Image.asset(professionStr), backgroundColor: Theme.of(context).brightness == Brightness.light ? Theme.of(context).colorScheme.primary.withOpacity(0.7) : null, labelStyle: Theme.of(context).brightness == Brightness.light ? const TextStyle(color: Colors.white) : null, onPressed: (){});
+                  if (index == 1) return ActionChip(label: Text(operator.subProfessionString), avatar: Image.asset(subprofessionStr), backgroundColor: Theme.of(context).brightness == Brightness.light ? Theme.of(context).colorScheme.primary.withOpacity(0.7) : null, labelStyle: Theme.of(context).brightness == Brightness.light ? const TextStyle(color: Colors.white) : null, onPressed: (){});
+                  if (index == 2) return ActionChip(label: Text(operator.position), side: BorderSide(color: operator.position == 'RANGED' ? Colors.yellow[600]! : Colors.red), onPressed: (){});
+                  return ActionChip(label: Text(operator.tagList[index-3]), side: BorderSide(color: Theme.of(context).colorScheme.tertiary), onPressed: (){});
                 }),
               )
             ],

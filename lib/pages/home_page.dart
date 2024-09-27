@@ -1,5 +1,3 @@
-// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
-
 import 'dart:async';
 import 'package:docsprts/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +23,7 @@ class _HomePageState extends State<HomePage> {
   late String localTimeString;
   late String localResetString;
   late String timeUntilReset;
+  late String orundumResetString;
   late Timer timer;
 
   @override
@@ -57,19 +56,21 @@ class _HomePageState extends State<HomePage> {
           padding: EdgeInsets.fromLTRB(24.0, MediaQuery.paddingOf(context).top+AppBar().preferredSize.height+24.0, 24.0, MediaQuery.paddingOf(context).bottom+24.0),
           child: Column(
             children: [
-            SizedBox(
-              height: 150,
-              child: Card.filled(
-                child: Column(
+              SizedBox(
+                height: !settings.homeCompactMode ? 150 : 75,
+                child: Card.filled(
+                  color: Theme.of(context).colorScheme.secondaryContainer,
+                  elevation: 2,
+                  child: Column(
                     children: [
-                      Expanded(
+                      !settings.homeCompactMode ? Expanded(
                         child: Row(
                           children: [
                             Expanded(child: Center(child: Text('Local Reset Time: \n$localResetString'))),
                             Expanded(child: Center(child: Text('Server: ${settings.currentServerString.toUpperCase()}\n$serverTimeString')))
                           ],
                         ),
-                      ),
+                      ) : Container(),
                       Expanded(
                         child: Row(
                           children: [
@@ -79,9 +80,40 @@ class _HomePageState extends State<HomePage> {
                       )
                     ],
                   ),
+                ),
               ),
-            ),
-          ]
+              const SizedBox(height: 40),
+              GlassContainer.clearGlass(
+                height: 120,
+                borderRadius: BorderRadius.circular(12),
+                padding: const EdgeInsets.all(2.0),
+                gradient: LinearGradient(
+                  colors: [Theme.of(context).colorScheme.tertiaryContainer.withOpacity(0.40), Theme.of(context).colorScheme.tertiaryContainer.withOpacity(0.10)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderGradient: LinearGradient(
+                  colors: [const Color(0xffff0000), Theme.of(context).colorScheme.primary.withOpacity(0.40)],
+                  stops: const [0.25, 0.75],
+                  begin: Alignment.bottomLeft,
+                  end: Alignment.topRight,
+                )
+                ,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Stack(
+                    children: [
+                      Image.asset('assets/orundum.webp', scale: 1.8, fit: BoxFit.none, width: double.maxFinite, alignment: const Alignment(-0.8, 0.2), colorBlendMode: BlendMode.modulate, color: Colors.white.withOpacity(0.7)),
+                      Container(width: double.maxFinite, height: double.maxFinite, alignment: Alignment.center, decoration: BoxDecoration(boxShadow: [BoxShadow(color: Theme.of(context).colorScheme.surface.withOpacity(0.4), spreadRadius: -20, blurStyle: BlurStyle.normal, blurRadius: 25)]), child: Text('Time until weekly orundum reset: \n$orundumResetString'))
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 40),
+              const SizedBox(height: 60, child: Center(child: Text('planning to add "open today" tab'),)),
+              const SizedBox(height: 40),
+              const SizedBox(height: 60, child: Center(child: Text('planning to add more...'),)),
+            ]
           ),
         ),
       ),
@@ -108,16 +140,22 @@ class _HomePageState extends State<HomePage> {
     }
 
     final DateTime serverResetTime = serverDateTime.copyWith(hour: 4, minute: 0, second: 0);
-
+    final DateTime orundumResetTime = serverDateTime.copyWith(hour: 4, minute: 0, second: 0).add(Duration(days: 1 - serverDateTime.weekday));
+    
     DateTime localResetTime;
+    DateTime localOrundumResetTime;
     if (cs == 'cn') {
       localResetTime = serverResetTime.subtract(const Duration(hours: 8)); // shanghai UTC+8
+      localOrundumResetTime = orundumResetTime.subtract(const Duration(hours: 8));
     } else if (cs == 'jp') {
       localResetTime = serverResetTime.subtract(const Duration(hours: 9)); // tokyo UTC+9
+      localOrundumResetTime = orundumResetTime.subtract(const Duration(hours: 9));
     } else { // en
       localResetTime = serverResetTime.add(const Duration(hours: 7)); // UTC-7 
+      localOrundumResetTime = orundumResetTime.add(const Duration(hours: 7));
     }
-
+    
+    final Duration orundumResetTimeDiff = localOrundumResetTime.toLocal().difference(now).isNegative ? localOrundumResetTime.toLocal().add(const Duration(days: 7)).difference(now) : localOrundumResetTime.toLocal().difference(now);
     final Duration difference = localResetTime.toLocal().difference(now).isNegative ? localResetTime.toLocal().add(const Duration(days: 1)).difference(now) : localResetTime.toLocal().difference(now);
     
     setState(() {
@@ -126,6 +164,7 @@ class _HomePageState extends State<HomePage> {
       serverResetString = _formatDateTime(serverResetTime);
       localResetString = hour12 ? DateFormat('h:mm a').format(localResetTime.toLocal()) : DateFormat('HH:mm').format(localResetTime.toLocal()) ;
       timeUntilReset = _formatRemainingTime(difference);
+      orundumResetString = _formatRemainingTime(orundumResetTimeDiff);
     });
   }
 
@@ -164,11 +203,19 @@ class _HomePageState extends State<HomePage> {
   String _formatRemainingTime(Duration time) {
    if (context.mounted) {
       List<String> result = [];
+
+      //days
+      if (time.inDays > 1) {
+        result.add('${time.inDays} days');
+      } else if (time.inDays == 1) {
+        result.add('${time.inDays} day');
+      }
+
       // hours
-      if (time.inHours > 1) {
-        result.add('${time.inHours} hours');
-      } else if (time.inHours == 1) {
-        result.add('${time.inHours} hour');
+      if (time.inHours.remainder(24) > 1) {
+        result.add('${time.inHours.remainder(24)} hours');
+      } else if (time.inHours.remainder(24) == 1) {
+        result.add('${time.inHours.remainder(24)} hour');
       }
       // minutes
       if (time.inMinutes.remainder(60) > 1) {
@@ -176,12 +223,16 @@ class _HomePageState extends State<HomePage> {
       } else if (time.inMinutes.remainder(60) == 1) {
         result.add('${time.inMinutes.remainder(60)} minute');
       }
+
       // seconds
-      if (time.inSeconds.remainder(60) > 1) {
-        result.add('${time.inSeconds.remainder(60)} seconds');
-      } else if (time.inSeconds.remainder(60) == 1) {
-        result.add('${time.inSeconds.remainder(60)} second');
+      if (context.read<SettingsProvider>().homeShowSeconds) {
+         if (time.inSeconds.remainder(60) > 1) {
+          result.add('${time.inSeconds.remainder(60)} seconds');
+        } else if (time.inSeconds.remainder(60) == 1) {
+          result.add('${time.inSeconds.remainder(60)} second');
+        }
       }
+     
 
       return result.join(' ');
     }
