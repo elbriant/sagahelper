@@ -1,11 +1,13 @@
 import 'package:docsprts/components/theme_preview.dart';
 import 'package:docsprts/components/traslucent_ui.dart';
+import 'package:docsprts/components/utils.dart' show openUrl;
 import 'package:docsprts/providers/settings_provider.dart';
 import 'package:docsprts/providers/ui_provider.dart';
 import 'package:docsprts/themes.dart';
 import 'package:flutter/material.dart';
-
 import 'package:provider/provider.dart';
+
+
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -198,7 +200,7 @@ class AboutSettings extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              IconButton(onPressed: (){}, icon: Icon(Icons.code, size: 42, color: Theme.of(context).colorScheme.primary,))
+              IconButton(onPressed: () => openUrl('https://github.com/elbriant/docsprts'), icon: Icon(Icons.code, size: 42, color: Theme.of(context).colorScheme.primary,))
             ],
           ),
         ],

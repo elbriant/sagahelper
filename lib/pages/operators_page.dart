@@ -32,6 +32,9 @@ class Operator {
   final String itemUsage;
   final String itemDesc;
   final List<String> names;
+  final Map<String, dynamic> loreInfo;
+  final Map<String, dynamic> voiceLangDict;
+  final List<Map<String, dynamic>> charWordsList;
 
   Operator({
     required this.operatorDict,
@@ -49,7 +52,10 @@ class Operator {
     required this.tagList,
     required this.itemUsage,
     required this.itemDesc,
-    required this.names
+    required this.names,
+    required this.loreInfo,
+    required this.voiceLangDict,
+    required this.charWordsList
   });
 
   String professionTranslate (String prof) => switch (prof) {
@@ -104,7 +110,7 @@ class Operator {
 
   String get subProfessionString => subProfessionTranslate(subProfessionId.toLowerCase());
 
-  factory Operator.fromJson(String key, Map<String, dynamic> dict) {
+  factory Operator.fromJson(String key, Map<String, dynamic> dict, Map<String, dynamic> loreDict, Map<String, dynamic> voiceDict) {
     //custom names
     String name = dict['name'];
     var names = <String>[name];
@@ -115,6 +121,15 @@ class Operator {
     if (name == "Ch'en" || name == "Ch'en the Holungday") names.addAll(['chen', 'blue woman']);
     if (name == 'Młynar') names.addAll(['mlynar', 'milnar']);
 
+    List<Map<String, dynamic>> getVoices(Map<String, dynamic> charWords, String opKey) {
+      List<Map<String, dynamic>> result = [];
+      charWords.forEach((key, value){
+        if (key.startsWith('${opKey}_')) {
+          result.add(value);
+        }
+      });
+      return result;
+    }
 
     return Operator(
         operatorDict: dict,
@@ -133,30 +148,36 @@ class Operator {
         itemUsage: dict['itemUsage'],
         itemDesc: dict['itemDesc'],
         names: names,
+        loreInfo: loreDict[key],
+        voiceLangDict: voiceDict['voiceLangDict'][key],
+        charWordsList: getVoices(voiceDict['charWords'], key),
     );
   }
 }
 
-Future<String> getJson() {
-  return rootBundle.loadString('assets/excel/character_table.json');
-}
-
 Future<List<Operator>> fetchOperators() async {
-  final response = await getJson();
+  final List<String> response = [await rootBundle.loadString('assets/excel/character_table.json')]; // 0 operators
+  response.add(await rootBundle.loadString('assets/excel/handbook_info_table.json')); // 1 lore
+  response.add(await rootBundle.loadString('assets/excel/charword_table.json')); // 2 voice
+
   // Use the compute function to run parsing in a separate isolate.
   return compute(parseOperators, response);
 }
 
-List<Operator> parseOperators(String response) {
-  final parsed = jsonDecode(response) as Map<String, dynamic>;
+List<Operator> parseOperators(List<String> response) {
+  final operatorsparsed = jsonDecode(response[0]) as Map<String, dynamic>;
+  final loreInfo = jsonDecode(response[1]) as Map<String, dynamic>;
+  final voiceInfo = jsonDecode(response[2]) as Map<String, dynamic>;
+
   List<Operator> opsLists = [];
-  parsed.forEach((key, value) {
-    if ((value['subProfessionId'] as String).startsWith('notchar') ||
-        key.startsWith('trap') ||
-        key.startsWith('token') ||
-        value['isNotObtainable'] == true) {
+  operatorsparsed.forEach((key, value) {
+    if (
+      (value['subProfessionId'] as String).startsWith('notchar') ||
+      key.startsWith('trap') ||
+      key.startsWith('token') ||
+      value['isNotObtainable'] == true) {
     } else {
-      opsLists.add(Operator.fromJson(key, value));
+      opsLists.add(Operator.fromJson(key, value, loreInfo['handbookDict'], voiceInfo));
     }
   });
   return opsLists;
@@ -242,6 +263,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
             future: futureOperatorList,
             builder: (context, snapshot) {
               if (snapshot.hasError) {
+                print(snapshot.error);
                 return const Center(
                   child: Text('An error has occurred!'),
                 );

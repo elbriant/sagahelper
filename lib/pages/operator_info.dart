@@ -155,13 +155,43 @@ class HeaderInfo extends StatelessWidget {
 }
 
 class LoreInfo extends StatelessWidget {
-  const LoreInfo({super.key});
-
+  const LoreInfo(this.operator, {super.key});
+  final Operator operator;
   @override
   Widget build(BuildContext context) {
-    return const SizedBox(
-      height: 600,
-      child: Center(child: Text('here lore things'),)
+    bool hasParadoxStory = (operator.loreInfo['handbookAvgList'] as List).isNotEmpty;
+    List storyTextList = (operator.loreInfo['storyTextAudio'] as List);
+    
+    return SingleChildScrollView(
+      child: ListView.builder(
+        
+        physics: const NeverScrollableScrollPhysics(),
+        shrinkWrap: true,
+        itemCount: hasParadoxStory ? storyTextList.length+1 : storyTextList.length,
+        itemBuilder: (context, index) {
+          if (hasParadoxStory && index == storyTextList.length+1-1) {
+            return Container(
+              height: 60,
+              margin: const EdgeInsets.all(8.0),
+              child: Center(child: Text('paradox / $index')),
+            );
+          }
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 24.0),
+            child: Card.outlined(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    Text(storyTextList[index]['storyTitle']),
+                    Text(((storyTextList[index]['stories'] as List).first as Map)['storyText'])
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+      ),
     );
   }
 }
@@ -192,11 +222,11 @@ class ArchivePage extends StatelessWidget {
                 delegate: SliverChildListDelegate(
                   [
                     HeaderInfo(operator: operator),
-                    const DefaultTabController(
-                      length: 2,
+                    DefaultTabController(
+                     length: 2,
                       child: Column(
                         children: [
-                          TabBar.secondary(
+                          const TabBar.secondary(
                             indicatorSize: TabBarIndicatorSize.tab,
                             tabs: [
                               Tab(text: 'File'),
@@ -205,8 +235,8 @@ class ArchivePage extends StatelessWidget {
                           ),
                           AutoScaleTabBarView(
                             children: [
-                              LoreInfo(),
-                              SkillInfo()
+                              LoreInfo(operator),
+                              const SkillInfo()
                             ]
                           )
                         ],
@@ -261,12 +291,51 @@ class VoicePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    List<Widget> texts = [];
+    List<Map<String, dynamic>> filteredCharWord = [];
+
+    for (var value in operator.charWordsList) {
+      if (value['wordKey'] == operator.id) {
+        filteredCharWord.add(value);
+      }
+    }
+
+    (operator.voiceLangDict['dict'] as Map<String, dynamic>).forEach((key, value){
+      texts.add(Text('${key.toLowerCase()} : ${value["cvName"].toString()}'));
+    });
+
     return CustomScrollView(
       slivers: [
         SliverAppBar(
           flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3, child: Container(color: Colors.transparent, child: FlexibleSpaceBar(title: Text(operator.name), titlePadding: const EdgeInsets.only(left: 72.0, bottom: 16.0, right: 32.0)))) : FlexibleSpaceBar(title: Text(operator.name), titlePadding: const EdgeInsets.only(left: 72.0, bottom: 16.0, right: 32.0)),
           backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
           leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
+        ),
+        SliverList.builder(
+          itemCount: filteredCharWord.length+1,
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              return Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(children: texts),
+              );
+            }
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 24.0),
+              child: Card.outlined(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                  children: [
+                    Text(filteredCharWord[index-1]['voiceTitle']),
+                    Text(filteredCharWord[index-1]['voiceText'])
+                  ],
+                ),
+                ),
+              ),
+            );
+          }
         )
       ],
     );

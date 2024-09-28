@@ -7,9 +7,6 @@ import 'package:docsprts/components/traslucent_ui.dart';
 import 'package:docsprts/providers/ui_provider.dart';
 import 'package:intl/intl.dart';
 
-
-
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
