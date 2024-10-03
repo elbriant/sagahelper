@@ -47,6 +47,9 @@ dependencies:
   sliver_tools: ^0.2.12
   intl: ^0.19.0
   url_launcher: ^6.3.0
+  just_audio: ^0.9.40
+  photo_view: ^0.15.0
+  flowder: ^0.2.0
 
 dev_dependencies:
   flutter_test:
@@ -75,16 +78,7 @@ flutter:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
   assets:
-  # temporary, should load from internet or downloaded to local
-    - assets/excel/character_table.json
-    - assets/excel/charword_table.json
-    - assets/excel/handbook_info_table.json
-    - assets/excel/handbook_team_table.json
-
-    - assets/gif/saga_about.gif
-    - assets/gif/saga_err.gif
-    - assets/gif/saga_loading.gif
-    - assets/gif/ceobe_more.gif
+    - assets/gif/
     - assets/orundum.webp
     - assets/classes/
     - assets/subclasses/

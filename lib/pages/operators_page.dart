@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:docsprts/components/operator_container.dart';
+import 'package:docsprts/global_data.dart';
+import 'package:docsprts/providers/server_provider.dart';
 import 'package:docsprts/providers/settings_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:autoscale_tabbarview/autoscale_tabbarview.dart';
 import 'package:provider/provider.dart';
 import 'package:docsprts/providers/ui_provider.dart';
@@ -156,9 +157,22 @@ class Operator {
 }
 
 Future<List<Operator>> fetchOperators() async {
-  final List<String> response = [await rootBundle.loadString('assets/excel/character_table.json')]; // 0 operators
-  response.add(await rootBundle.loadString('assets/excel/handbook_info_table.json')); // 1 lore
-  response.add(await rootBundle.loadString('assets/excel/charword_table.json')); // 2 voice
+  List<String> files = ['/excel/character_table.json', '/excel/handbook_info_table.json', '/excel/charword_table.json'];
+  // 0 operators
+  // 1 lore
+  // 2 voice
+
+  try {
+    await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().existFiles(NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString, files);
+  } catch (e) {
+    throw FormatException('Update gamedata [error:$e]');
+  }
+
+  List<String> response = [];
+
+  for (String filepath in files) {
+    response.add(await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().getFile(filepath, NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString));
+  }
 
   // Use the compute function to run parsing in a separate isolate.
   return compute(parseOperators, response);
@@ -263,10 +277,29 @@ class _OperatorsPageState extends State<OperatorsPage> {
             future: futureOperatorList,
             builder: (context, snapshot) {
               if (snapshot.hasError) {
-                print(snapshot.error);
-                return const Center(
-                  child: Text('An error has occurred!'),
-                );
+                if (snapshot.error is FormatException) {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset('assets/gif/saga_err.gif', width: 180),
+                        const SizedBox(height: 12),
+                        Text(snapshot.error.toString(), style: TextStyle(color: Theme.of(context).colorScheme.error))
+                      ],
+                    )
+                  );
+                } else {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset('assets/gif/saga_err.gif', width: 180),
+                        const SizedBox(height: 12),
+                        Text('An unknown error has ocurred!', style: TextStyle(color: Theme.of(context).colorScheme.error))
+                      ],
+                    )
+                  );
+                }
               } else if (snapshot.hasData) {
                 finishedFutureOperatorList = snapshot.data!;
 

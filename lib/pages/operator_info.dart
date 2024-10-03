@@ -2,6 +2,7 @@ import 'package:autoscale_tabbarview/autoscale_tabbarview.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:docsprts/pages/operators_page.dart';
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:provider/provider.dart';
 import 'package:docsprts/providers/ui_provider.dart';
 import 'package:docsprts/components/traslucent_ui.dart';
@@ -285,30 +286,44 @@ class ArtPage extends StatelessWidget {
 
 // --------------------------- Voice
 
-class VoicePage extends StatelessWidget {
+class VoicePage extends StatefulWidget {
   final Operator operator;
   const VoicePage(this.operator, {super.key});
 
   @override
+  State<VoicePage> createState() => _VoicePageState();
+}
+
+class _VoicePageState extends State<VoicePage> {
+  final player = AudioPlayer();
+
+  @override
+  void dispose() {
+    player.stop();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    
 
     List<Widget> texts = [];
     List<Map<String, dynamic>> filteredCharWord = [];
 
-    for (var value in operator.charWordsList) {
-      if (value['wordKey'] == operator.id) {
+    for (var value in widget.operator.charWordsList) {
+      if (value['wordKey'] == widget.operator.id) {
         filteredCharWord.add(value);
       }
     }
 
-    (operator.voiceLangDict['dict'] as Map<String, dynamic>).forEach((key, value){
+    (widget.operator.voiceLangDict['dict'] as Map<String, dynamic>).forEach((key, value){
       texts.add(Text('${key.toLowerCase()} : ${value["cvName"].toString()}'));
     });
 
     return CustomScrollView(
       slivers: [
         SliverAppBar(
-          flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3, child: Container(color: Colors.transparent, child: FlexibleSpaceBar(title: Text(operator.name), titlePadding: const EdgeInsets.only(left: 72.0, bottom: 16.0, right: 32.0)))) : FlexibleSpaceBar(title: Text(operator.name), titlePadding: const EdgeInsets.only(left: 72.0, bottom: 16.0, right: 32.0)),
+          flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3, child: Container(color: Colors.transparent, child: FlexibleSpaceBar(title: Text(widget.operator.name), titlePadding: const EdgeInsets.only(left: 72.0, bottom: 16.0, right: 32.0)))) : FlexibleSpaceBar(title: Text(widget.operator.name), titlePadding: const EdgeInsets.only(left: 72.0, bottom: 16.0, right: 32.0)),
           backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
           leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
         ),

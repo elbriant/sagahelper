@@ -4,6 +4,7 @@ import 'package:docsprts/pages/operators_page.dart';
 import 'package:docsprts/pages/info_page.dart';
 import 'package:docsprts/pages/settings_page.dart';
 import 'package:docsprts/pages/tools_page.dart';
+import 'package:docsprts/providers/server_provider.dart';
 import 'package:docsprts/providers/settings_provider.dart';
 import 'package:docsprts/providers/ui_provider.dart';
 import 'package:flutter/material.dart';
@@ -46,6 +47,7 @@ class _MyAppState extends State<MyApp> {
       providers: [
         ChangeNotifierProvider(create: (context) => UiProvider()),
         ChangeNotifierProvider(create: (context) => SettingsProvider()),
+        ChangeNotifierProvider(create: (context) => ServerProvider())
       ],
       builder: (context, child) {
         if (loadedConfigs == true) {
@@ -54,6 +56,7 @@ class _MyAppState extends State<MyApp> {
           return FutureBuilder(
             future: loadConfigs(), 
             builder: (context, snapshot) {
+
               if (snapshot.hasError) {
                 resetConfigs(context);
                 return const ErrorScreen();
@@ -70,8 +73,16 @@ class _MyAppState extends State<MyApp> {
                 try {
                   //settings
                   context.read<SettingsProvider>().setValues((snapshot.data as Map)['settings_configs']);
-                }catch (e) {
+                } catch (e) {
                   errorString += ' [settings error]';
+                }
+
+                try {
+                  //server
+                  context.read<ServerProvider>().setValues((snapshot.data as Map)['server_configs']);
+                } catch (e) {
+                  context.read<ServerProvider>().writeDefaultValues();
+                  context.read<ServerProvider>().setDefaultValues();
                 }
 
                 if (errorString != '') {
@@ -111,15 +122,18 @@ loadConfigs() async {
     // default first configs
     await UiProvider().writeDefaultValues();
     await SettingsProvider().writeDefaultValues();
+    await ServerProvider().writeDefaultValues();
   }
 
   var loadedConfigs = {
     'ui_configs' : await UiProvider().loadValues(),
-    'settings_configs' : await SettingsProvider().loadValues()
+    'settings_configs' : await SettingsProvider().loadValues(),
+    'server_configs' : await ServerProvider().loadValues()
   };
 
   return loadedConfigs;
 }
+
 
 
 class MainWidget extends StatefulWidget {
@@ -153,6 +167,7 @@ class _MainWidgetState extends State<MainWidget> {
       theme: context.watch<UiProvider>().currentTheme!.colorLight,
       darkTheme: context.watch<UiProvider>().currentTheme!.getDarkMode(context.read<UiProvider>().isUsingPureDark),
       themeMode: context.watch<UiProvider>().themeMode,
+      navigatorKey: NavigationService.navigatorKey,
       home: Scaffold(
         extendBody: true,
         body: Builder(
@@ -160,7 +175,21 @@ class _MainWidgetState extends State<MainWidget> {
             if (widget.errorDisplay != null) {
               WidgetsBinding.instance.addPostFrameCallback((_) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: widget.errorDisplay!)));
             }
-            return _pages[_currentPageIndx];
+            return Column(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                context.watch<SettingsProvider>().showNotifier ? Container(padding: EdgeInsets.fromLTRB(0,MediaQuery.of(context).padding.top+2.0,0,2.0) , height: MediaQuery.of(context).padding.top+24, color: Theme.of(context).colorScheme.primary, 
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(height: 12, width: 12, child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onPrimary, strokeWidth: 3.0,)),
+                    const SizedBox(width: 20),
+                    Text(context.watch<SettingsProvider>().loadingString, style: TextStyle(color: Theme.of(context).colorScheme.onPrimary))
+                  ]
+                )) : Container(),
+                Expanded(child: _pages[_currentPageIndx])
+              ],
+            );
           }
         ),
         bottomNavigationBar: context.watch<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3, child: BottomNavBar(navigationBB: _navigationBB, currentPageIndx: _currentPageIndx, opacity: 0.5)) : BottomNavBar(navigationBB: _navigationBB, currentPageIndx: _currentPageIndx)
@@ -199,9 +228,14 @@ class BottomNavBar extends StatelessWidget {
   }
 }
 
-class LoadingScreen extends StatelessWidget {
+class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
 
+  @override
+  State<LoadingScreen> createState() => _LoadingScreenState();
+}
+
+class _LoadingScreenState extends State<LoadingScreen> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -217,7 +251,9 @@ class LoadingScreen extends StatelessWidget {
             children: [
               Image.asset('assets/gif/saga_loading.gif', width: 200, height: 200),
               const SizedBox(height: 40),
-              const CircularProgressIndicator()
+              const CircularProgressIndicator(),
+              const SizedBox(height: 40),
+              Text(context.watch<SettingsProvider>().loadingString)
             ],
           ),
         ),

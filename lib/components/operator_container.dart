@@ -30,8 +30,11 @@ class OperatorContainer extends StatelessWidget {
 
     final settings = context.watch<SettingsProvider>();
     
-    // TODO should change in case is not only two options
-    String imgLink = settings.getDisplayChip('avatar') ? ghAvatarLink : ghPotraitLink;
+    String imgLink = switch (settings.getDisplayChipStr()) {
+      'avatar' => ghAvatarLink,
+      'portrait' => ghPotraitLink,
+      String() => ''
+    };
 
     return GlassContainer(
       isFrostedGlass: true,

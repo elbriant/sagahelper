@@ -1,9 +1,16 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:async';
 import 'dart:io';
 
 bool loadedConfigs = false;
+bool firstTimeCheck = false;
+
+class NavigationService { 
+  static GlobalKey<NavigatorState> navigatorKey = 
+  GlobalKey<NavigatorState>();
+}
 
 class LocalDataManager {
   final String configPath = 'configs.txt';
@@ -12,6 +19,17 @@ class LocalDataManager {
     final directory = await getApplicationDocumentsDirectory();
     return directory.path;
   }
+
+  Future<String> localpathServer (String server) async {
+    final directory = await getApplicationDocumentsDirectory();
+    if (Directory('${directory.path}/${server.toLowerCase()}').existsSync()) {
+      return '${directory.path}/${server.toLowerCase()}';
+    } else {
+      await Directory('${directory.path}/${server.toLowerCase()}').create(recursive: true);
+      return '${directory.path}/${server.toLowerCase()}';
+    }
+  }
+
   /* cache path
   Future<String> get _cachePath async {
     final directory = await getApplicationCacheDirectory();

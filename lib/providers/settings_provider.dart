@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:docsprts/global_data.dart';
 
-List<String> serverList = ['en', 'cn', 'jp'];
+List<String> serverList = ['en', 'cn', 'jp', 'kr', 'tw'];
 List<String> displayList = ['avatar', 'portrait'];
 
 class SettingsProvider extends ChangeNotifier {
@@ -17,7 +17,33 @@ class SettingsProvider extends ChangeNotifier {
   int _operatorDisplay = 0;
 
   SettingsProvider();
+
+  //tempo
+  bool isLoadingHome = false;
+  void setIsLoadingHome (bool state) {
+    isLoadingHome = state;
+    updateNotifier();
+  }
+  bool isLoadingAsync = false;
+  void setIsLoadingAsync (bool state) {
+    isLoadingAsync = state;
+    updateNotifier();
+  }
+  String loadingString = 'test: test';
+  void setLoadingString (String string) {
+    loadingString = string;
+    notifyListeners();
+  }
   
+  bool showNotifier = false;
+  void updateNotifier () {
+    if (isLoadingAsync || isLoadingHome) { // here other optional loadings
+      showNotifier = true;
+    } else {
+      showNotifier = false;
+    }
+    notifyListeners();
+  }
 
   final _configs = LocalDataManager();
 
@@ -73,6 +99,8 @@ class SettingsProvider extends ChangeNotifier {
     _operatorSearchDelegate = value;
     notifyListeners();
   }
+
+  String getDisplayChipStr() => displayList[_operatorDisplay];
 
   bool getDisplayChip(String chip){
     return displayList.indexOf(chip) == _operatorDisplay;

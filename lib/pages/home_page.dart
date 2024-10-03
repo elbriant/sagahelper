@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:docsprts/providers/server_provider.dart';
 import 'package:docsprts/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:glass_kit/glass_kit.dart';
@@ -6,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:docsprts/components/traslucent_ui.dart';
 import 'package:docsprts/providers/ui_provider.dart';
 import 'package:intl/intl.dart';
+import 'package:docsprts/global_data.dart' show NavigationService, firstTimeCheck;
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -28,6 +30,9 @@ class _HomePageState extends State<HomePage> {
     _getTime();
     timer = Timer.periodic(const Duration(seconds: 1), (Timer t) => _getTime());
     super.initState();
+
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) {checkServer();});
   }
 
   @override
@@ -110,6 +115,11 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 60, child: Center(child: Text('planning to add "open today" tab'),)),
               const SizedBox(height: 40),
               const SizedBox(height: 60, child: Center(child: Text('planning to add more...'),)),
+              SizedBox(height: 60, child: Center(child: Column(children: [
+                Text('en : ${context.read<ServerProvider>().enVersion}'),
+                Text('cn : ${context.read<ServerProvider>().cnVersion}'),
+                Text('jp : ${context.read<ServerProvider>().jpVersion}')
+              ],),))
             ]
           ),
         ),
@@ -163,6 +173,35 @@ class _HomePageState extends State<HomePage> {
       timeUntilReset = _formatRemainingTime(difference);
       orundumResetString = _formatRemainingTime(orundumResetTimeDiff);
     });
+  }
+
+  checkServer() async {
+    if (firstTimeCheck) return;
+    
+    firstTimeCheck = true;
+    NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setLoadingString('checking gamedata...');
+    NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setIsLoadingHome(true);
+    await Future.delayed(const Duration(seconds: 1));
+
+    if (NavigationService.navigatorKey.currentContext!.read<ServerProvider>().versionOf(NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString) == 'unknown') {
+      NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setLoadingString('downloading gamedata...');
+      NavigationService.navigatorKey.currentContext!.read<ServerProvider>().downloadLastest(NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString);
+      NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setIsLoadingHome(false);
+    } else {
+      NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setLoadingString('checking gamedata updates...');
+      bool lastAvailable = await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().checkUpdateOf(NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString);
+
+      if (lastAvailable) {
+        // ask if update
+        NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setLoadingString('there is an update...');
+        await Future.delayed(const Duration(seconds: 2));
+        NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setIsLoadingHome(false);
+      } else {
+        NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setLoadingString('everything fine');
+        await Future.delayed(const Duration(seconds: 2));
+        NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setIsLoadingHome(false);
+      }
+    }
   }
 
   String _formatDateTime(DateTime dateTime) {
