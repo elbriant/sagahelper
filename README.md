@@ -17,6 +17,7 @@ Before reporting a new issue, take a look at the already opened issues.
 - Story Reader
 - Penguin Logistics implementation
 - Languagues
+- Change the app's name (too much prts)
 
 ### Disclaimer
 The developer(s) of this application does not have any affiliation with Hypergryph.
