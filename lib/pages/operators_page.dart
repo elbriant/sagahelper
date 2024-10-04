@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:docsprts/components/operator_container.dart';
 import 'package:docsprts/global_data.dart';
+import 'package:docsprts/providers/cache_provider.dart';
 import 'package:docsprts/providers/server_provider.dart';
 import 'package:docsprts/providers/settings_provider.dart';
 import 'package:flutter/foundation.dart';
@@ -171,6 +172,12 @@ class Operator {
 }
 
 Future<List<Operator>> fetchOperators() async {
+  String server = NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString;
+
+  if (NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperator != null && NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperatorServer == server) {
+   return Future<List<Operator>>.value(NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperator);
+  }
+
   List<String> files = ['/excel/character_table.json', '/excel/handbook_info_table.json', '/excel/charword_table.json', '/excel/skin_table.json'];
   // 0 operators
   // 1 lore
@@ -180,17 +187,23 @@ Future<List<Operator>> fetchOperators() async {
   try {
     await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().existFiles(NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString, files);
   } catch (e) {
-    throw FormatException('Update gamedata [error:$e]');
+    throw FormatException('Update gamedata');
   }
 
   List<String> response = [];
 
   for (String filepath in files) {
-    response.add(await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().getFile(filepath, NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString));
+    response.add(await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().getFile(filepath, server));
   }
 
   // Use the compute function to run parsing in a separate isolate.
-  return compute(parseOperators, response);
+  List<Operator> completedList = await compute(parseOperators, response);
+
+  NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperatorServer = NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString;
+  NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperator = completedList;
+
+  return completedList;
+  
 }
 
 List<Operator> parseOperators(List<String> response) {
@@ -210,6 +223,7 @@ List<Operator> parseOperators(List<String> response) {
       opsLists.add(Operator.fromJson(key, value, loreInfo['handbookDict'], voiceInfo, skinInfo['charSkins']));
     }
   });
+  
   return opsLists;
 }
 
@@ -300,11 +314,12 @@ class _OperatorsPageState extends State<OperatorsPage> {
                       children: [
                         Image.asset('assets/gif/saga_err.gif', width: 180),
                         const SizedBox(height: 12),
-                        Text(snapshot.error.toString(), style: TextStyle(color: Theme.of(context).colorScheme.error))
+                        Text((snapshot.error as FormatException).message, style: TextStyle(color: Theme.of(context).colorScheme.error))
                       ],
                     )
                   );
                 } else {
+                  print(snapshot.error);
                   return Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,

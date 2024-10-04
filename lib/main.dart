@@ -4,6 +4,7 @@ import 'package:docsprts/pages/operators_page.dart';
 import 'package:docsprts/pages/info_page.dart';
 import 'package:docsprts/pages/settings_page.dart';
 import 'package:docsprts/pages/tools_page.dart';
+import 'package:docsprts/providers/cache_provider.dart';
 import 'package:docsprts/providers/server_provider.dart';
 import 'package:docsprts/providers/settings_provider.dart';
 import 'package:docsprts/providers/ui_provider.dart';
@@ -51,7 +52,8 @@ class _MyAppState extends State<MyApp> {
       providers: [
         ChangeNotifierProvider(create: (context) => UiProvider()),
         ChangeNotifierProvider(create: (context) => SettingsProvider()),
-        ChangeNotifierProvider(create: (context) => ServerProvider())
+        ChangeNotifierProvider(create: (context) => ServerProvider()),
+        ChangeNotifierProvider(create: (context) => CacheProvider())
       ],
       builder: (context, child) {
         if (loadedConfigs == true) {

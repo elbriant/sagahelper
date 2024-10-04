@@ -326,7 +326,7 @@ class _ArtPageState extends State<ArtPage> {
 
     getImageLink(int index) {
       String opSkinId = (widget.operator.skinsList[index]['illustId'] as String).replaceFirst('illust_', '');
-      
+
       // source ArknightsAssets repo
       return githubEncode('https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/characters/${widget.operator.id}/$opSkinId.png');
     }
@@ -381,7 +381,7 @@ class _ArtPageState extends State<ArtPage> {
             IconButton(onPressed: () => chibify(), icon: const Icon(Icons.sync_alt_outlined)),
             IconButton(onPressed: () => fullscreen(), icon: const Icon(Icons.fullscreen)),
           ],
-        flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3, child: Container(color: Colors.transparent, child: FlexibleSpaceBar(title: Text(widget.operator.name), titlePadding: const EdgeInsets.only(left: 72.0, bottom: 16.0, right: 32.0)))) : FlexibleSpaceBar(title: Text(widget.operator.name), titlePadding: const EdgeInsets.only(left: 72.0, bottom: 16.0, right: 32.0)),
+        flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3, child: Container(color: Colors.transparent)) : null,
         backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
       ),
