@@ -15,3 +15,7 @@ Future<void> openUrl(String urlStr, {LaunchMode mode = LaunchMode.externalApplic
     throw Exception('Could not launch $uri');
   }
 }
+
+String githubEncode(String input) {
+  return Uri.encodeFull(input).replaceAll('#', '%23');
+}

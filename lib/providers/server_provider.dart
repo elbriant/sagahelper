@@ -20,6 +20,7 @@ class ServerProvider extends ChangeNotifier {
     'charword_table.json',
     'handbook_info_table.json',
     'handbook_team_table.json',
+    'skin_table.json'
   ];
 
   String yostarrepo(String server) => 'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData_YoStar/refs/heads/main/$server/gamedata/excel';
@@ -162,7 +163,7 @@ class ServerProvider extends ChangeNotifier {
       }
   }
 
-  void checkDownloadedLastest(String server, String version) async {
+  Future<bool> checkFiles(String server) async {
     String serverLocalPath = await LocalDataManager().localpathServer(server);
     String excelFolder = '$serverLocalPath/excel';
 
@@ -171,10 +172,18 @@ class ServerProvider extends ChangeNotifier {
       if (fileExist) {
         continue;
       } else {
-        return;
+        return false;
       }
     }
 
+    return true;
+  }
+
+  void checkDownloadedLastest(String server, String version) async {
+    
+    bool result = await checkFiles(server);
+
+    if(!result) return;
     
     setVersion(server, version: version);
     if (NavigationService.navigatorKey.currentContext!.mounted) {

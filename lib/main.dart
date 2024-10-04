@@ -11,9 +11,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:docsprts/global_data.dart';
+import 'package:system_theme/system_theme.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  SystemTheme.fallbackColor = const Color.fromARGB(255, 110, 110, 110);
+  await SystemTheme.accentColor.load();
 
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
@@ -145,13 +149,6 @@ class MainWidget extends StatefulWidget {
 }
 
 class _MainWidgetState extends State<MainWidget> {
-  void _navigationBB(int newIndx) {
-    setState(() {
-      _currentPageIndx = newIndx;
-    });
-  }
-
-  int _currentPageIndx = 0;
 
   final List _pages = const [
     HomePage(),
@@ -187,36 +184,36 @@ class _MainWidgetState extends State<MainWidget> {
                     Text(context.watch<SettingsProvider>().loadingString, style: TextStyle(color: Theme.of(context).colorScheme.onPrimary))
                   ]
                 )) : Container(),
-                Expanded(child: _pages[_currentPageIndx])
+                Expanded(child: _pages[context.watch<UiProvider>().currentHomePageIndx])
               ],
             );
           }
         ),
-        bottomNavigationBar: context.watch<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3, child: BottomNavBar(navigationBB: _navigationBB, currentPageIndx: _currentPageIndx, opacity: 0.5)) : BottomNavBar(navigationBB: _navigationBB, currentPageIndx: _currentPageIndx)
+        bottomNavigationBar: context.watch<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3,child: BottomNavBar(opacity: 0.5)) : BottomNavBar()
       ),
     );
   }
 }
 
 class BottomNavBar extends StatelessWidget {
-  final void Function(int) navigationBB;
-  final int currentPageIndx;
   final double opacity;
 
   const BottomNavBar ({
     super.key,
-    required this.navigationBB,
-    required this.currentPageIndx,
     this.opacity = 1.0,
   });
+
+  void setNavBB (int index) {
+    NavigationService.navigatorKey.currentContext!.read<UiProvider>().currentHomePageIndx = index;
+  }
 
   @override
   Widget build(BuildContext context) {
     return NavigationBar(
       backgroundColor: Theme.of(context).colorScheme.surfaceContainer.withOpacity(opacity),
       labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-      onDestinationSelected: navigationBB,
-      selectedIndex: currentPageIndx,
+      onDestinationSelected: setNavBB,
+      selectedIndex: context.watch<UiProvider>().currentHomePageIndx,
       destinations: const [
         NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home', selectedIcon: Icon(Icons.home)),
         NavigationDestination(icon: Icon(Icons.person_search_outlined), label: 'Operators', selectedIcon: Icon(Icons.person_search)),

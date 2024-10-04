@@ -11,6 +11,14 @@ class UiProvider extends ChangeNotifier {
   bool useTranslucentUi = true;
   int previewThemeIndexSelected = 0;
 
+  //not save
+  int _currentHomePageIndx = 0;
+  int get currentHomePageIndx => _currentHomePageIndx;
+  set currentHomePageIndx (index) {
+    _currentHomePageIndx = index;
+    notifyListeners();
+  }
+
   final _configs = LocalDataManager();
 
   UiProvider ({

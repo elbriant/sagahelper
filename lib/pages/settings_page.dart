@@ -187,7 +187,9 @@ class _DataSettingsState extends State<DataSettings> {
 
       try {
         bool result = await servprov.checkUpdateOf(server);
-        if (result) {
+        bool fileIntegrity = await servprov.checkFiles(server);
+
+        if (result || !fileIntegrity) {
           status = 'has';
         } else {
           status = 'up';

@@ -15,7 +15,7 @@ class ThemePreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(right: 25),
+      margin: const EdgeInsets.fromLTRB(5, 5, 15, 5),
       child: Column(
         mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -74,18 +74,27 @@ class InnerCard extends StatelessWidget {
       children: [
         Expanded(
           flex: 3,
-          child: Container(
-            color: getCurrentBrightness() ? (usingTraslucent() ? lightColorScheme.surfaceContainer.withOpacity(0.5) : lightColorScheme.surfaceContainer) : (usingTraslucent() ? darkColorScheme.surfaceContainer.withOpacity(0.5) : darkColorScheme.surfaceContainer) ,
-            child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                const SizedBox(width: 12),
-                CustomPaint(size: const Size(40, 5), painter: TitleLine(color: getCurrentBrightness() ? (lightColorScheme.onPrimaryContainer) : (darkColorScheme.onPrimaryContainer)),
+          child: Stack(
+            fit: StackFit.expand,
+            alignment: Alignment.center,
+            children: [
+              Container(
+                color: getCurrentBrightness() ? (lightColorScheme.surface) : (darkColorScheme.surface),
+              ),
+              Container(
+                color: getCurrentBrightness() ? (usingTraslucent() ? lightColorScheme.surfaceContainer.withOpacity(0.5) : lightColorScheme.surfaceContainer) : (usingTraslucent() ? darkColorScheme.surfaceContainer.withOpacity(0.5) : darkColorScheme.surfaceContainer) ,
+                child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    const SizedBox(width: 12),
+                    CustomPaint(size: const Size(40, 5), painter: TitleLine(color: getCurrentBrightness() ? (lightColorScheme.onPrimaryContainer) : (darkColorScheme.onPrimaryContainer)),
+                    ),
+                    const SizedBox(width: 5),
+                    thisSelected ? Icon(Icons.check_circle, size: 20, color: getCurrentBrightness() ? (lightColorScheme.primary) : (darkColorScheme.primary)) : Container()
+                  ],
                 ),
-                const SizedBox(width: 5),
-                thisSelected ? Icon(Icons.check_circle, size: 20, color: getCurrentBrightness() ? (lightColorScheme.primary) : (darkColorScheme.primary)) : Container()
-              ],
-            ),
+              ),
+            ],
           ),
         ),
         Expanded(
@@ -118,28 +127,37 @@ class InnerCard extends StatelessWidget {
         ),
         Expanded(
           flex: 3,
-          child: Container(
-            color: getCurrentBrightness() ? (usingTraslucent() ? lightColorScheme.surfaceContainer.withOpacity(0.5) : lightColorScheme.surfaceContainer) : (usingTraslucent() ? darkColorScheme.surfaceContainer.withOpacity(0.5) : darkColorScheme.surfaceContainer),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Container(
-                    margin: const EdgeInsets.fromLTRB(8, 2, 0, 2),
-                    decoration: BoxDecoration(shape: BoxShape.circle, color: getCurrentBrightness() ? (lightColorScheme.primary) : (darkColorScheme.primary))
-                  )
+          child: Stack(
+            fit: StackFit.expand,
+            alignment: Alignment.center,
+            children: [
+              Container(
+                color: getCurrentBrightness() ? (lightColorScheme.surface) : (darkColorScheme.surface),
+              ),
+              Container(
+                color: getCurrentBrightness() ? (usingTraslucent() ? lightColorScheme.surfaceContainer.withOpacity(0.5) : lightColorScheme.surfaceContainer) : (usingTraslucent() ? darkColorScheme.surfaceContainer.withOpacity(0.5) : darkColorScheme.surfaceContainer),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Container(
+                        margin: const EdgeInsets.fromLTRB(8, 2, 0, 2),
+                        decoration: BoxDecoration(shape: BoxShape.circle, color: getCurrentBrightness() ? (lightColorScheme.primary) : (darkColorScheme.primary))
+                      )
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      flex: 7,
+                      child: Container(
+                        margin: const EdgeInsets.fromLTRB(0, 8, 8, 8),
+                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), shape: BoxShape.rectangle, color: getCurrentBrightness() ? (lightColorScheme.outline) : (darkColorScheme.outline))
+                      )
+                    )
+                  ],
                 ),
-                const SizedBox(width: 6),
-                Expanded(
-                  flex: 7,
-                  child: Container(
-                    margin: const EdgeInsets.fromLTRB(0, 8, 8, 8),
-                    decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), shape: BoxShape.rectangle, color: getCurrentBrightness() ? (lightColorScheme.outline) : (darkColorScheme.outline))
-                  )
-                )
-              ],
-            ),
+              ),
+            ],
           ),
         )
       ],

@@ -1,6 +1,7 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:system_theme/system_theme.dart';
 
 const pdsurfaceContainer = Color(0xFF0C0C0C);
 const pdsurfaceContainerHigh = Color(0xFF131313);
@@ -100,6 +101,18 @@ TextTheme createTextTheme(TextTheme baseColor, String bodyFontString, String dis
   return textTheme;
 }
 
+CustomTheme dynamic = CustomTheme (
+  name: 'System dynamic',
+  light_: ThemeData(
+    colorScheme: ColorScheme.fromSeed(seedColor: SystemTheme.accentColor.accent, brightness: Brightness.light, dynamicSchemeVariant: DynamicSchemeVariant.fidelity),
+  ),
+  dark_: ThemeData(
+    colorScheme: ColorScheme.fromSeed(seedColor: SystemTheme.accentColor.accent, brightness: Brightness.dark, dynamicSchemeVariant: DynamicSchemeVariant.fidelity),
+  ),
+  bodyFontString: "Noto Sans Hatran",
+  displayFontString: "Noto Sans",
+);
+
 CustomTheme deepOrangeTheme = CustomTheme (
   name: 'Deep Orange',
   light_: ThemeData(
@@ -126,4 +139,70 @@ CustomTheme mizukiTheme = CustomTheme (
   displayFontString: "Noto Sans",
 );
 
-List<CustomTheme> allCustomThemesList = [deepOrangeTheme, mizukiTheme];
+CustomTheme ggTheme = CustomTheme (
+  name: 'Golden Glow',
+  light_ : ThemeData(
+    colorScheme: ColorScheme.fromSeed(seedColor: Colors.pink[200]!, brightness: Brightness.light, dynamicSchemeVariant: DynamicSchemeVariant.tonalSpot),
+  ),
+  dark_: ThemeData(
+    colorScheme: ColorScheme.fromSeed(seedColor: Colors.pink[200]!, brightness: Brightness.dark, dynamicSchemeVariant: DynamicSchemeVariant.tonalSpot),
+  ),
+  bodyFontString: "Noto Sans Hatran",
+  displayFontString: "Noto Sans",
+);
+
+CustomTheme wTheme = CustomTheme (
+  name: 'W',
+  light_: ThemeData(
+    colorScheme: ColorScheme.light(
+      primary : Color(0xFFFF0000),
+        onPrimary : Color(0xFFFFFFFF),
+        primaryContainer : Color(0xFFFF0000),
+        onPrimaryContainer : Color(0xFFFFFFFF),
+        inversePrimary : Color(0xFF6D0D0B), // Assuming 'inversePrimary' maps to 'doom_primaryInverse'
+        secondary : Color(0xFFFF0000),
+        onSecondary : Color(0xFFFFFFFF),
+        secondaryContainer : Color(0xFFFF0000),
+        onSecondaryContainer : Color(0xFFFFFFFF),
+        tertiary : Color(0xFFBFBFBF),
+        onTertiary : Color(0xFFFF0000),
+        tertiaryContainer : Color(0xFFBFBFBF),
+        onTertiaryContainer : Color(0xFFFF0000),
+        surface : Color(0xFF212121),
+        onSurface : Color(0xFFFFFFFF),
+        onSurfaceVariant : Color(0xFFD84945),
+        surfaceTint : Color(0xFFFF0000), // Assuming 'surfaceTint' maps to 'doom_primary' or similar
+        inverseSurface : Color(0xFF424242),
+        onInverseSurface : Color(0xFFFAFAFA),
+        outline : Color(0xFFFF0000),
+    )
+  ),
+  dark_: ThemeData(
+    colorScheme: ColorScheme.dark(
+      primary : Color(0xFFFF0000),
+      onPrimary : Color(0xFFFAFAFA),
+      primaryContainer : Color(0xFFFF0000),
+      onPrimaryContainer : Color(0xFFFAFAFA),
+      secondary : Color(0xFFFF0000),
+      onSecondary : Color(0xFFFAFAFA),
+      secondaryContainer : Color(0xFFFF0000),
+      onSecondaryContainer : Color(0xFFFAFAFA),
+      tertiary : Color(0xFFBFBFBF),
+      onTertiary : Color(0xFFFF0000),
+      tertiaryContainer : Color(0xFFBFBFBF),
+      onTertiaryContainer : Color(0xFFFF0000),
+      surface : Color(0xFF1B1B1B),
+      onSurface : Color(0xFFFFFFFF),
+      onSurfaceVariant : Color(0xFFD8FFFF),
+      surfaceTint : Color(0xFFFF0000),
+      inverseSurface : Color(0xFFFAFAFA),
+      onInverseSurface : Color(0xFF313131),
+      outline : Color(0xFFFF0000),
+      inversePrimary : Color(0xFF6D0D0B),
+    )
+  ),
+  bodyFontString: "Noto Sans Hatran",
+  displayFontString: "Noto Sans",
+);
+
+List<CustomTheme> allCustomThemesList = [dynamic, deepOrangeTheme, mizukiTheme, ggTheme, wTheme];

@@ -36,6 +36,7 @@ class Operator {
   final Map<String, dynamic> loreInfo;
   final Map<String, dynamic> voiceLangDict;
   final List<Map<String, dynamic>> charWordsList;
+  final List<Map<String, dynamic>> skinsList;
 
   Operator({
     required this.operatorDict,
@@ -56,7 +57,8 @@ class Operator {
     required this.names,
     required this.loreInfo,
     required this.voiceLangDict,
-    required this.charWordsList
+    required this.charWordsList,
+    required this.skinsList
   });
 
   String professionTranslate (String prof) => switch (prof) {
@@ -111,7 +113,7 @@ class Operator {
 
   String get subProfessionString => subProfessionTranslate(subProfessionId.toLowerCase());
 
-  factory Operator.fromJson(String key, Map<String, dynamic> dict, Map<String, dynamic> loreDict, Map<String, dynamic> voiceDict) {
+  factory Operator.fromJson(String key, Map<String, dynamic> dict, Map<String, dynamic> loreDict, Map<String, dynamic> voiceDict, Map<String, dynamic> charSkins) {
     //custom names
     String name = dict['name'];
     var names = <String>[name];
@@ -124,8 +126,19 @@ class Operator {
 
     List<Map<String, dynamic>> getVoices(Map<String, dynamic> charWords, String opKey) {
       List<Map<String, dynamic>> result = [];
+
       charWords.forEach((key, value){
         if (key.startsWith('${opKey}_')) {
+          result.add(value);
+        }
+      });
+      return result;
+    }
+
+    List<Map<String, dynamic>> getSkins(Map<String, dynamic> charskins, String opKey) {
+      List<Map<String, dynamic>> result = [];
+      charskins.forEach((key, value){
+        if (key.startsWith(opKey)) {
           result.add(value);
         }
       });
@@ -152,15 +165,17 @@ class Operator {
         loreInfo: loreDict[key],
         voiceLangDict: voiceDict['voiceLangDict'][key],
         charWordsList: getVoices(voiceDict['charWords'], key),
+        skinsList: getSkins(charSkins, key)
     );
   }
 }
 
 Future<List<Operator>> fetchOperators() async {
-  List<String> files = ['/excel/character_table.json', '/excel/handbook_info_table.json', '/excel/charword_table.json'];
+  List<String> files = ['/excel/character_table.json', '/excel/handbook_info_table.json', '/excel/charword_table.json', '/excel/skin_table.json'];
   // 0 operators
   // 1 lore
   // 2 voice
+  // 3 skin
 
   try {
     await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().existFiles(NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString, files);
@@ -182,6 +197,7 @@ List<Operator> parseOperators(List<String> response) {
   final operatorsparsed = jsonDecode(response[0]) as Map<String, dynamic>;
   final loreInfo = jsonDecode(response[1]) as Map<String, dynamic>;
   final voiceInfo = jsonDecode(response[2]) as Map<String, dynamic>;
+  final skinInfo = jsonDecode(response[3]) as Map<String, dynamic>;
 
   List<Operator> opsLists = [];
   operatorsparsed.forEach((key, value) {
@@ -191,7 +207,7 @@ List<Operator> parseOperators(List<String> response) {
       key.startsWith('token') ||
       value['isNotObtainable'] == true) {
     } else {
-      opsLists.add(Operator.fromJson(key, value, loreInfo['handbookDict'], voiceInfo));
+      opsLists.add(Operator.fromJson(key, value, loreInfo['handbookDict'], voiceInfo, skinInfo['charSkins']));
     }
   });
   return opsLists;

@@ -115,11 +115,6 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 60, child: Center(child: Text('planning to add "open today" tab'),)),
               const SizedBox(height: 40),
               const SizedBox(height: 60, child: Center(child: Text('planning to add more...'),)),
-              SizedBox(height: 60, child: Center(child: Column(children: [
-                Text('en : ${context.read<ServerProvider>().enVersion}'),
-                Text('cn : ${context.read<ServerProvider>().cnVersion}'),
-                Text('jp : ${context.read<ServerProvider>().jpVersion}')
-              ],),))
             ]
           ),
         ),
@@ -182,21 +177,22 @@ class _HomePageState extends State<HomePage> {
     NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setLoadingString('checking gamedata...');
     NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setIsLoadingHome(true);
     await Future.delayed(const Duration(seconds: 1));
+    bool hasAllFiles = await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().checkFiles(NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString);
 
-    if (NavigationService.navigatorKey.currentContext!.read<ServerProvider>().versionOf(NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString) == 'unknown') {
+    if (NavigationService.navigatorKey.currentContext!.read<ServerProvider>().versionOf(NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString) == 'unknown' || !hasAllFiles) {
       NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setLoadingString('downloading gamedata...');
       NavigationService.navigatorKey.currentContext!.read<ServerProvider>().downloadLastest(NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString);
       NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setIsLoadingHome(false);
     } else {
       NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setLoadingString('checking gamedata updates...');
       bool lastAvailable = await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().checkUpdateOf(NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString);
-
       if (lastAvailable) {
         // ask if update
         NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setLoadingString('there is an update...');
         await Future.delayed(const Duration(seconds: 2));
         NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setIsLoadingHome(false);
       } else {
+
         NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setLoadingString('everything fine');
         await Future.delayed(const Duration(seconds: 2));
         NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setIsLoadingHome(false);
