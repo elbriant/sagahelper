@@ -1,7 +1,7 @@
 import 'dart:math';
 
-import 'package:docsprts/providers/ui_provider.dart';
-import 'package:docsprts/themes.dart';
+import 'package:sagahelper/providers/ui_provider.dart';
+import 'package:sagahelper/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -15,7 +15,7 @@ class ThemePreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(5, 5, 15, 5),
+      margin: const EdgeInsets.fromLTRB(5, 10, 15, 5),
       child: Column(
         mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.center,

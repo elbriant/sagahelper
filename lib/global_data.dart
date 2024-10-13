@@ -20,6 +20,16 @@ class LocalDataManager {
     return directory.path;
   }
 
+  Future<String> get downloadPath async {
+    final Directory? dir = await getDownloadsDirectory();
+
+    if (dir != null) {
+      return dir.path;
+    } else {
+      throw UnsupportedError('no download folder');
+    }
+  }
+
   Future<String> localpathServer (String server) async {
     final directory = await getApplicationDocumentsDirectory();
     if (Directory('${directory.path}/${server.toLowerCase()}').existsSync()) {

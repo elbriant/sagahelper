@@ -1,9 +1,9 @@
 import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:docsprts/pages/operator_info.dart';
-import 'package:docsprts/pages/operators_page.dart';
-import 'package:docsprts/providers/settings_provider.dart';
+import 'package:sagahelper/pages/operator_info.dart';
+import 'package:sagahelper/pages/operators_page.dart';
+import 'package:sagahelper/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:glass_kit/glass_kit.dart';
 import 'package:provider/provider.dart';

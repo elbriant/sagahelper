@@ -1,16 +1,17 @@
-import 'package:autoscale_tabbarview/autoscale_tabbarview.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:docsprts/components/custom_tabbar.dart';
-import 'package:docsprts/components/utils.dart' show githubEncode;
-import 'package:docsprts/global_data.dart';
-import 'package:docsprts/pages/operators_page.dart';
+import 'package:sagahelper/components/custom_tabbar.dart';
+import 'package:sagahelper/components/dialog_box.dart';
+import 'package:sagahelper/components/utils.dart' show githubEncode;
+import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/pages/operators_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:provider/provider.dart';
-import 'package:docsprts/providers/ui_provider.dart';
-import 'package:docsprts/components/traslucent_ui.dart';
-import 'package:sliver_tools/sliver_tools.dart';
+import 'package:sagahelper/providers/ui_provider.dart';
+import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
 class OperatorInfo extends StatefulWidget {
@@ -51,21 +52,18 @@ class _OperatorInfoState extends State<OperatorInfo> with SingleTickerProviderSt
   
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Scaffold(
-        extendBody: true,
-        body: TabBarView(
-          controller: _tabController,
-          physics: _activeIndex == 1 ? NeverScrollableScrollPhysics() : null,
-          children: <Widget>[
-            ArchivePage(widget.operator),
-            ArtPage(widget.operator),
-            VoicePage(widget.operator),
-          ],
-        ),
-        bottomNavigationBar: context.read<UiProvider>().useTranslucentUi ? CustomTabBar(controller: _tabController, tabs: tabs, isTransparent: true) : CustomTabBar(controller: _tabController, tabs: tabs),
+    return Scaffold(
+      extendBody: true,
+      body: TabBarView(
+        controller: _tabController,
+        physics: _activeIndex == 1 ? NeverScrollableScrollPhysics() : null,
+        children: <Widget>[
+          ArchivePage(widget.operator),
+          ArtPage(widget.operator),
+          VoicePage(widget.operator),
+        ],
       ),
+      bottomNavigationBar: context.read<UiProvider>().useTranslucentUi ? Container(margin: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom), child: CustomTabBar(controller: _tabController, tabs: tabs, isTransparent: true)) : Container(margin: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom), child: CustomTabBar(controller: _tabController, tabs: tabs)),
     );
   }
 }
@@ -95,10 +93,9 @@ class HeaderInfo extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       child: Stack(
         children: [
-          logo != null ? Positioned(right: 1, top: 125, child: Container(decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: Theme.of(context).colorScheme.primary.withOpacity(0.25) , spreadRadius: 40, blurRadius: 55)]), child: CachedNetworkImage(colorBlendMode: BlendMode.modulate, color: const Color.fromARGB(150, 255, 255, 255), imageUrl: ghLogoLink, scale: 2.5,))) : Container(),
+          logo != null ? Positioned(right: 1, top: 0, child: Container(decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: Theme.of(context).colorScheme.primary.withOpacity(0.25) , spreadRadius: 40, blurRadius: 55)]), child: CachedNetworkImage(colorBlendMode: BlendMode.modulate, color: const Color.fromARGB(150, 255, 255, 255), imageUrl: ghLogoLink, scale: 2.5,))) : Container(),
           Column(
             children: [
-              SizedBox(height: const SliverAppBar.medium().toolbarHeight*2),
               Row(
                 children: [
                   Expanded(
@@ -191,36 +188,38 @@ class HeaderInfo extends StatelessWidget {
 class LoreInfo extends StatelessWidget {
   const LoreInfo(this.operator, {super.key});
   final Operator operator;
+
+  void playOperatorRecord() {
+    ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(const SnackBar(content: Text('not implemented yet')));
+  }
+
   @override
   Widget build(BuildContext context) {
-    bool hasParadoxStory = (operator.loreInfo['handbookAvgList'] as List).isNotEmpty;
+    bool hasOperatorRecords = (operator.loreInfo['handbookAvgList'] as List).isNotEmpty;
     List storyTextList = (operator.loreInfo['storyTextAudio'] as List);
+    List operatorRecords = (operator.loreInfo['handbookAvgList'] as List);
     
-    return SingleChildScrollView(
-      child: ListView.builder(
-        physics: const NeverScrollableScrollPhysics(),
-        shrinkWrap: true,
-        itemCount: hasParadoxStory ? storyTextList.length+1 : storyTextList.length,
-        itemBuilder: (context, index) {
-          if (hasParadoxStory && index == storyTextList.length+1-1) {
-            return Container(
-              height: 60,
-              margin: const EdgeInsets.all(8.0),
-              child: Center(child: Text('paradox / $index')),
+    return Column (
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: List.generate(
+        hasOperatorRecords ? storyTextList.length+operatorRecords.length : storyTextList.length ,
+        (index) {
+          if (hasOperatorRecords && index >= storyTextList.length) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 24.0),
+              child: InkWellDialogBox(
+                title: 'Operator Record: ${operatorRecords[index-storyTextList.length]['storySetName']}',
+                body: ((operatorRecords[index-storyTextList.length]['avgList'] as List).first as Map)['storyIntro'],
+                inkwellFun: playOperatorRecord,
+              ),
             );
           }
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 24.0),
-            child: Card.outlined(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  children: [
-                    Text(storyTextList[index]['storyTitle']),
-                    Text(((storyTextList[index]['stories'] as List).first as Map)['storyText'])
-                  ],
-                ),
-              ),
+            child: DialogBox(
+              title: storyTextList[index]['storyTitle'],
+              body: ((storyTextList[index]['stories'] as List).first as Map)['storyText'],
             ),
           );
         }
@@ -241,58 +240,81 @@ class SkillInfo extends StatelessWidget {
   }
 }
 
-class ArchivePage extends StatelessWidget {
+class ArchivePage extends StatefulWidget {
   final Operator operator;
   const ArchivePage(this.operator, {super.key});
 
   @override
+  State<ArchivePage> createState() => _ArchivePageState();
+}
+
+class _ArchivePageState extends State<ArchivePage> with SingleTickerProviderStateMixin {
+  late TabController _secondaryTabController;
+  late final List<Widget> _secChildren;
+  int _activeIndex = 0;
+  final List<Tab> _secTabs = <Tab>[Tab(text: 'File'), Tab(text: 'Skills')];
+  
+
+  @override
+  void initState() {
+    super.initState();
+    _secondaryTabController = TabController(vsync: this, length: _secTabs.length);
+    _secondaryTabController.addListener(() {
+      setState(() {
+        _activeIndex = _secondaryTabController.index;
+      });
+    });
+
+    _secChildren = [
+      LoreInfo(widget.operator),
+      SkillInfo()
+    ];
+  }
+
+  @override
+  void dispose() {
+    _secondaryTabController.dispose();
+    super.dispose();
+  }
+
+
+  @override
   Widget build(BuildContext context) {
     return CustomScrollView(
-        slivers: [
-          SliverStack(
-            children: [
-              SliverPadding(
-                padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate(
-                    [
-                      HeaderInfo(operator: operator),
-                      DefaultTabController(
-                       length: 2,
-                        child: Column(
-                          children: [
-                            const TabBar.secondary(
-                              indicatorSize: TabBarIndicatorSize.tab,
-                              tabs: [
-                                Tab(text: 'File'),
-                                Tab(text: 'Skills'),
-                              ]
-                            ),
-                            AutoScaleTabBarView(
-                              children: [
-                                LoreInfo(operator),
-                                const SkillInfo()
-                              ]
-                            )
-                          ],
-                        )
-                      )
-                    ]
-                  ),
-                ),
-              ),
-              SliverAppBar.medium(
-                flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3, child: Container(color: Colors.transparent, child: FlexibleSpaceBar(title: Text(operator.name), titlePadding: const EdgeInsets.only(left: 72.0, bottom: 16.0, right: 32.0)))) : FlexibleSpaceBar(title: Text(operator.name), titlePadding: const EdgeInsets.only(left: 72.0, bottom: 16.0, right: 32.0)),
-                backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
-                leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
-                actions: [
-                  IconButton(onPressed: (){}, icon: const Icon(Icons.more_horiz))
-                ],  
-              ),
-            ],
+      slivers: [
+        SliverAppBar.medium(
+          flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3, child: Container(color: Colors.transparent, child: FlexibleSpaceBar(title: Text(widget.operator.name), titlePadding: const EdgeInsets.only(left: 72.0, bottom: 16.0, right: 32.0)))) : FlexibleSpaceBar(title: Text(widget.operator.name), titlePadding: const EdgeInsets.only(left: 72.0, bottom: 16.0, right: 32.0)),
+          backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
+          leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
+          actions: [
+            IconButton(onPressed: (){}, icon: const Icon(Icons.more_horiz))
+          ],  
+        ),
+        SliverList.list(
+          children: [
+            HeaderInfo(operator: widget.operator),
+            TabBar.secondary(
+              controller: _secondaryTabController,
+              indicatorSize: TabBarIndicatorSize.tab,
+              tabs: _secTabs
+            ),
+            SizedBox(height: 20)
+          ]
+        ),
+        SliverToBoxAdapter(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 350),
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              return AnimatedSwitcher.defaultTransitionBuilder(child, animation);
+            },
+            child: _secChildren[_activeIndex]
           ),
-        ],
-      );
+        ),
+        SliverToBoxAdapter(
+          child: SizedBox(height: MediaQuery.of(context).padding.bottom)
+        )
+      ]
+    );
   }
 }
 
@@ -312,6 +334,7 @@ class _ArtPageState extends State<ArtPage> {
   final PageController _pageController = PageController();
 
   void changeOpSkin(int index) {
+    selectedIndex = index;
     _pageController.animateToPage(index, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
   }
 
@@ -338,6 +361,7 @@ class _ArtPageState extends State<ArtPage> {
       String avatarLink = githubEncode('https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/refs/heads/main/avatar/${widget.operator.skinsList[index]['avatarId']}.png');
 
       return Container(
+        width: 80, //same as height to have a 1:1 box
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(6),
           border: Border.all(color: Theme.of(context).colorScheme.secondary, strokeAlign: BorderSide.strokeAlignInside, width: 1.5)
@@ -362,15 +386,35 @@ class _ArtPageState extends State<ArtPage> {
     });
 
     void fullscreen() {
-
+     Navigator.push(context, MaterialPageRoute(builder: (context) => FullscreenArtsPage(NetworkImage(getImageLink(selectedIndex)), selectedIndex: selectedIndex)));
     }
 
     void chibify() {
 
     }
 
-    void showSkinInfo(){
-
+    void showSkinInfo() async {
+      await showModalBottomSheet<void>(
+        context: context,
+        builder: (BuildContext context) {
+          return SizedBox(
+            height: 200,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  const Text('Modal BottomSheet'),
+                  ElevatedButton(
+                    child: const Text('Close BottomSheet'),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
     }
 
     return Scaffold(
@@ -379,7 +423,7 @@ class _ArtPageState extends State<ArtPage> {
         actions: [
             IconButton(onPressed: () => showSkinInfo(), icon: const Icon(Icons.info_outline_rounded)),
             IconButton(onPressed: () => chibify(), icon: const Icon(Icons.sync_alt_outlined)),
-            IconButton(onPressed: () => fullscreen(), icon: const Icon(Icons.fullscreen)),
+            Hero(tag: 'button', child: IconButton(onPressed: () => fullscreen(), icon: const Icon(Icons.fullscreen))),
           ],
         flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3, child: Container(color: Colors.transparent)) : null,
         backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
@@ -393,10 +437,13 @@ class _ArtPageState extends State<ArtPage> {
               childEnableAlwaysPan: true,
               backgroundDecoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerLowest),
               pageController: _pageController,
+              wantKeepAlive: false,
               itemCount: widget.operator.skinsList.length,
               builder: (BuildContext context, int index) {
                 return PhotoViewGalleryPageOptions(
+                  filterQuality: FilterQuality.high,
                   imageProvider: NetworkImage(getImageLink(index)),
+                  heroAttributes: PhotoViewHeroAttributes(tag: '$selectedIndex hero')
                 );
               },
             ),
@@ -445,6 +492,60 @@ class _ArtPageState extends State<ArtPage> {
     }
   }
 
+}
+
+class FullscreenArtsPage extends StatefulWidget {
+  const FullscreenArtsPage(this.image, {super.key, required this.selectedIndex});
+
+  final NetworkImage image;
+  final int selectedIndex;
+
+  @override
+  State<FullscreenArtsPage> createState() => _FullscreenArtsPageState();
+}
+
+class _FullscreenArtsPageState extends State<FullscreenArtsPage> {
+
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.landscapeRight,
+      DeviceOrientation.landscapeLeft
+    ]);
+  }
+
+  @override
+  void dispose() {
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    void fullscreen() {
+      Navigator.pop(context);
+    }
+
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        actions: [
+          Hero(tag: 'button', child: IconButton(onPressed: () => fullscreen(), icon: const Icon(Icons.fullscreen_exit)))
+        ],
+        backgroundColor: Colors.transparent,
+        leading: SizedBox()
+      ),
+      body: PhotoView(
+        enablePanAlways: true,
+        filterQuality: FilterQuality.high,
+        imageProvider: widget.image,
+        backgroundDecoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerLowest),
+        heroAttributes: PhotoViewHeroAttributes(tag: '${widget.selectedIndex} hero'),
+      )
+    );
+  }
 }
 
 

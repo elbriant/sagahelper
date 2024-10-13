@@ -1,17 +1,17 @@
-import 'package:docsprts/components/traslucent_ui.dart';
-import 'package:docsprts/pages/home_page.dart';
-import 'package:docsprts/pages/operators_page.dart';
-import 'package:docsprts/pages/info_page.dart';
-import 'package:docsprts/pages/settings_page.dart';
-import 'package:docsprts/pages/tools_page.dart';
-import 'package:docsprts/providers/cache_provider.dart';
-import 'package:docsprts/providers/server_provider.dart';
-import 'package:docsprts/providers/settings_provider.dart';
-import 'package:docsprts/providers/ui_provider.dart';
+import 'package:sagahelper/components/traslucent_ui.dart';
+import 'package:sagahelper/pages/home_page.dart';
+import 'package:sagahelper/pages/operators_page.dart';
+import 'package:sagahelper/pages/info_page.dart';
+import 'package:sagahelper/pages/settings_page.dart';
+import 'package:sagahelper/pages/tools_page.dart';
+import 'package:sagahelper/providers/cache_provider.dart';
+import 'package:sagahelper/providers/server_provider.dart';
+import 'package:sagahelper/providers/settings_provider.dart';
+import 'package:sagahelper/providers/ui_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:docsprts/global_data.dart';
+import 'package:sagahelper/global_data.dart';
 import 'package:system_theme/system_theme.dart';
 
 void main() async {
@@ -22,11 +22,7 @@ void main() async {
 
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
-  SystemChrome.setSystemUIOverlayStyle(
-    SystemUiOverlayStyle(
-      systemNavigationBarColor: Colors.black.withOpacity(0.1),
-    ),
-  );
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   runApp(const MyApp());
 }
@@ -250,9 +246,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
             children: [
               Image.asset('assets/gif/saga_loading.gif', width: 200, height: 200),
               const SizedBox(height: 40),
-              const CircularProgressIndicator(),
-              const SizedBox(height: 40),
-              Text(context.watch<SettingsProvider>().loadingString)
+              const CircularProgressIndicator()
             ],
           ),
         ),

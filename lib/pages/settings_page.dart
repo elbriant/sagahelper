@@ -1,11 +1,11 @@
-import 'package:docsprts/components/theme_preview.dart';
-import 'package:docsprts/components/traslucent_ui.dart';
-import 'package:docsprts/components/utils.dart' show openUrl;
-import 'package:docsprts/global_data.dart';
-import 'package:docsprts/providers/server_provider.dart';
-import 'package:docsprts/providers/settings_provider.dart';
-import 'package:docsprts/providers/ui_provider.dart';
-import 'package:docsprts/themes.dart';
+import 'package:sagahelper/components/theme_preview.dart';
+import 'package:sagahelper/components/traslucent_ui.dart';
+import 'package:sagahelper/components/utils.dart' show openUrl;
+import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/providers/server_provider.dart';
+import 'package:sagahelper/providers/settings_provider.dart';
+import 'package:sagahelper/providers/ui_provider.dart';
+import 'package:sagahelper/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -109,16 +109,17 @@ class _AppearanceSettingsState extends State<AppearanceSettings> {
               SegmentedButton(segments: const [ButtonSegment(value: ThemeMode.system, icon: Icon(Icons.auto_mode), label: Text('System')), ButtonSegment(value: ThemeMode.light, icon: Icon(Icons.light_mode), label: Text('Light')), ButtonSegment(value: ThemeMode.dark, icon: Icon(Icons.dark_mode), label: Text('Dark'))], selected: {context.read<UiProvider>().themeMode}, onSelectionChanged: (newSelection) => setState((){context.read<UiProvider>().setThemeMode(newThemeMode: newSelection.first);})),
               Container(
                 margin: const EdgeInsets.fromLTRB(20, 30, 20, 10),
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.fromLTRB(8.0, 4.0, 8.0, 0.0),
                 height: 220,
                 child: ListView (
                   scrollDirection: Axis.horizontal,
-                  children: List<ThemePreview>.generate(allCustomThemesList.length, 
-                  (index) => ThemePreview (
-                    selfIndex: index,
-                    thisSelected: context.watch<UiProvider>().previewThemeIndexSelected == index,
-                    previewedTheme: allCustomThemesList[index],
-                    inkWellChild: InkWell(splashColor: Theme.of(context).brightness == Brightness.light? (allCustomThemesList[index].colorLight.splashColor) : (allCustomThemesList[index].getDarkMode(context.read<UiProvider>().isUsingPureDark).splashColor), highlightColor: Theme.of(context).brightness == Brightness.light? (allCustomThemesList[index].colorLight.highlightColor) : (allCustomThemesList[index].getDarkMode(context.read<UiProvider>().isUsingPureDark).highlightColor), onTap: () => changeThemeWithIndex(index)),
+                  children: List<ThemePreview>.generate(
+                    allCustomThemesList.length, 
+                    (index) => ThemePreview (
+                      selfIndex: index,
+                      thisSelected: context.watch<UiProvider>().previewThemeIndexSelected == index,
+                      previewedTheme: allCustomThemesList[index],
+                      inkWellChild: InkWell(splashColor: Theme.of(context).brightness == Brightness.light? (allCustomThemesList[index].colorLight.splashColor) : (allCustomThemesList[index].getDarkMode(context.read<UiProvider>().isUsingPureDark).splashColor), highlightColor: Theme.of(context).brightness == Brightness.light? (allCustomThemesList[index].colorLight.highlightColor) : (allCustomThemesList[index].getDarkMode(context.read<UiProvider>().isUsingPureDark).highlightColor), onTap: () => changeThemeWithIndex(index)),
                     )
                   ),
                 ),
@@ -215,16 +216,12 @@ class _DataSettingsState extends State<DataSettings> {
     } else if (status == 'up') {
       ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(const SnackBar(content: Text('already has the last version')));
     } else if (status == 'has') {
+      Navigator.pop(context);
       ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(const SnackBar(content: Text('starting to download last version')));
       NavigationService.navigatorKey.currentContext!.read<ServerProvider>().downloadLastest(server);
     } else if (status == 'err') {
       ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(const SnackBar(content: Text('something went wrong, try later')));
     }
-    
-    setState(() {
-      updateChecked = false;
-    });
-
   }
 
 }
@@ -296,7 +293,7 @@ class AboutSettings extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              IconButton(onPressed: () => openUrl('https://github.com/elbriant/docsprts'), icon: Icon(Icons.code, size: 42, color: Theme.of(context).colorScheme.primary,))
+              IconButton(onPressed: () => openUrl('https://github.com/elbriant/sagahelper'), icon: Icon(Icons.code, size: 42, color: Theme.of(context).colorScheme.primary,))
             ],
           ),
         ],

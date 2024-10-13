@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:docsprts/global_data.dart';
+import 'package:sagahelper/global_data.dart';
 
 List<String> serverList = ['en', 'cn', 'jp', 'kr', 'tw'];
 List<String> displayList = ['avatar', 'portrait'];

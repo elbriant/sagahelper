@@ -1,13 +1,13 @@
 import 'dart:async';
-import 'package:docsprts/providers/server_provider.dart';
-import 'package:docsprts/providers/settings_provider.dart';
+import 'package:sagahelper/providers/server_provider.dart';
+import 'package:sagahelper/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:glass_kit/glass_kit.dart';
 import 'package:provider/provider.dart';
-import 'package:docsprts/components/traslucent_ui.dart';
-import 'package:docsprts/providers/ui_provider.dart';
+import 'package:sagahelper/components/traslucent_ui.dart';
+import 'package:sagahelper/providers/ui_provider.dart';
 import 'package:intl/intl.dart';
-import 'package:docsprts/global_data.dart' show NavigationService, firstTimeCheck;
+import 'package:sagahelper/global_data.dart' show NavigationService, firstTimeCheck;
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

@@ -1,19 +1,20 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:docsprts/components/operator_container.dart';
-import 'package:docsprts/global_data.dart';
-import 'package:docsprts/providers/cache_provider.dart';
-import 'package:docsprts/providers/server_provider.dart';
-import 'package:docsprts/providers/settings_provider.dart';
+import 'package:sagahelper/components/operator_container.dart';
+import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/providers/cache_provider.dart';
+import 'package:sagahelper/providers/server_provider.dart';
+import 'package:sagahelper/providers/settings_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:autoscale_tabbarview/autoscale_tabbarview.dart';
 import 'package:provider/provider.dart';
-import 'package:docsprts/providers/ui_provider.dart';
-import 'package:docsprts/components/traslucent_ui.dart';
-import 'package:docsprts/components/utils.dart';
+import 'package:sagahelper/providers/ui_provider.dart';
+import 'package:sagahelper/components/traslucent_ui.dart';
+import 'package:sagahelper/components/utils.dart';
 
 const List<String> professionList = ['caster', 'medic', 'pioneer', 'sniper', 'special', 'support', 'tank', 'warrior'];
+
 //TODO complete this for filters
 const List<String> subProfessionList = ['agent', 'alchemist', 'aoesniper', 'artsfghter', 'artsprotector', 'bard', 'bearer', 'blastcaster', 'blessing', 'bombarder', 'centurion', 'chain', 'chainhealer', 'charger', ''];
 
@@ -73,7 +74,6 @@ class Operator {
 
   String get professionString => professionTranslate(profession.toLowerCase());
 
-  //TODO earthshaker subclass
   String subProfessionTranslate(String subprof) => switch (subprof) {
     'corecaster' => 'Core',
     'splashcaster' => 'Splash',
@@ -109,6 +109,7 @@ class Operator {
     'blessing' => 'Abjurer',
     'craftsman' => 'Artificer',
     'bearer' => 'Standard Bearer',
+    'hammer' => 'Earthshaker',
     String() => subprof.capitalize()
   };
 
@@ -173,8 +174,12 @@ class Operator {
 
 Future<List<Operator>> fetchOperators() async {
   String server = NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString;
+  String version = NavigationService.navigatorKey.currentContext!.read<ServerProvider>().versionOf(server);
 
-  if (NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperator != null && NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperatorServer == server) {
+  if (NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperator != null
+      && NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperatorServer == server
+      && NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperatorVersion == version
+    ) {
    return Future<List<Operator>>.value(NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperator);
   }
 
@@ -199,8 +204,9 @@ Future<List<Operator>> fetchOperators() async {
   // Use the compute function to run parsing in a separate isolate.
   List<Operator> completedList = await compute(parseOperators, response);
 
-  NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperatorServer = NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString;
+  NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperatorServer = server;
   NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperator = completedList;
+  NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperatorVersion = version;
 
   return completedList;
   
@@ -319,7 +325,6 @@ class _OperatorsPageState extends State<OperatorsPage> {
                     )
                   );
                 } else {
-                  print(snapshot.error);
                   return Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,

@@ -1,4 +1,5 @@
-# docsprts
+# SagaHelper
+*previously docsprts*
 A fanmade Arknights app tool
 
 ## Features
@@ -6,7 +7,7 @@ A fanmade Arknights app tool
 - Get server info in real time
 
 ## Downloads
-Get the lastest version in [releases](https://github.com/elbriant/docsprts/releases)
+Get the lastest version in [releases](https://github.com/elbriant/sagahelper/releases)
 
 ## Suggestions and contributions
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
@@ -17,7 +18,7 @@ Before reporting a new issue, take a look at the already opened issues.
 - Story Reader
 - Penguin Logistics implementation
 - Languagues
-- Change the app's name (too much prts)
+- add character dynamic sprites (dont know where to find the assets)
 
 ### Disclaimer
 The developer(s) of this application does not have any affiliation with Hypergryph.

@@ -1,5 +1,5 @@
-name: docsprts
-description: "A new Flutter project."
+name: sagahelper
+description: "A fanmade arknights app tool."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -52,6 +52,9 @@ dependencies:
   flowder: ^0.2.0
   system_theme: ^3.1.1
   carousel_slider: ^5.0.0
+  styled_text: ^8.1.0
+  flutter_local_notifications: ^17.2.3
+  spine_flutter: ^4.2.32
 
 dev_dependencies:
   flutter_test:

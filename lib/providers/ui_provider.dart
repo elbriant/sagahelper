@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:docsprts/themes.dart';
-import 'package:docsprts/global_data.dart';
+import 'package:sagahelper/themes.dart';
+import 'package:sagahelper/global_data.dart';
 
 final listAllThemeModes = [ThemeMode.system, ThemeMode.light, ThemeMode.dark];
 
