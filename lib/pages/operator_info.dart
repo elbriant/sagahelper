@@ -1,8 +1,14 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flowder/flowder.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:sagahelper/components/custom_tabbar.dart';
 import 'package:sagahelper/components/dialog_box.dart';
+import 'package:sagahelper/components/styled_buttons.dart';
 import 'package:sagahelper/components/utils.dart' show githubEncode;
 import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/notification_services.dart';
 import 'package:sagahelper/pages/operators_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -63,7 +69,7 @@ class _OperatorInfoState extends State<OperatorInfo> with SingleTickerProviderSt
           VoicePage(widget.operator),
         ],
       ),
-      bottomNavigationBar: context.read<UiProvider>().useTranslucentUi ? Container(margin: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom), child: CustomTabBar(controller: _tabController, tabs: tabs, isTransparent: true)) : Container(margin: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom), child: CustomTabBar(controller: _tabController, tabs: tabs)),
+      bottomNavigationBar: context.read<UiProvider>().useTranslucentUi ? CustomTabBar(controller: _tabController, tabs: tabs, isTransparent: true) : CustomTabBar(controller: _tabController, tabs: tabs),
     );
   }
 }
@@ -252,7 +258,7 @@ class _ArchivePageState extends State<ArchivePage> with SingleTickerProviderStat
   late TabController _secondaryTabController;
   late final List<Widget> _secChildren;
   int _activeIndex = 0;
-  final List<Tab> _secTabs = <Tab>[Tab(text: 'File'), Tab(text: 'Skills')];
+  final List<Tab> _secTabs = <Tab>[Tab(text: 'Skills'), Tab(text: 'File')];
   
 
   @override
@@ -266,8 +272,8 @@ class _ArchivePageState extends State<ArchivePage> with SingleTickerProviderStat
     });
 
     _secChildren = [
-      LoreInfo(widget.operator),
-      SkillInfo()
+      SkillInfo(),
+      LoreInfo(widget.operator)
     ];
   }
 
@@ -393,8 +399,44 @@ class _ArtPageState extends State<ArtPage> {
 
     }
 
+    void downloadArt() async {
+      Navigator.pop(context);
+
+      if (!await Permission.manageExternalStorage.request().isGranted) {
+        ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(const SnackBar(content: Text("Can't download: need storage permisson")));
+        return;
+      }
+
+      int id = getUniqueId();
+      String path = await LocalDataManager().downloadPath;
+
+      showDownloadNotification(title: 'Downloading', body: 'downloading image', id: id, ongoing: true, indeterminate: true);
+      
+      String skin = (widget.operator.skinsList[selectedIndex]['illustId'] as String).replaceFirst('illust_', '');
+      String link = githubEncode('https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/characters/${widget.operator.id}/$skin.png');
+      
+      final downloaderUtils = DownloaderUtils(
+        progressCallback: (current, total) {
+          final progress = (current / total) * 100;
+          showDownloadNotification(title: 'Downloading', body: skin, id: id, ongoing: true, indeterminate: false, progress: progress.round());
+        },
+        file: File('$path/$skin.png'),
+        progress: ProgressImplementation(),
+        onDone: () async {
+          await flutterLocalNotificationsPlugin.cancel(id);
+          showDownloadNotification(title: 'Downloaded', body: '$skin finished', id: id, ongoing: false);
+          downloadsBackgroundCores.remove(id.toString());
+        },
+        deleteOnCancel: true,
+      );
+                
+      DownloaderCore core = await Flowder.download(link, downloaderUtils);
+      downloadsBackgroundCores[id.toString()] = core;
+    }
+
     void showSkinInfo() async {
       await showModalBottomSheet<void>(
+        enableDrag: true,
         context: context,
         builder: (BuildContext context) {
           return SizedBox(
@@ -404,10 +446,13 @@ class _ArtPageState extends State<ArtPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  const Text('Modal BottomSheet'),
-                  ElevatedButton(
-                    child: const Text('Close BottomSheet'),
-                    onPressed: () => Navigator.pop(context),
+                  const Text('Skin info'),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.max,
+                    children: <Widget>[
+                      IconButtonStyled(icon: Icons.file_download_outlined, label: 'Download image', onTap: downloadArt, selected: true),
+                    ]
                   ),
                 ],
               ),
@@ -514,11 +559,13 @@ class _FullscreenArtsPageState extends State<FullscreenArtsPage> {
       DeviceOrientation.landscapeRight,
       DeviceOrientation.landscapeLeft
     ]);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   }
 
   @override
   void dispose() {
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     super.dispose();
   }
 

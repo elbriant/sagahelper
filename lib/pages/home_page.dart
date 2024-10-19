@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:sagahelper/notification_services.dart';
 import 'package:sagahelper/providers/server_provider.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
@@ -32,7 +34,11 @@ class _HomePageState extends State<HomePage> {
     super.initState();
 
     WidgetsBinding.instance
-        .addPostFrameCallback((_) {checkServer();});
+        .addPostFrameCallback((_) {
+          checkServer();
+          FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+          flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.requestNotificationsPermission();
+        });
   }
 
   @override
@@ -115,6 +121,9 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 60, child: Center(child: Text('planning to add "open today" tab'),)),
               const SizedBox(height: 40),
               const SizedBox(height: 60, child: Center(child: Text('planning to add more...'),)),
+              const SizedBox(height: 40),
+              const SizedBox(height: 40),
+              SizedBox(height: 60, child: Center(child: ElevatedButton(onPressed: (){showNotification(title: 'Update Available', body: 'tap to download!', payload: 'update');}, child: Text('action noti test')),)),
             ]
           ),
         ),

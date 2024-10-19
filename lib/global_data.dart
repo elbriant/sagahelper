@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flowder/flowder.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:async';
@@ -6,6 +7,8 @@ import 'dart:io';
 
 bool loadedConfigs = false;
 bool firstTimeCheck = false;
+
+Map<String, DownloaderCore> downloadsBackgroundCores = {};
 
 class NavigationService { 
   static GlobalKey<NavigatorState> navigatorKey = 
@@ -21,13 +24,15 @@ class LocalDataManager {
   }
 
   Future<String> get downloadPath async {
-    final Directory? dir = await getDownloadsDirectory();
+    String directory = "/storage/emulated/0/Download/";
 
-    if (dir != null) {
-      return dir.path;
-    } else {
-      throw UnsupportedError('no download folder');
+    var dirDownloadExists = await Directory(directory).exists();
+    if(dirDownloadExists){
+      directory = "/storage/emulated/0/Download/";
+    }else{
+      directory = "/storage/emulated/0/Downloads/";
     }
+    return directory;
   }
 
   Future<String> localpathServer (String server) async {

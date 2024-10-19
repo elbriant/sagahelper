@@ -18,10 +18,13 @@ class CustomTabBar extends StatelessWidget implements PreferredSizeWidget {
           color: Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5),
           child: Material(
             type: MaterialType.transparency,
-            child: TabBar(
-              controller: controller,
-              dividerColor: Colors.transparent,
-              tabs: tabs,
+            child: Padding(
+              padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
+              child: TabBar(
+                controller: controller,
+                dividerColor: Colors.transparent,
+                tabs: tabs,
+              ),
             ),
           ),
         ),
@@ -31,10 +34,13 @@ class CustomTabBar extends StatelessWidget implements PreferredSizeWidget {
         color: Theme.of(context).colorScheme.surfaceContainer,
         child: Material(
           type: MaterialType.transparency,
-          child: TabBar(
-            controller: controller,
-            dividerColor: Colors.transparent,
-            tabs: tabs,
+          child: Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
+            child: TabBar(
+              controller: controller,
+              dividerColor: Colors.transparent,
+              tabs: tabs,
+            ),
           ),
         ),
       );

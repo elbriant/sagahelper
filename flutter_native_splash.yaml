@@ -1,0 +1,21 @@
+flutter_native_splash:
+  android: true
+  ios: false
+  web: false
+
+  color: "#fff5d9"
+  image: "assets/logo.png"
+  branding: "assets/branding.png"
+  
+  color_dark: "#1a1916"
+  image_dark: "assets/logo.png"
+  branding_dark: "assets/branding-dark.png"
+
+  android_12:
+    color: "#fff5d9"
+    image: "assets/logo.png"
+    branding: "assets/branding.png"
+    
+    color_dark: "#1a1916"
+    image_dark: "assets/logo.png"
+    branding_dark: "assets/branding-dark.png"

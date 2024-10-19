@@ -55,6 +55,8 @@ dependencies:
   styled_text: ^8.1.0
   flutter_local_notifications: ^17.2.3
   spine_flutter: ^4.2.32
+  flutter_native_splash: ^2.4.1
+  permission_handler: ^11.3.1
 
 dev_dependencies:
   flutter_test:

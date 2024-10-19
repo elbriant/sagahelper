@@ -1,4 +1,5 @@
 import 'package:sagahelper/components/traslucent_ui.dart';
+import 'package:sagahelper/notification_services.dart';
 import 'package:sagahelper/pages/home_page.dart';
 import 'package:sagahelper/pages/operators_page.dart';
 import 'package:sagahelper/pages/info_page.dart';
@@ -22,14 +23,32 @@ void main() async {
 
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      systemNavigationBarColor: Color.fromRGBO(0, 0, 0, 0.01)
+    ),
+  );
+
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
-  runApp(const MyApp());
+  bool hasError = false;
+  Map? configs;
+  try {
+    configs = await loadConfigs();
+  } catch (e) {
+    hasError = true;
+  }
+
+  await initNotifications();
+  
+  runApp(MyApp(configs: configs, hasError: hasError));
 }
 
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  final Map? configs;
+  final bool hasError;
+  const MyApp({super.key, this.configs, required this.hasError});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -38,12 +57,6 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
-
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        systemNavigationBarColor: Colors.black
-      ),
-    );
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => UiProvider()),
@@ -54,53 +67,47 @@ class _MyAppState extends State<MyApp> {
       builder: (context, child) {
         if (loadedConfigs == true) {
           return const MainWidget();
-        } else {
-          return FutureBuilder(
-            future: loadConfigs(), 
-            builder: (context, snapshot) {
-
-              if (snapshot.hasError) {
-                resetConfigs(context);
-                return const ErrorScreen();
-              } else if (snapshot.hasData) {
-                var errorString = '';
-
-                try {
-                  //ui
-                  context.read<UiProvider>().setValues((snapshot.data as Map)['ui_configs']);
-                } catch (e) {
-                  errorString += ' [ui error]';
-                }
-
-                try {
-                  //settings
-                  context.read<SettingsProvider>().setValues((snapshot.data as Map)['settings_configs']);
-                } catch (e) {
-                  errorString += ' [settings error]';
-                }
-
-                try {
-                  //server
-                  context.read<ServerProvider>().setValues((snapshot.data as Map)['server_configs']);
-                } catch (e) {
-                  context.read<ServerProvider>().writeDefaultValues();
-                  context.read<ServerProvider>().setDefaultValues();
-                }
-
-                if (errorString != '') {
-                  resetConfigs(context);
-                  loadedConfigs = true;
-                  return MainWidget(errorDisplay: Text('Data corrupted! $errorString'));
-                }
-                
-                loadedConfigs = true;
-                return const MainWidget();
-              } else {
-                return const LoadingScreen();
-              }
-            }
-          );
         }
+
+        Map? loadedConfig = widget.configs;
+        bool hasError = widget.hasError;
+
+        if (hasError) {
+          resetConfigs(context);
+          return const ErrorScreen();
+        } 
+        
+        var errorString = '';
+        try {
+          //ui
+          context.read<UiProvider>().setValues(loadedConfig!['ui_configs']);
+        } catch (e) {
+          errorString += ' [ui error]';
+        }
+
+        try {
+          //settings
+          context.read<SettingsProvider>().setValues(loadedConfig!['settings_configs']);
+        } catch (e) {
+          errorString += ' [settings error]';
+        }
+
+        try {
+          //server
+          context.read<ServerProvider>().setValues(loadedConfig!['server_configs']);
+        } catch (e) {
+          context.read<ServerProvider>().writeDefaultValues();
+          context.read<ServerProvider>().setDefaultValues();
+        }
+
+        if (errorString != '') {
+          resetConfigs(context);
+          loadedConfigs = true;
+          return MainWidget(errorDisplay: Text('Data corrupted! $errorString'));
+        }
+        
+        loadedConfigs = true;
+        return const MainWidget();
       },
     );
   }
@@ -116,7 +123,7 @@ resetConfigs(BuildContext context) async {
   await SettingsProvider().writeDefaultValues();
 }
 
-loadConfigs() async {
+Future<Map> loadConfigs() async {
   final configs = LocalDataManager();
   var firstcheck = await configs.existConfig();
 

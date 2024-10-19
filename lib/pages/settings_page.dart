@@ -48,9 +48,6 @@ class _SettingsPageState extends State<SettingsPage> {
 
 
 
-
-
-
 // -------------------- Appearance Settings Page ------------------------------
 class AppearanceSettings extends StatefulWidget {
   const AppearanceSettings({super.key});
@@ -94,6 +91,8 @@ class _AppearanceSettingsState extends State<AppearanceSettings> {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
+      extendBody: true,
+      bottomNavigationBar: SystemNavBar(),
       appBar: AppBar(
         flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3,child: Container(color: Colors.transparent)) : null,
         backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
@@ -160,6 +159,8 @@ class _DataSettingsState extends State<DataSettings> {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
+      extendBody: true,
+      bottomNavigationBar: SystemNavBar(),
       appBar: AppBar(
         flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3,child: Container(color: Colors.transparent)) : null,
         backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
@@ -241,6 +242,8 @@ class ServerSettings extends StatelessWidget {
 
     return Scaffold(
       extendBodyBehindAppBar: true,
+      extendBody: true,
+      bottomNavigationBar: SystemNavBar(),
       appBar: AppBar(
         flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3,child: Container(color: Colors.transparent)) : null,
         backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
@@ -274,6 +277,8 @@ class AboutSettings extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
+      extendBody: true,
+      bottomNavigationBar: SystemNavBar(),
       appBar: AppBar(
         flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3,child: Container(color: Colors.transparent)) : null,
         backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
