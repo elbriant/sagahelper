@@ -6,11 +6,11 @@ FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNo
 
 @pragma('vm:entry-point')
 void notificationTapBackground(NotificationResponse notificationResponse) {
-  print('$notificationResponse  background response');
+  // handling background notifications (app may be closed)
 }
 
 void notificationResponse(NotificationResponse notificationResponse) async {
-  print('$notificationResponse  normal response');
+  // handling notifications may need to enable showsUserInterface (app must be open)
 
   if (notificationResponse.payload != null) {
     if (notificationResponse.payload == 'update') {
@@ -19,7 +19,6 @@ void notificationResponse(NotificationResponse notificationResponse) async {
   }
   
   if (notificationResponse.actionId == 'cancelDownload') {
-    print('cancel');
     flutterLocalNotificationsPlugin.cancel(notificationResponse.id!);
     await downloadsBackgroundCores[notificationResponse.id!.toString()]?.cancel();
     downloadsBackgroundCores.remove(notificationResponse.id.toString());

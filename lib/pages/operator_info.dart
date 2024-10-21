@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -6,7 +7,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:sagahelper/components/custom_tabbar.dart';
 import 'package:sagahelper/components/dialog_box.dart';
 import 'package:sagahelper/components/styled_buttons.dart';
-import 'package:sagahelper/components/utils.dart' show githubEncode;
+import 'package:sagahelper/components/text_styles.dart';
+import 'package:sagahelper/components/utils.dart' show ListExtension, StringExtension, githubEncode;
 import 'package:sagahelper/global_data.dart';
 import 'package:sagahelper/notification_services.dart';
 import 'package:sagahelper/pages/operators_page.dart';
@@ -19,6 +21,8 @@ import 'package:provider/provider.dart';
 import 'package:sagahelper/providers/ui_provider.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:styled_text/styled_text.dart';
+import 'package:rxdart/rxdart.dart' show Rx;
 
 class OperatorInfo extends StatefulWidget {
   final Operator operator;
@@ -236,12 +240,18 @@ class LoreInfo extends StatelessWidget {
 
 class SkillInfo extends StatelessWidget {
   const SkillInfo({super.key});
-
+  // TODO
   @override
   Widget build(BuildContext context) {
-    return const SizedBox(
+    
+    return SizedBox(
       height: 400,
-      child: Center(child: Text('here skill things'),)
+      child: Center(
+        child: StyledText(
+        text: r"Immediately gains <@ba.vup>{cost}</> DP; Deals <@ba.vup>{atk_scale:0%}</> ATK as Physical damage <@ba.vup>twice</> to up to 6 nearby enemies and <$ba.stun>Stuns</> them for <@ba.vup>{stun}</> seconds. Allied units within Attack Range gain <@ba.vup>{flamtl_s_2.prob:0%}</> Physical Dodge for <@ba.vup>{flamtl_s_2.duration}</> seconds".akRichTextParser().varParser({'cost' : 10.0, 'stun' : 0.5, 'atk_scale' : 1.5}),
+        tags: tagsAsArknights
+      )
+      )
     );
   }
 }
@@ -338,6 +348,8 @@ class _ArtPageState extends State<ArtPage> {
   int selectedIndex = 0;
   final CarouselSliderController carouselController = CarouselSliderController();
   final PageController _pageController = PageController();
+
+  //TODO add dynamic art
 
   void changeOpSkin(int index) {
     selectedIndex = index;
@@ -436,25 +448,40 @@ class _ArtPageState extends State<ArtPage> {
 
     void showSkinInfo() async {
       await showModalBottomSheet<void>(
+        constraints: BoxConstraints.loose(Size(MediaQuery.of(context).size.width, MediaQuery.of(context).size.height * 0.75)),
         enableDrag: true,
+        showDragHandle: true,
+        isScrollControlled: true,
         context: context,
         builder: (BuildContext context) {
-          return SizedBox(
-            height: 200,
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  const Text('Skin info'),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.max,
-                    children: <Widget>[
-                      IconButtonStyled(icon: Icons.file_download_outlined, label: 'Download image', onTap: downloadArt, selected: true),
-                    ]
-                  ),
-                ],
+          Map skinInfo = widget.operator.skinsList[selectedIndex];
+          return SafeArea(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    skinInfo["displaySkin"]["skinName"] != null ? Text(skinInfo["displaySkin"]["skinName"], style: TextStyle(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.primary), textScaler: TextScaler.linear(1.5)) : Text(skinInfo["displaySkin"]["skinGroupName"], style: TextStyle(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface), textScaler: TextScaler.linear(1.5)),
+                    skinInfo["skinId"] != null ? Text(skinInfo["skinId"], style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontStyle: FontStyle.italic)) : null,
+                    const SizedBox(height: 20),
+                    skinInfo["displaySkin"]["modelName"] != null ? Text('Model: ${skinInfo["displaySkin"]["modelName"]}') : null,
+                    skinInfo["displaySkin"]["drawerList"] != null ? Text('Drawer: ${(skinInfo["displaySkin"]["drawerList"] as List).join(', ')}') : null,
+                    skinInfo["displaySkin"]["skinGroupName"] != null ? Text('Series: ${skinInfo["displaySkin"]["skinGroupName"]}') : null,
+                    const SizedBox(height: 20),
+                    skinInfo["displaySkin"]["content"] != null ? Container(margin: EdgeInsets.only(bottom: 10.0), child: StyledText(text: skinInfo["displaySkin"]["content"], tags: tagsAsArknights, style: TextStyle(color: skinInfo["displaySkin"]["skinName"] != null ? Theme.of(context).colorScheme.secondary : null))) : null,
+                    skinInfo["displaySkin"]["usage"] != null ? Container(margin: EdgeInsets.only(bottom: 10.0), child: StyledText(text: skinInfo["displaySkin"]["usage"], tags: tagsAsArknights)) : null,
+                    skinInfo["displaySkin"]["description"] != null ? Container(margin: EdgeInsets.only(bottom: 10.0), child: StyledText(text: skinInfo["displaySkin"]["description"], tags: tagsAsArknights, style: TextStyle(fontStyle: FontStyle.italic),)) : null,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.max,
+                      children: <Widget>[
+                        IconButtonStyled(icon: Icons.file_download_outlined, label: 'Download image', onTap: downloadArt, selected: true),
+                      ]
+                    ),
+                  ].nullParser(),
+                ),
               ),
             ),
           );
@@ -598,6 +625,59 @@ class _FullscreenArtsPageState extends State<FullscreenArtsPage> {
 
 // --------------------------- Voice
 
+
+
+class AudioPlayerManager {
+  final player = AudioPlayer();
+  bool error = false;
+  Stream<DurationState>? durationState;
+
+  void init(String url) async {
+    durationState = Rx.combineLatest2<Duration, PlaybackEvent, DurationState>(
+        player.positionStream,
+        player.playbackEventStream,
+        (position, playbackEvent) => DurationState(
+              progress: position,
+              buffered: playbackEvent.bufferedPosition,
+              total: playbackEvent.duration,
+            ));
+    try {
+      await player.setUrl(url);
+      player.play();
+    } on PlayerException catch (e) {
+      showSnackBar("Error code: ${e.code}, Error message: ${e.message}");
+      error = true;
+    } on PlayerInterruptedException catch (e) {
+      // This call was interrupted since another audio source was loaded or the
+      // player was stopped or disposed before this audio source could complete
+      // loading.
+      showSnackBar("Connection aborted: ${e.message}");
+      error = true;
+    } catch (e) {
+      // Fallback for all other errors
+      showSnackBar('An error occured: $e');
+      error = true;
+    }
+  }
+
+  void play() {
+    player.play();
+  }
+
+  void pause() {
+    player.pause();
+  }
+
+  void stop() {
+    player.stop();
+  }
+
+  void dispose() async {
+    await player.stop();
+    player.dispose();
+  }
+}
+
 class VoicePage extends StatefulWidget {
   final Operator operator;
   const VoicePage(this.operator, {super.key});
@@ -607,18 +687,21 @@ class VoicePage extends StatefulWidget {
 }
 
 class _VoicePageState extends State<VoicePage> {
-  final player = AudioPlayer();
+  final AudioPlayerManager manager = AudioPlayerManager();
+  int selectedLang = 0;
+  List<String> langs = [];
+  List<Map<String, dynamic>> filteredCharWord = [];
+  int playingIndex = -1;
+  PlayerState? playerState;
 
   @override
-  void dispose() {
-    player.stop();
-    super.dispose();
-  }
+  void initState() {
+    super.initState();
 
-  @override
-  Widget build(BuildContext context) {
-    List<Widget> texts = [];
-    List<Map<String, dynamic>> filteredCharWord = [];
+    for (var key in (widget.operator.voiceLangDict['dict'] as Map<String, dynamic>).keys) {
+      langs.add(key.toLowerCase());
+      if (key == 'JP') selectedLang = langs.indexOf('jp');
+    }
 
     for (var value in widget.operator.charWordsList) {
       if (value['wordKey'] == widget.operator.id) {
@@ -626,8 +709,43 @@ class _VoicePageState extends State<VoicePage> {
       }
     }
 
-    (widget.operator.voiceLangDict['dict'] as Map<String, dynamic>).forEach((key, value){
-      texts.add(Text('${key.toLowerCase()} : ${value["cvName"].toString()}'));
+    manager.player.playerStateStream.listen((state) {
+      playerState = state;
+    }, onError: (Object e, StackTrace st) {
+      if (e is PlatformException) {
+        showSnackBar('Error code: ${e.code}, Error message: ${e.message}, AudioSource index: ${e.details?["index"]}');
+      } else {
+        showSnackBar('An error occurred: $e');
+      }
+    });    
+  }
+
+  @override
+  void dispose() {
+    manager.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> langsButtons = List.generate(langs.length, (index){
+
+      String label = switch (langs[index]) {
+        'cn_mandarin' => 'CN',
+        'cn_topolect' => 'CN',
+        'linkage' => 'CUSTOM',
+        String() => langs[index].toUpperCase()
+      };
+
+      String? sublabel = switch (langs[index]) {
+        'cn_mandarin' => 'Mandarin',
+        'cn_topolect' => 'Topolect',
+        String() => null
+      };
+
+      String va = ((widget.operator.voiceLangDict['dict'] as Map<String, dynamic>)[langs[index].toUpperCase()]["cvName"] as List).join(', ');
+
+      return StyledLangButton(label: label, sublabel: sublabel, vaName: va, selected: index == selectedLang, onTap: (){selectLang(index);});
     });
 
     return CustomScrollView(
@@ -644,23 +762,31 @@ class _VoicePageState extends State<VoicePage> {
             itemCount: filteredCharWord.length+1,
             itemBuilder: (context, index) {
               if (index == 0) {
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(children: texts),
+                return Card.filled(
+                  margin: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
+                  child: Padding(
+                    padding: const EdgeInsets.all(5.0),
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(vertical: 12.0),
+                      child: Wrap(
+                        runSpacing: 10.0,
+                        spacing: 6.0,
+                        runAlignment: WrapAlignment.start,
+                        alignment: WrapAlignment.spaceEvenly,
+                        children: langsButtons,
+                      ),
+                    ),
+                  ),
                 );
               }
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 24.0),
-                child: Card.outlined(
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                    children: [
-                      Text(filteredCharWord[index-1]['voiceTitle']),
-                      Text(filteredCharWord[index-1]['voiceText'])
-                    ],
-                  ),
-                  ),
+                child: AudioDialogBox(
+                  title: filteredCharWord[index-1]['voiceTitle'],
+                  body: filteredCharWord[index-1]['voiceText'],
+                  isPlaying: playingIndex == index,
+                  manager: manager,
+                  fun: (){play(filteredCharWord[index-1]["voiceId"], index);},
                 ),
               );
             }
@@ -668,5 +794,93 @@ class _VoicePageState extends State<VoicePage> {
         ),
       ],
     );
+  }
+
+  void selectLang(int index){
+    setState(() {
+      selectedLang = index;
+    });
+    if (manager.player.playing) {
+      managerPlay(filteredCharWord[playingIndex-1]["voiceId"], playingIndex);
+    }
+  }
+
+  void managerPlay(String voiceId, int index) {
+    if (playingIndex != index) {
+      setState(() {
+        playingIndex = index;
+      });
+    }
+    // get link using Aceship's repo
+    String voicelang = switch (langs[selectedLang]) {
+      'jp' => 'voice',
+      'en' => 'voice_en',
+      'kr' => 'voice_kr',
+      'cn_mandarin' => 'voice_cn',
+      'linkage' => 'voice',
+      String() => 'voice_custom'
+    };
+
+    String opId = widget.operator.id;
+
+    if(voicelang == 'voice_custom') {
+      opId += switch (langs[selectedLang]) {
+        'cn_topolect' => '_cn_topolect',
+        'ita' => '_ita',
+        String() => ''
+      };
+    }
+
+    String link = 'https://github.com/Aceship/Arknight-voices/raw/refs/heads/main/$voicelang/$opId/$voiceId.mp3';
+    
+    manager.init(link);
+  }
+
+  // not proud of this code
+  void play(String voiceId, int index) {
+    final processingState = playerState?.processingState;
+    final playing = playerState?.playing;
+
+    if (processingState != ProcessingState.idle || manager.player.audioSource == null || manager.error) {
+      if (manager.error) manager.error = false;
+
+      if (playing == true) {
+        if (processingState == ProcessingState.loading || processingState == ProcessingState.buffering) {
+          // is loading something
+          if (index != playingIndex) {
+            manager.stop();
+            managerPlay(voiceId, index);
+          }
+        } else if (processingState == ProcessingState.completed) {
+          // replay
+          managerPlay(voiceId, index);
+        } else if (processingState != ProcessingState.completed) {
+          // pause
+          if (index != playingIndex) {
+            manager.stop();
+            managerPlay(voiceId, index);
+          } else {
+            manager.pause();
+          }
+        } else {
+          print('playing uncatched???');
+        }
+      } else {
+        if (processingState != ProcessingState.completed) {
+          // paused
+          if (index != playingIndex) {
+            manager.stop();
+            managerPlay(voiceId, index);
+          } else {
+            manager.play();
+          }
+        } else {
+          print('not playing uncatched???');
+        }
+      }
+    } else {
+      print(playing);
+      print(processingState);
+    }
   }
 }

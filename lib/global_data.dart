@@ -10,6 +10,10 @@ bool firstTimeCheck = false;
 
 Map<String, DownloaderCore> downloadsBackgroundCores = {};
 
+void showSnackBar(String text) {
+  ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(SnackBar(content: Text(text)));
+}
+
 class NavigationService { 
   static GlobalKey<NavigatorState> navigatorKey = 
   GlobalKey<NavigatorState>();

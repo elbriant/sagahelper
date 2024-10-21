@@ -104,10 +104,10 @@ TextTheme createTextTheme(TextTheme baseColor, String bodyFontString, String dis
 CustomTheme dynamic = CustomTheme (
   name: 'System dynamic',
   light_: ThemeData(
-    colorScheme: ColorScheme.fromSeed(seedColor: SystemTheme.accentColor.accent, brightness: Brightness.light, dynamicSchemeVariant: DynamicSchemeVariant.fidelity),
+    colorScheme: ColorScheme.fromSeed(seedColor: SystemTheme.accentColor.accent, brightness: Brightness.light, dynamicSchemeVariant: DynamicSchemeVariant.vibrant),
   ),
   dark_: ThemeData(
-    colorScheme: ColorScheme.fromSeed(seedColor: SystemTheme.accentColor.accent, brightness: Brightness.dark, dynamicSchemeVariant: DynamicSchemeVariant.fidelity),
+    colorScheme: ColorScheme.fromSeed(seedColor: SystemTheme.accentColor.accent, brightness: Brightness.dark, dynamicSchemeVariant: DynamicSchemeVariant.vibrant),
   ),
   bodyFontString: "Noto Sans Hatran",
   displayFontString: "Noto Sans",

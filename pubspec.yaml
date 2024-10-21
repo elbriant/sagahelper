@@ -57,6 +57,8 @@ dependencies:
   spine_flutter: ^4.2.32
   flutter_native_splash: ^2.4.1
   permission_handler: ^11.3.1
+  audio_video_progress_bar: ^2.0.3
+  rxdart: ^0.28.0
 
 dev_dependencies:
   flutter_test:

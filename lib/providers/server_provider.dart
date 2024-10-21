@@ -235,8 +235,7 @@ class ServerProvider extends ChangeNotifier {
     for (var file in files) {
       var downloaderUtils = DownloaderUtils(
         progressCallback: (current, total) {
-          //final progress = (current / total) * 100;
-          // TODO notif progress bar
+          // final progress = (current / total) * 100;
         },
         file: File('$excelFolder/$file'),
         progress: ProgressImplementation(),

@@ -1,9 +1,19 @@
+import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 extension StringExtension on String {
     String capitalize() {
-      // ignore: unnecessary_this
-      return "${this[0].toUpperCase()}${this.substring(1).toLowerCase()}";
+      return "${this[0].toUpperCase()}${substring(1).toLowerCase()}";
+    }
+    String akRichTextParser() {
+      return replaceAll(RegExp(r'<@'), '<info custom=').replaceAll(RegExp(r'<\$'), '<selectable custom=');
+    }
+    String varParser(Map vars) {
+      String parsed = this;
+      for (String key in vars.keys) {
+        parsed = parsed.replaceAll(RegExp('{$key}'), vars[key].toString());
+      }
+      return parsed;
     }
 }
 
@@ -18,4 +28,14 @@ Future<void> openUrl(String urlStr, {LaunchMode mode = LaunchMode.externalApplic
 
 String githubEncode(String input) {
   return Uri.encodeFull(input).replaceAll('#', '%23');
+}
+
+extension ListExtension on List<Widget?> {
+  List<Widget> nullParser() {
+    List<Widget> listed = [];
+    for (var item in this) {
+      if (item != null) listed.add(item);
+    }
+    return listed;
+  }
 }
