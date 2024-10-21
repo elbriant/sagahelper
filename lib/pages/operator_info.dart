@@ -625,8 +625,6 @@ class _FullscreenArtsPageState extends State<FullscreenArtsPage> {
 
 // --------------------------- Voice
 
-
-
 class AudioPlayerManager {
   final player = AudioPlayer();
   bool error = false;
@@ -748,51 +746,53 @@ class _VoicePageState extends State<VoicePage> {
       return StyledLangButton(label: label, sublabel: sublabel, vaName: va, selected: index == selectedLang, onTap: (){selectLang(index);});
     });
 
-    return CustomScrollView(
-      slivers: [
-        SliverAppBar(
-          pinned: true,
-          flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3, child: Container(color: Colors.transparent, child: FlexibleSpaceBar(title: Text(widget.operator.name), titlePadding: const EdgeInsets.only(left: 72.0, bottom: 16.0, right: 32.0)))) : FlexibleSpaceBar(title: Text(widget.operator.name), titlePadding: const EdgeInsets.only(left: 72.0, bottom: 16.0, right: 32.0)),
-          backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
-          leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
-        ),
-        SliverPadding(
-          padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
-          sliver: SliverList.builder(
-            itemCount: filteredCharWord.length+1,
-            itemBuilder: (context, index) {
-              if (index == 0) {
-                return Card.filled(
-                  margin: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
-                  child: Padding(
-                    padding: const EdgeInsets.all(5.0),
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(vertical: 12.0),
-                      child: Wrap(
-                        runSpacing: 10.0,
-                        spacing: 6.0,
-                        runAlignment: WrapAlignment.start,
-                        alignment: WrapAlignment.spaceEvenly,
-                        children: langsButtons,
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3, child: Container(color: Colors.transparent, child: FlexibleSpaceBar(title: Text(widget.operator.name), titlePadding: const EdgeInsets.only(left: 72.0, bottom: 16.0, right: 32.0)))) : FlexibleSpaceBar(title: Text(widget.operator.name), titlePadding: const EdgeInsets.only(left: 72.0, bottom: 16.0, right: 32.0)),
+        backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
+        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
+      ),
+      body: SingleChildScrollView(
+        child: SafeArea(
+          child: Column(
+            children: List.generate(
+              filteredCharWord.length+1,
+              (index) {
+                if (index == 0) {
+                  return Card.filled(
+                    margin: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
+                    child: Padding(
+                      padding: const EdgeInsets.all(5.0),
+                      child: Container(
+                        width: double.maxFinite,
+                        margin: const EdgeInsets.symmetric(vertical: 12.0),
+                        child: Wrap(
+                          runSpacing: 10.0,
+                          spacing: 6.0,
+                          runAlignment: WrapAlignment.start,
+                          alignment: WrapAlignment.spaceEvenly,
+                          children: langsButtons,
+                        ),
                       ),
                     ),
+                  );
+                }
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 24.0),
+                  child: AudioDialogBox(
+                    title: filteredCharWord[index-1]['voiceTitle'],
+                    body: filteredCharWord[index-1]['voiceText'],
+                    isPlaying: playingIndex == index,
+                    manager: manager,
+                    fun: (){play(filteredCharWord[index-1]["voiceId"], index);},
                   ),
                 );
               }
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 24.0),
-                child: AudioDialogBox(
-                  title: filteredCharWord[index-1]['voiceTitle'],
-                  body: filteredCharWord[index-1]['voiceText'],
-                  isPlaying: playingIndex == index,
-                  manager: manager,
-                  fun: (){play(filteredCharWord[index-1]["voiceId"], index);},
-                ),
-              );
-            }
+            ),
           ),
         ),
-      ],
+      )
     );
   }
 
