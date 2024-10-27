@@ -8,10 +8,10 @@ import 'package:sagahelper/components/custom_tabbar.dart';
 import 'package:sagahelper/components/dialog_box.dart';
 import 'package:sagahelper/components/styled_buttons.dart';
 import 'package:sagahelper/components/text_styles.dart';
-import 'package:sagahelper/components/utils.dart' show ListExtension, StringExtension, githubEncode;
+import 'package:sagahelper/components/utils.dart' show ListExtension, StringExtension;
 import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/notification_services.dart';
-import 'package:sagahelper/pages/operators_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
@@ -23,6 +23,7 @@ import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:styled_text/styled_text.dart';
 import 'package:rxdart/rxdart.dart' show Rx;
+import 'package:device_info_plus/device_info_plus.dart';
 
 class OperatorInfo extends StatefulWidget {
   final Operator operator;
@@ -36,9 +37,9 @@ class _OperatorInfoState extends State<OperatorInfo> with SingleTickerProviderSt
 
   late TabController _tabController;
   List<Tab> tabs = <Tab>[
-    Tab(text: 'Archive', icon: Icon(Icons.file_present)),
-    Tab(text: 'Art', icon: Icon(Icons.filter)),
-    Tab(text: 'Voice', icon: Icon(Icons.voice_chat)),
+    const Tab(text: 'Archive', icon: Icon(Icons.file_present)),
+    const Tab(text: 'Art', icon: Icon(Icons.filter)),
+    const Tab(text: 'Voice', icon: Icon(Icons.voice_chat)),
   ];
   int _activeIndex = 0;
 
@@ -66,7 +67,7 @@ class _OperatorInfoState extends State<OperatorInfo> with SingleTickerProviderSt
       extendBody: true,
       body: TabBarView(
         controller: _tabController,
-        physics: _activeIndex == 1 ? NeverScrollableScrollPhysics() : null,
+        physics: _activeIndex == 1 ? const NeverScrollableScrollPhysics() : null,
         children: <Widget>[
           ArchivePage(widget.operator),
           ArtPage(widget.operator),
@@ -268,7 +269,7 @@ class _ArchivePageState extends State<ArchivePage> with SingleTickerProviderStat
   late TabController _secondaryTabController;
   late final List<Widget> _secChildren;
   int _activeIndex = 0;
-  final List<Tab> _secTabs = <Tab>[Tab(text: 'Skills'), Tab(text: 'File')];
+  final List<Tab> _secTabs = <Tab>[const Tab(text: 'Skills'), const Tab(text: 'File')];
   
 
   @override
@@ -282,7 +283,7 @@ class _ArchivePageState extends State<ArchivePage> with SingleTickerProviderStat
     });
 
     _secChildren = [
-      SkillInfo(),
+      const SkillInfo(),
       LoreInfo(widget.operator)
     ];
   }
@@ -314,7 +315,7 @@ class _ArchivePageState extends State<ArchivePage> with SingleTickerProviderStat
               indicatorSize: TabBarIndicatorSize.tab,
               tabs: _secTabs
             ),
-            SizedBox(height: 20)
+            const SizedBox(height: 20)
           ]
         ),
         SliverToBoxAdapter(
@@ -336,6 +337,8 @@ class _ArchivePageState extends State<ArchivePage> with SingleTickerProviderStat
 
 // ------------------------ Art
 
+enum ChibiMode {back, front, build}
+
 class ArtPage extends StatefulWidget {
   final Operator operator;
   const ArtPage(this.operator, {super.key});
@@ -346,6 +349,9 @@ class ArtPage extends StatefulWidget {
 
 class _ArtPageState extends State<ArtPage> {
   int selectedIndex = 0;
+  bool chibimode = false;
+  bool hasDynamicArt = false;
+  bool dynamicArt = false;
   final CarouselSliderController carouselController = CarouselSliderController();
   final PageController _pageController = PageController();
 
@@ -353,7 +359,20 @@ class _ArtPageState extends State<ArtPage> {
 
   void changeOpSkin(int index) {
     selectedIndex = index;
-    _pageController.animateToPage(index, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+    if (widget.operator.skinsList[selectedIndex]["dynIllustId"] != null && hasDynamicArt == false) {
+      setState(() {
+        hasDynamicArt = true;
+      });
+    } else if (widget.operator.skinsList[selectedIndex]["dynIllustId"] == null && hasDynamicArt == true) {
+      setState(() {
+        hasDynamicArt = false;
+      });
+    }
+    if (!chibimode) _pageController.animateToPage(index, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
+  }
+
+  void showDynamicSkin() {
+    ShowSnackBar.showSnackBar('dynamic art not supported yet');
   }
 
   @override
@@ -369,14 +388,13 @@ class _ArtPageState extends State<ArtPage> {
       String opSkinId = (widget.operator.skinsList[index]['illustId'] as String).replaceFirst('illust_', '');
 
       // source ArknightsAssets repo
-      return githubEncode('https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/characters/${widget.operator.id}/$opSkinId.png');
+      return 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/characters/${widget.operator.id}/$opSkinId.png'.githubEncode();
     }
-
 
     List<Widget> skinChildren = List.generate(widget.operator.skinsList.length, (int index) {
 
       // source yuanyan3060 repo
-      String avatarLink = githubEncode('https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/refs/heads/main/avatar/${widget.operator.skinsList[index]['avatarId']}.png');
+      String avatarLink = 'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/refs/heads/main/avatar/${widget.operator.skinsList[index]['avatarId']}.png'.githubEncode();
 
       return Container(
         width: 80, //same as height to have a 1:1 box
@@ -408,15 +426,20 @@ class _ArtPageState extends State<ArtPage> {
     }
 
     void chibify() {
-
+      setState(() {
+        chibimode = !chibimode;
+      });
     }
 
     void downloadArt() async {
       Navigator.pop(context);
 
-      if (!await Permission.manageExternalStorage.request().isGranted) {
-        ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(const SnackBar(content: Text("Can't download: need storage permisson")));
-        return;
+      // this download may or may not work as i currently can't test
+      // downloading for API >= 29 doesn't require permissons (Android provides permissons for shared media)
+      // downloading for API < 29 does requires permissons and hopefully the line below provides it
+      var sdkApi = (await DeviceInfoPlugin().androidInfo).version.sdkInt;
+      if (sdkApi < 29) {
+        Permission.storage.request();
       }
 
       int id = getUniqueId();
@@ -425,7 +448,7 @@ class _ArtPageState extends State<ArtPage> {
       showDownloadNotification(title: 'Downloading', body: 'downloading image', id: id, ongoing: true, indeterminate: true);
       
       String skin = (widget.operator.skinsList[selectedIndex]['illustId'] as String).replaceFirst('illust_', '');
-      String link = githubEncode('https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/characters/${widget.operator.id}/$skin.png');
+      String link = 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/characters/${widget.operator.id}/$skin.png'.githubEncode();
       
       final downloaderUtils = DownloaderUtils(
         progressCallback: (current, total) {
@@ -440,6 +463,9 @@ class _ArtPageState extends State<ArtPage> {
           downloadsBackgroundCores.remove(id.toString());
         },
         deleteOnCancel: true,
+        onError: (e){
+          print('error: $e');
+        }
       );
                 
       DownloaderCore core = await Flowder.download(link, downloaderUtils);
@@ -463,16 +489,16 @@ class _ArtPageState extends State<ArtPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    skinInfo["displaySkin"]["skinName"] != null ? Text(skinInfo["displaySkin"]["skinName"], style: TextStyle(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.primary), textScaler: TextScaler.linear(1.5)) : Text(skinInfo["displaySkin"]["skinGroupName"], style: TextStyle(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface), textScaler: TextScaler.linear(1.5)),
+                    skinInfo["displaySkin"]["skinName"] != null ? Text(skinInfo["displaySkin"]["skinName"], style: TextStyle(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.primary), textScaler: const TextScaler.linear(1.5)) : Text(skinInfo["displaySkin"]["skinGroupName"], style: TextStyle(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface), textScaler: const TextScaler.linear(1.5)),
                     skinInfo["skinId"] != null ? Text(skinInfo["skinId"], style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontStyle: FontStyle.italic)) : null,
                     const SizedBox(height: 20),
                     skinInfo["displaySkin"]["modelName"] != null ? Text('Model: ${skinInfo["displaySkin"]["modelName"]}') : null,
                     skinInfo["displaySkin"]["drawerList"] != null ? Text('Drawer: ${(skinInfo["displaySkin"]["drawerList"] as List).join(', ')}') : null,
                     skinInfo["displaySkin"]["skinGroupName"] != null ? Text('Series: ${skinInfo["displaySkin"]["skinGroupName"]}') : null,
                     const SizedBox(height: 20),
-                    skinInfo["displaySkin"]["content"] != null ? Container(margin: EdgeInsets.only(bottom: 10.0), child: StyledText(text: skinInfo["displaySkin"]["content"], tags: tagsAsArknights, style: TextStyle(color: skinInfo["displaySkin"]["skinName"] != null ? Theme.of(context).colorScheme.secondary : null))) : null,
-                    skinInfo["displaySkin"]["usage"] != null ? Container(margin: EdgeInsets.only(bottom: 10.0), child: StyledText(text: skinInfo["displaySkin"]["usage"], tags: tagsAsArknights)) : null,
-                    skinInfo["displaySkin"]["description"] != null ? Container(margin: EdgeInsets.only(bottom: 10.0), child: StyledText(text: skinInfo["displaySkin"]["description"], tags: tagsAsArknights, style: TextStyle(fontStyle: FontStyle.italic),)) : null,
+                    skinInfo["displaySkin"]["content"] != null ? Container(margin: const EdgeInsets.only(bottom: 10.0), child: StyledText(text: skinInfo["displaySkin"]["content"], tags: tagsAsArknights, style: TextStyle(color: skinInfo["displaySkin"]["skinName"] != null ? Theme.of(context).colorScheme.secondary : null))) : null,
+                    skinInfo["displaySkin"]["usage"] != null ? Container(margin: const EdgeInsets.only(bottom: 10.0), child: StyledText(text: skinInfo["displaySkin"]["usage"], tags: tagsAsArknights)) : null,
+                    skinInfo["displaySkin"]["description"] != null ? Container(margin: const EdgeInsets.only(bottom: 10.0), child: StyledText(text: skinInfo["displaySkin"]["description"], tags: tagsAsArknights, style: const TextStyle(fontStyle: FontStyle.italic),)) : null,
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.max,
@@ -504,26 +530,45 @@ class _ArtPageState extends State<ArtPage> {
       body: ClipRRect(
         child: Stack(
           children: [
-            PhotoViewGallery.builder(
-              scrollPhysics: NeverScrollableScrollPhysics(),
-              childEnableAlwaysPan: true,
-              backgroundDecoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerLowest),
-              pageController: _pageController,
-              wantKeepAlive: false,
-              itemCount: widget.operator.skinsList.length,
-              builder: (BuildContext context, int index) {
-                return PhotoViewGalleryPageOptions(
-                  filterQuality: FilterQuality.high,
-                  imageProvider: NetworkImage(getImageLink(index)),
-                  heroAttributes: PhotoViewHeroAttributes(tag: '$selectedIndex hero')
-                );
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 500),
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return AnimatedSwitcher.defaultTransitionBuilder(child, animation);
               },
+              child: chibimode ? chibiview() : photoview(context, getImageLink),
             ),
-            Positioned(left: 0, right: 0, bottom: 0, child: carouselContainer(skinChildren, carouselController))
-          ],
+            Positioned(left: 0, right: 0, bottom: 0, child: carouselContainer(skinChildren, carouselController)),
+            hasDynamicArt && chibimode == false? Positioned(right: 0, bottom: 0, child: dynamicSkinButton()) : null
+          ].nullParser(),
         ),
+      )
+    );
+  }
+
+  Widget chibiview() {
+    return Container(
+      child: const Center(
+        child: Text('Chibi not supported yet'),
       ),
     );
+  }
+
+  PhotoViewGallery photoview(BuildContext context, String Function(int index) getImageLink) {
+    return PhotoViewGallery.builder(
+          scrollPhysics: const NeverScrollableScrollPhysics(),
+          childEnableAlwaysPan: true,
+          backgroundDecoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerLowest),
+          pageController: _pageController,
+          wantKeepAlive: true,
+          itemCount: widget.operator.skinsList.length,
+          builder: (BuildContext context, int index) {
+            return PhotoViewGalleryPageOptions(
+              filterQuality: FilterQuality.high,
+              imageProvider: NetworkImage(getImageLink(index)),
+              heroAttributes: PhotoViewHeroAttributes(tag: '$selectedIndex hero')
+            );
+          },
+        );
   }
 
   Widget carouselContainer (List<Widget> children, CarouselSliderController controller) {
@@ -562,6 +607,13 @@ class _ArtPageState extends State<ArtPage> {
         ),
       );
     }
+  }
+  
+  Widget dynamicSkinButton() {
+    return Container(
+      margin: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom+80+20, right: 20),
+      child: FloatingActionButton.small(onPressed: (){showDynamicSkin();}, child: const Icon(Icons.play_arrow))
+    );
   }
 
 }
@@ -609,7 +661,7 @@ class _FullscreenArtsPageState extends State<FullscreenArtsPage> {
           Hero(tag: 'button', child: IconButton(onPressed: () => fullscreen(), icon: const Icon(Icons.fullscreen_exit)))
         ],
         backgroundColor: Colors.transparent,
-        leading: SizedBox()
+        leading: const SizedBox()
       ),
       body: PhotoView(
         enablePanAlways: true,
@@ -627,7 +679,6 @@ class _FullscreenArtsPageState extends State<FullscreenArtsPage> {
 
 class AudioPlayerManager {
   final player = AudioPlayer();
-  bool error = false;
   Stream<DurationState>? durationState;
 
   void init(String url) async {
@@ -642,19 +693,14 @@ class AudioPlayerManager {
     try {
       await player.setUrl(url);
       player.play();
-    } on PlayerException catch (e) {
-      showSnackBar("Error code: ${e.code}, Error message: ${e.message}");
-      error = true;
     } on PlayerInterruptedException catch (e) {
       // This call was interrupted since another audio source was loaded or the
       // player was stopped or disposed before this audio source could complete
       // loading.
-      showSnackBar("Connection aborted: ${e.message}");
-      error = true;
+      ShowSnackBar.showSnackBar("Connection aborted: ${e.message}");
     } catch (e) {
       // Fallback for all other errors
-      showSnackBar('An error occured: $e');
-      error = true;
+      ShowSnackBar.showSnackBar('An error occured: $e');
     }
   }
 
@@ -684,9 +730,11 @@ class VoicePage extends StatefulWidget {
   State<VoicePage> createState() => _VoicePageState();
 }
 
-class _VoicePageState extends State<VoicePage> {
+class _VoicePageState extends State<VoicePage> with WidgetsBindingObserver {
   final AudioPlayerManager manager = AudioPlayerManager();
   int selectedLang = 0;
+  List voicelines = [];
+  String selectedVoicelines = '';
   List<String> langs = [];
   List<Map<String, dynamic>> filteredCharWord = [];
   int playingIndex = -1;
@@ -695,37 +743,74 @@ class _VoicePageState extends State<VoicePage> {
   @override
   void initState() {
     super.initState();
-
-    for (var key in (widget.operator.voiceLangDict['dict'] as Map<String, dynamic>).keys) {
-      langs.add(key.toLowerCase());
-      if (key == 'JP') selectedLang = langs.indexOf('jp');
-    }
-
-    for (var value in widget.operator.charWordsList) {
-      if (value['wordKey'] == widget.operator.id) {
-        filteredCharWord.add(value);
-      }
-    }
-
-    manager.player.playerStateStream.listen((state) {
-      playerState = state;
-    }, onError: (Object e, StackTrace st) {
-      if (e is PlatformException) {
-        showSnackBar('Error code: ${e.code}, Error message: ${e.message}, AudioSource index: ${e.details?["index"]}');
-      } else {
-        showSnackBar('An error occurred: $e');
-      }
-    });    
+    WidgetsBinding.instance.addObserver(this);
+    _init();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     manager.dispose();
     super.dispose();
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      // Release the player's resources when not in use. We use "stop" so that
+      // if the app resumes later, it will still remember what position to
+      // resume from.
+      manager.stop();
+    }
+  }
+
+  void _init() {
+    for (var key in (widget.operator.voiceLangDict['dict'] as Map<String, dynamic>).keys) {
+      langs.add(key.toLowerCase());
+      if (key == 'JP') selectedLang = langs.indexOf('jp');
+    }
+
+    voicelines.add(widget.operator.id);
+    for (var skin in widget.operator.skinsList) {
+      if (skin["voiceId"] != null) {
+        voicelines.add(skin["voiceId"]);
+      }
+    }
+    selectedVoicelines = voicelines.first;
+
+    manager.player.playbackEventStream.listen((event) {}, onError: (Object e, StackTrace st) {
+      if (e is PlatformException) {
+        ShowSnackBar.showSnackBar('Error code: ${e.code}, Error message: ${e.message}, AudioSource index: ${e.details?["index"]}', type: SnackBarType.failure);
+      } else {
+        ShowSnackBar.showSnackBar('An error occurred: $e', type: SnackBarType.failure);
+      }
+    });
+
+    manager.player.playerStateStream.listen((state) {
+      playerState = state;
+    });
+
+  }
+
+  void changeVoiceline(String? voiceline) {
+    setState(() {
+      selectedVoicelines = voiceline ?? voicelines.first;
+    });
+    if (manager.player.playing) {
+      managerPlay(filteredCharWord[playingIndex-2]["voiceId"], playingIndex);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+
+    filteredCharWord = [];
+    for (var value in widget.operator.charWordsList) {
+      if (value['wordKey'] == selectedVoicelines) {
+        filteredCharWord.add(value);
+      }
+    }
+
     List<Widget> langsButtons = List.generate(langs.length, (index){
 
       String label = switch (langs[index]) {
@@ -757,35 +842,59 @@ class _VoicePageState extends State<VoicePage> {
         child: SafeArea(
           child: Column(
             children: List.generate(
-              filteredCharWord.length+1,
+              filteredCharWord.length+2,
               (index) {
                 if (index == 0) {
                   return Card.filled(
-                    margin: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 24.0),
-                    child: Padding(
-                      padding: const EdgeInsets.all(5.0),
-                      child: Container(
+                    margin: const EdgeInsets.symmetric(vertical: 18.0, horizontal: 24.0),
+                    child: Container(
                         width: double.maxFinite,
-                        margin: const EdgeInsets.symmetric(vertical: 12.0),
+                        padding: const EdgeInsets.all(5.0),
+                        margin: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 6.0),
                         child: Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          alignment: WrapAlignment.spaceEvenly,
                           runSpacing: 10.0,
                           spacing: 6.0,
-                          runAlignment: WrapAlignment.start,
-                          alignment: WrapAlignment.spaceEvenly,
                           children: langsButtons,
                         ),
                       ),
-                    ),
                   );
+                } else if (index == 1) {
+                  // voicelines
+                  if (voicelines.length > 1) {
+                    return Card.filled(
+                      margin: const EdgeInsets.symmetric(vertical: 18.0, horizontal: 24.0),
+                      child: Container(
+                        width: double.maxFinite,
+                        padding: const EdgeInsets.all(5.0),
+                        margin: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 6.0),
+                        child: DropdownMenu(
+                          initialSelection: selectedVoicelines,
+                          label: const Text('Voicelines'),
+                          leadingIcon: Icon(Icons.record_voice_over_rounded, color: Theme.of(context).colorScheme.primary),
+                          width: double.maxFinite,
+                          onSelected: changeVoiceline,
+                          dropdownMenuEntries: voicelines.map<DropdownMenuEntry<String>>(
+                            (name) {
+                              return DropdownMenuEntry<String>(value: name, label: name);
+                            }
+                          ).toList()
+                        ),
+                      ),
+                    );
+                  } else {
+                    return const SizedBox();
+                  }
                 }
                 return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 24.0),
+                  padding: const EdgeInsets.fromLTRB(24.0, 0, 24.0, 12.0),
                   child: AudioDialogBox(
-                    title: filteredCharWord[index-1]['voiceTitle'],
-                    body: filteredCharWord[index-1]['voiceText'],
+                    title: filteredCharWord[index-2]['voiceTitle'],
+                    body: (filteredCharWord[index-2]['voiceText'] as String).nicknameParser(),
                     isPlaying: playingIndex == index,
                     manager: manager,
-                    fun: (){play(filteredCharWord[index-1]["voiceId"], index);},
+                    fun: (){play(filteredCharWord[index-2]["voiceId"], index);},
                   ),
                 );
               }
@@ -801,7 +910,7 @@ class _VoicePageState extends State<VoicePage> {
       selectedLang = index;
     });
     if (manager.player.playing) {
-      managerPlay(filteredCharWord[playingIndex-1]["voiceId"], playingIndex);
+      managerPlay(filteredCharWord[playingIndex-2]["voiceId"], playingIndex);
     }
   }
 
@@ -821,7 +930,7 @@ class _VoicePageState extends State<VoicePage> {
       String() => 'voice_custom'
     };
 
-    String opId = widget.operator.id;
+    String opId = selectedVoicelines;
 
     if(voicelang == 'voice_custom') {
       opId += switch (langs[selectedLang]) {
@@ -831,7 +940,7 @@ class _VoicePageState extends State<VoicePage> {
       };
     }
 
-    String link = 'https://github.com/Aceship/Arknight-voices/raw/refs/heads/main/$voicelang/$opId/$voiceId.mp3';
+    String link = 'https://github.com/Aceship/Arknight-voices/raw/refs/heads/main/$voicelang/$opId/$voiceId.mp3'.githubEncode();
     
     manager.init(link);
   }
@@ -841,46 +950,33 @@ class _VoicePageState extends State<VoicePage> {
     final processingState = playerState?.processingState;
     final playing = playerState?.playing;
 
-    if (processingState != ProcessingState.idle || manager.player.audioSource == null || manager.error) {
-      if (manager.error) manager.error = false;
-
-      if (playing == true) {
-        if (processingState == ProcessingState.loading || processingState == ProcessingState.buffering) {
-          // is loading something
-          if (index != playingIndex) {
-            manager.stop();
-            managerPlay(voiceId, index);
-          }
-        } else if (processingState == ProcessingState.completed) {
-          // replay
+    if (playing == true) {
+      if (processingState == ProcessingState.loading || processingState == ProcessingState.buffering) {
+        // is loading something
+        if (index != playingIndex) {
+          manager.stop();
           managerPlay(voiceId, index);
-        } else if (processingState != ProcessingState.completed) {
-          // pause
-          if (index != playingIndex) {
-            manager.stop();
-            managerPlay(voiceId, index);
-          } else {
-            manager.pause();
-          }
-        } else {
-          print('playing uncatched???');
         }
-      } else {
-        if (processingState != ProcessingState.completed) {
-          // paused
-          if (index != playingIndex) {
-            manager.stop();
-            managerPlay(voiceId, index);
-          } else {
-            manager.play();
-          }
+      } else if (processingState == ProcessingState.completed) {
+        // replay
+        managerPlay(voiceId, index);
+      } else if (processingState != ProcessingState.completed) {
+        // pause
+        if (index != playingIndex) {
+          managerPlay(voiceId, index);
         } else {
-          print('not playing uncatched???');
+          manager.pause();
         }
       }
     } else {
-      print(playing);
-      print(processingState);
+      if (processingState != ProcessingState.completed) {
+        // paused
+        if (index != playingIndex) {
+          managerPlay(voiceId, index);
+        } else {
+          manager.play();
+        }
+      }
     }
-  }
+  } 
 }

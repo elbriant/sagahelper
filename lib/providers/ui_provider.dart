@@ -11,6 +11,10 @@ class UiProvider extends ChangeNotifier {
   bool useTranslucentUi = true;
   int previewThemeIndexSelected = 0;
 
+  // dialog Box
+  // TODO add to configs
+  bool combineWithTheme = true;
+
   //not save
   int _currentHomePageIndx = 0;
   int get currentHomePageIndx => _currentHomePageIndx;

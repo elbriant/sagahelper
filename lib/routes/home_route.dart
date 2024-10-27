@@ -112,7 +112,7 @@ class _HomePageState extends State<HomePage> {
                   child: Stack(
                     children: [
                       Image.asset('assets/orundum.webp', scale: 1.8, fit: BoxFit.none, width: double.maxFinite, alignment: const Alignment(-0.8, 0.2), colorBlendMode: BlendMode.modulate, color: Colors.white.withOpacity(0.7)),
-                      Container(width: double.maxFinite, height: double.maxFinite, alignment: Alignment.center, decoration: BoxDecoration(boxShadow: [BoxShadow(color: Theme.of(context).colorScheme.surface.withOpacity(0.4), spreadRadius: -20, blurStyle: BlurStyle.normal, blurRadius: 25)]), child: Text('Time until weekly orundum reset: \n$orundumResetString'))
+                      Container(width: double.maxFinite, height: double.maxFinite, alignment: Alignment.center, decoration: BoxDecoration(boxShadow: [BoxShadow(color: Theme.of(context).colorScheme.surface.withOpacity(0.4), spreadRadius: -20, blurStyle: BlurStyle.normal, blurRadius: 25)]), child: Text('Time until weekly orundum reset: \n$orundumResetString', style: const TextStyle(fontWeight: FontWeight.bold),))
                     ],
                   ),
                 ),
@@ -123,7 +123,7 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 60, child: Center(child: Text('planning to add more...'),)),
               const SizedBox(height: 40),
               const SizedBox(height: 40),
-              SizedBox(height: 60, child: Center(child: ElevatedButton(onPressed: (){showNotification(title: 'Update Available', body: 'tap to download!', payload: 'update');}, child: Text('action noti test')),)),
+              SizedBox(height: 60, child: Center(child: ElevatedButton(onPressed: (){showNotification(title: 'Update Available', body: 'tap to download!', payload: 'update');}, child: const Text('action noti test')),)),
             ]
           ),
         ),

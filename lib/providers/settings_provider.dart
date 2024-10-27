@@ -16,6 +16,10 @@ class SettingsProvider extends ChangeNotifier {
   int _operatorSearchDelegate = 2;
   int _operatorDisplay = 0;
 
+  // data
+  //TODO add configuration to change nickname
+  String? nickname;
+
   SettingsProvider();
 
   //tempo

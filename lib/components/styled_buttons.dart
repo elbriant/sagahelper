@@ -13,13 +13,13 @@ class IconButtonStyled extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Size sizing = size ?? Size.square(80);
+    Size sizing = size ?? const Size.square(80);
 
     return Container(
       constraints: BoxConstraints.loose(sizing),
       child: InkWell(
         onTap: onTap,
-        customBorder: CircleBorder(),
+        customBorder: const CircleBorder(),
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(
@@ -66,10 +66,10 @@ class StyledLangButton extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget?>[
-                Text(label, textScaler: TextScaler.linear(1.5), style: selected? TextStyle(color: Theme.of(context).colorScheme.primary) : null,),
-                sublabel != null ? Text(sublabel!, style: selected? TextStyle(color: Theme.of(context).colorScheme.primary.withOpacity(0.7)) : TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)), textScaler: TextScaler.linear(0.7)) : null,
-                SizedBox(height: 3),
-                Text(vaName, style: TextStyle(fontStyle: FontStyle.italic),)
+                Text(label, textScaler: const TextScaler.linear(1.5), style: selected? TextStyle(color: Theme.of(context).colorScheme.primary) : null,),
+                sublabel != null ? Text(sublabel!, style: selected? TextStyle(color: Theme.of(context).colorScheme.primary.withOpacity(0.7)) : TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7)), textScaler: const TextScaler.linear(0.7)) : null,
+                const SizedBox(height: 3),
+                Text(vaName, style: const TextStyle(fontStyle: FontStyle.italic),)
               ].nullParser(),
             ),
           ),

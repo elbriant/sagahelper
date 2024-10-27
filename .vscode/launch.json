@@ -1,0 +1,11 @@
+{
+    "configurations": [
+        {
+            "name": "sagahelper (Flutter M2102J20SG)",
+            "program": "lib/main.dart",
+            "deviceId": "adb-23951c5b-RBuUCj._adb-tls-connect._tcp",
+            "request": "launch",
+            "type": "dart"
+        }
+    ]
+}

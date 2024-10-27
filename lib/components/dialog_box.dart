@@ -1,8 +1,10 @@
 import 'package:just_audio/just_audio.dart';
+import 'package:provider/provider.dart';
 import 'package:sagahelper/components/text_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:sagahelper/components/utils.dart';
-import 'package:sagahelper/pages/operator_info.dart';
+import 'package:sagahelper/routes/operator_info.dart';
+import 'package:sagahelper/providers/ui_provider.dart';
 import 'package:styled_text/widgets/styled_text.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 
@@ -17,15 +19,14 @@ class DurationState {
   final Duration? total;
 }
 
-
 class DialogBox extends StatelessWidget {
   final String? title;
   final String body;
-  final bool combineWithTheme;
-  const DialogBox({super.key, this.title, required this.body, this.combineWithTheme = true});
+  const DialogBox({super.key, this.title, required this.body});
 
   @override
   Widget build(BuildContext context) {
+    bool combineWithTheme = context.read<UiProvider>().combineWithTheme;
     return Stack(
       children: [
         Container(
@@ -33,17 +34,17 @@ class DialogBox extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           decoration: BoxDecoration(
             boxShadow: [
-              BoxShadow(
-                color: const Color(0x80000000),
+              const BoxShadow(
+                color: Color(0x80000000),
                 blurStyle: BlurStyle.outer,
                 blurRadius: 12.0
               )
             ],
-            color: combineWithTheme ? Color.lerp(Color(0xa6000000), Theme.of(context).colorScheme.primary, 0.35) : Color(0xa6000000)
+            color: combineWithTheme ? Color.lerp(Theme.of(context).brightness == Brightness.light? const Color.fromARGB(166, 85, 85, 85) : const Color.fromARGB(166, 0, 0, 0), Theme.of(context).colorScheme.primaryContainer, 0.35) : Theme.of(context).brightness == Brightness.light? const Color.fromARGB(166, 85, 85, 85) : const Color(0xa6000000)
           ),
           child: StyledText(
             text: body,
-            style: TextStyle(color: Colors.white, fontFamily: 'Noto Sans', fontWeight: FontWeight.w700),
+            style: const TextStyle(color: Colors.white, fontFamily: 'Noto Sans', fontWeight: FontWeight.w700),
             tags: tagsAsHtml,
           )
         ),
@@ -52,19 +53,19 @@ class DialogBox extends StatelessWidget {
           left: 0,
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0),
-            decoration: BoxDecoration(
-              color: const Color(0xFF9e9e9e),
+            decoration: const BoxDecoration(
+              color: Color(0xFF9e9e9e),
               boxShadow: [
                 BoxShadow(
-                color: const Color(0x80000000),
+                color: Color(0x80000000),
                 offset: Offset(0, 3),
                 blurRadius: 6.0
               )
               ],
             ),
-            child: Text(title!.padRight(36), style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold), ),
+            child: Text(title!.padRight(36), style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold), ),
           )
-        ) : SizedBox()
+        ) : const SizedBox()
       ],
     );
   }
@@ -73,12 +74,12 @@ class DialogBox extends StatelessWidget {
 class InkWellDialogBox extends StatelessWidget {
   final String? title;
   final String body;
-  final bool combineWithTheme;
   final Function()? inkwellFun;
-  const InkWellDialogBox({super.key, this.title, required this.body, this.inkwellFun, this.combineWithTheme = true});
+  const InkWellDialogBox({super.key, this.title, required this.body, this.inkwellFun});
 
   @override
   Widget build(BuildContext context) {
+    bool combineWithTheme = context.read<UiProvider>().combineWithTheme;
     return Stack(
       children: [
         Stack(
@@ -89,25 +90,25 @@ class InkWellDialogBox extends StatelessWidget {
               width: double.maxFinite,
               decoration: BoxDecoration(
                 boxShadow: [
-                  BoxShadow(
-                    color: const Color(0x80000000),
+                  const BoxShadow(
+                    color: Color(0x80000000),
                     blurStyle: BlurStyle.outer,
                     blurRadius: 12.0
                   )
                 ],
-                color: combineWithTheme ? Color.lerp(Color(0xa6000000), Theme.of(context).colorScheme.primary, 0.65) : Color(0xa6000000)
+                color: combineWithTheme ? Color.lerp(Theme.of(context).brightness == Brightness.light? const Color.fromARGB(166, 85, 85, 85) : const Color.fromARGB(166, 0, 0, 0), Theme.of(context).colorScheme.primaryContainer, 0.65) : Theme.of(context).brightness == Brightness.light? const Color.fromARGB(166, 85, 85, 85) : const Color(0xa6000000)
               ),
               child: Row(
                 children: [
                   Expanded(
                     child: StyledText(
                       text: body,
-                      style: TextStyle(color: Colors.white, fontFamily: 'Noto Sans', fontWeight: FontWeight.w700),
+                      style: const TextStyle(color: Colors.white, fontFamily: 'Noto Sans', fontWeight: FontWeight.w700),
                       tags: tagsAsHtml,
                     ),
                   ),
                   Center(
-                      child: Icon(Icons.play_arrow, color: Theme.of(context).colorScheme.secondaryContainer, size: 32)
+                      child: Icon(Icons.play_arrow, color: Theme.of(context).colorScheme.primary, size: 32)
                     ),
                 ],
               )
@@ -117,19 +118,19 @@ class InkWellDialogBox extends StatelessWidget {
               left: 0,
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF9e9e9e),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF9e9e9e),
                   boxShadow: [
                     BoxShadow(
-                    color: const Color(0x80000000),
+                    color: Color(0x80000000),
                     offset: Offset(0, 3),
                     blurRadius: 6.0
                   )
                   ],
                 ),
-                child: Text(title!, style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                child: Text(title!, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
               )
-            ) : SizedBox()
+            ) : const SizedBox()
             
           ],
         ),
@@ -149,11 +150,10 @@ class InkWellDialogBox extends StatelessWidget {
 class AudioDialogBox extends StatelessWidget {
   final String? title;
   final String body;
-  final bool combineWithTheme;
   final Function()? fun;
   final bool isPlaying;
   final AudioPlayerManager manager;
-  const AudioDialogBox({super.key, this.title, required this.body, this.combineWithTheme = true, this.fun, this.isPlaying = false, required this.manager});
+  const AudioDialogBox({super.key, this.title, required this.body, this.fun, this.isPlaying = false, required this.manager});
 
   StreamBuilder<DurationState> _progressBar() {
     return StreamBuilder<DurationState>(
@@ -174,10 +174,10 @@ class AudioDialogBox extends StatelessWidget {
           timeLabelLocation: TimeLabelLocation.none,
           barCapShape: BarCapShape.square,
           baseBarColor: Theme.of(context).colorScheme.surface,
-          progressBarColor: Theme.of(context).colorScheme.primary,
+          progressBarColor: Theme.of(context).colorScheme.secondary,
           barHeight: 4.0,
           thumbRadius: 6.0,
-          thumbColor: Theme.of(context).colorScheme.secondary,
+          thumbColor: Theme.of(context).colorScheme.primary,
           thumbGlowRadius: 15,
         );
       },
@@ -186,6 +186,8 @@ class AudioDialogBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool combineWithTheme = context.read<UiProvider>().combineWithTheme;
+
     return Stack(
       children: [
         Container(
@@ -193,13 +195,13 @@ class AudioDialogBox extends StatelessWidget {
           width: double.maxFinite,
           decoration: BoxDecoration(
             boxShadow: [
-              BoxShadow(
-                color: const Color(0x80000000),
+              const BoxShadow(
+                color: Color(0x80000000),
                 blurStyle: BlurStyle.outer,
                 blurRadius: 12.0
               )
             ],
-            color: combineWithTheme ? Color.lerp(Color(0xa6000000), Theme.of(context).colorScheme.primary, 0.35) : Color(0xa6000000)
+            color: combineWithTheme ? Color.lerp(Theme.of(context).brightness == Brightness.light? const Color.fromARGB(166, 85, 85, 85) : const Color.fromARGB(166, 0, 0, 0), Theme.of(context).colorScheme.primaryContainer, 0.35) : Theme.of(context).brightness == Brightness.light? const Color.fromARGB(166, 85, 85, 85) : const Color(0xa6000000)
           ),
           child: Stack(
             children: [
@@ -211,7 +213,7 @@ class AudioDialogBox extends StatelessWidget {
                       padding: isPlaying? const EdgeInsets.fromLTRB(16.0, 16.0, 0, 16.0) : const EdgeInsets.all(16.0),
                       child: StyledText(
                         text: body,
-                        style: TextStyle(color: Colors.white, fontFamily: 'Noto Sans', fontWeight: FontWeight.w700),
+                        style: const TextStyle(color: Colors.white, fontFamily: 'Noto Sans', fontWeight: FontWeight.w700),
                         tags: tagsAsHtml,
                       ),
                     ),
@@ -226,13 +228,13 @@ class AudioDialogBox extends StatelessWidget {
                           final processingState = playerState?.processingState;
                           final playing = playerState?.playing;
                           if (processingState == ProcessingState.loading || processingState == ProcessingState.buffering) {
-                            return SizedBox.square(dimension: 24, child: CircularProgressIndicator(color: Theme.of(context).colorScheme.tertiary));
+                            return SizedBox.square(dimension: 24, child: CircularProgressIndicator(color: Theme.of(context).colorScheme.primary));
                           } else if (playing != true) {
-                            return Icon(Icons.play_arrow, color: Theme.of(context).colorScheme.tertiary, size: 32);
+                            return Icon(Icons.play_arrow, color: Theme.of(context).colorScheme.primary, size: 32);
                           } else if (processingState != ProcessingState.completed) {
-                            return Icon(Icons.pause, color: Theme.of(context).colorScheme.tertiary, size: 32);
+                            return Icon(Icons.pause, color: Theme.of(context).colorScheme.primary, size: 32);
                           } else {
-                            return Icon(Icons.replay, color: Theme.of(context).colorScheme.tertiary, size: 32);
+                            return Icon(Icons.replay, color: Theme.of(context).colorScheme.primary, size: 32);
                           }
                         },
                       )
@@ -256,21 +258,21 @@ class AudioDialogBox extends StatelessWidget {
           left: 0,
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0),
-            decoration: BoxDecoration(
-              color: const Color(0xFF9e9e9e),
+            decoration: const BoxDecoration(
+              color: Color(0xFF9e9e9e),
               boxShadow: [
                 BoxShadow(
-                color: const Color(0x80000000),
+                color: Color(0x80000000),
                 offset: Offset(0, 3),
                 blurRadius: 6.0
               )
               ],
             ),
-            child: Text(title!.padRight(36), style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+            child: Text(title!.padRight(36), style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
           )
-        ) : SizedBox(),
+        ) : const SizedBox(),
         isPlaying? Positioned(
-          bottom: 0,
+          bottom: 2.0,
           right: 0,
           left: 4.0,
           child:  _progressBar()

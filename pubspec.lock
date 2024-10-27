@@ -161,6 +161,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.10"
+  device_info_plus:
+    dependency: "direct main"
+    description:
+      name: device_info_plus
+      sha256: c4af09051b4f0508f6c1dc0a5c085bf014d5c9a4a0678ce1799c2b4d716387a0
+      url: "https://pub.dev"
+    source: hosted
+    version: "11.1.0"
+  device_info_plus_platform_interface:
+    dependency: transitive
+    description:
+      name: device_info_plus_platform_interface
+      sha256: "282d3cf731045a2feb66abfe61bbc40870ae50a3ed10a4d3d217556c35c8c2ba"
+      url: "https://pub.dev"
+    source: hosted
+    version: "7.0.1"
   dio:
     dependency: transitive
     description:
@@ -320,14 +336,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.2.0"
-  inject_js:
-    dependency: transitive
-    description:
-      name: inject_js
-      sha256: "3ab213e2c76375a611f57eb0044d32c6e18c5091d52510e7fe9f88f6bee83d19"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.0.0"
   intl:
     dependency: "direct main"
     description:
@@ -336,14 +344,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.19.0"
-  js:
-    dependency: transitive
-    description:
-      name: js
-      sha256: f2c445dce49627136094980615a031419f7f3eb393237e4ecd97ac15dea343f3
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.6.7"
   just_audio:
     dependency: "direct main"
     description:
@@ -613,14 +613,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.10.0"
-  spine_flutter:
-    dependency: "direct main"
-    description:
-      name: spine_flutter
-      sha256: "187aef07d087d68ffbfba3388ae04a917ceb986d26e2ca7457a7cd493398abc2"
-      url: "https://pub.dev"
-    source: hosted
-    version: "4.2.32"
   sprintf:
     dependency: transitive
     description:
@@ -869,14 +861,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.0"
-  web_ffi_fork:
+  win32:
     dependency: transitive
     description:
-      name: web_ffi_fork
-      sha256: "7466228b7fc6a29ee1b5f6ab7ee2473847367a70fb523eb1a7c1d7a6a9841589"
+      name: win32
+      sha256: e1d0cc62e65dc2561f5071fcbccecf58ff20c344f8f3dc7d4922df372a11df1f
       url: "https://pub.dev"
     source: hosted
-    version: "0.7.4"
+    version: "5.7.1"
+  win32_registry:
+    dependency: transitive
+    description:
+      name: win32_registry
+      sha256: "21ec76dfc731550fd3e2ce7a33a9ea90b828fdf19a5c3bcf556fa992cfa99852"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.5"
   xdg_directories:
     dependency: transitive
     description:

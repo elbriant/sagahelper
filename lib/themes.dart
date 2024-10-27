@@ -154,7 +154,7 @@ CustomTheme ggTheme = CustomTheme (
 CustomTheme wTheme = CustomTheme (
   name: 'W',
   light_: ThemeData(
-    colorScheme: ColorScheme.light(
+    colorScheme: const ColorScheme.light(
       primary : Color(0xFFFF0000),
         onPrimary : Color(0xFFFFFFFF),
         primaryContainer : Color(0xFFFF0000),
@@ -178,7 +178,7 @@ CustomTheme wTheme = CustomTheme (
     )
   ),
   dark_: ThemeData(
-    colorScheme: ColorScheme.dark(
+    colorScheme: const ColorScheme.dark(
       primary : Color(0xFFFF0000),
       onPrimary : Color(0xFFFAFAFA),
       primaryContainer : Color(0xFFFF0000),

@@ -8,11 +8,68 @@ import 'dart:io';
 bool loadedConfigs = false;
 bool firstTimeCheck = false;
 
-Map<String, DownloaderCore> downloadsBackgroundCores = {};
 
-void showSnackBar(String text) {
-  ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(SnackBar(content: Text(text)));
+enum SnackBarType {normal, success, failure, warning, custom}
+
+class ShowSnackBar {
+  static void showSnackBar(String? text, {SnackBarType type = SnackBarType.normal, SnackBar? snackbar}) {
+    switch (type) {
+      case SnackBarType.normal:
+        assert(text != null);
+        ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(SnackBar(content: Text(text!)));
+        break;
+      case SnackBarType.success:
+        assert(text != null);
+        ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.done, color: Colors.green[700]),
+                Text(text!)
+              ],
+            ),
+            backgroundColor: Colors.green[50],
+          ),
+        );
+        break;
+      case SnackBarType.failure:
+        assert(text != null);
+        ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.warning_amber, color: Theme.of(NavigationService.navigatorKey.currentContext!).colorScheme.error),
+                const SizedBox(width: 10),
+                Expanded(child: Text(text!, style: TextStyle(color: Theme.of(NavigationService.navigatorKey.currentContext!).colorScheme.onErrorContainer),))
+              ],
+            ),
+            backgroundColor: Theme.of(NavigationService.navigatorKey.currentContext!).colorScheme.errorContainer,
+          ),
+        );
+        break;
+      case SnackBarType.warning:
+        assert(text != null);
+        ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.warning_amber, color: Colors.amber[600]),
+                Text(text!)
+              ],
+            ),
+            backgroundColor: Colors.amber[100],
+          ),
+        );
+        break;
+      case SnackBarType.custom:
+        assert(snackbar != null);
+        ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(snackbar!);
+        break;
+    }
+  }
 }
+
+Map<String, DownloaderCore> downloadsBackgroundCores = {};
 
 class NavigationService { 
   static GlobalKey<NavigatorState> navigatorKey = 

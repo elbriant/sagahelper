@@ -92,7 +92,7 @@ class _AppearanceSettingsState extends State<AppearanceSettings> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       extendBody: true,
-      bottomNavigationBar: SystemNavBar(),
+      bottomNavigationBar: const SystemNavBar(),
       appBar: AppBar(
         flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3,child: Container(color: Colors.transparent)) : null,
         backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
@@ -138,6 +138,7 @@ class _AppearanceSettingsState extends State<AppearanceSettings> {
   }
 }
 
+
 // ---------------------- Data Management Page ----------------------------------
 class DataSettings extends StatefulWidget {
   const DataSettings({super.key});
@@ -160,7 +161,7 @@ class _DataSettingsState extends State<DataSettings> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       extendBody: true,
-      bottomNavigationBar: SystemNavBar(),
+      bottomNavigationBar: const SystemNavBar(),
       appBar: AppBar(
         flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3,child: Container(color: Colors.transparent)) : null,
         backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
@@ -213,15 +214,15 @@ class _DataSettingsState extends State<DataSettings> {
 
   void getUpdate(String server, String status) {
     if (status == 'get') {
-      ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(const SnackBar(content: Text('checking last version')));
+      ShowSnackBar.showSnackBar('checking last version');
     } else if (status == 'up') {
-      ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(const SnackBar(content: Text('already has the last version')));
+      ShowSnackBar.showSnackBar('already has the last version');
     } else if (status == 'has') {
       Navigator.pop(context);
-      ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(const SnackBar(content: Text('starting to download last version')));
+      ShowSnackBar.showSnackBar('starting to download last version');
       NavigationService.navigatorKey.currentContext!.read<ServerProvider>().downloadLastest(server);
     } else if (status == 'err') {
-      ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(const SnackBar(content: Text('something went wrong, try later')));
+      ShowSnackBar.showSnackBar('something went wrong, try later', type: SnackBarType.failure);
     }
   }
 
@@ -243,7 +244,7 @@ class ServerSettings extends StatelessWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       extendBody: true,
-      bottomNavigationBar: SystemNavBar(),
+      bottomNavigationBar: const SystemNavBar(),
       appBar: AppBar(
         flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3,child: Container(color: Colors.transparent)) : null,
         backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
@@ -278,7 +279,7 @@ class AboutSettings extends StatelessWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       extendBody: true,
-      bottomNavigationBar: SystemNavBar(),
+      bottomNavigationBar: const SystemNavBar(),
       appBar: AppBar(
         flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3,child: Container(color: Colors.transparent)) : null,
         backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,

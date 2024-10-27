@@ -1,4 +1,4 @@
-import 'package:sagahelper/pages/operators_page.dart';
+import 'package:sagahelper/models/operator.dart';
 import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
 

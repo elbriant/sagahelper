@@ -246,6 +246,7 @@ class ServerProvider extends ChangeNotifier {
           checkDownloadedLastest(server, version);
         },
         deleteOnCancel: true,
+        onError: (_){}
       );
 
       if (NavigationService.navigatorKey.currentContext!.mounted) {

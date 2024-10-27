@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:sagahelper/components/operator_container.dart';
 import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
 import 'package:sagahelper/providers/server_provider.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
@@ -11,166 +12,13 @@ import 'package:autoscale_tabbarview/autoscale_tabbarview.dart';
 import 'package:provider/provider.dart';
 import 'package:sagahelper/providers/ui_provider.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
-import 'package:sagahelper/components/utils.dart';
 
 const List<String> professionList = ['caster', 'medic', 'pioneer', 'sniper', 'special', 'support', 'tank', 'warrior'];
 
 //TODO complete this for filters
 const List<String> subProfessionList = ['agent', 'alchemist', 'aoesniper', 'artsfghter', 'artsprotector', 'bard', 'bearer', 'blastcaster', 'blessing', 'bombarder', 'centurion', 'chain', 'chainhealer', 'charger', ''];
 
-class Operator {
-  final Map<String, dynamic> operatorDict;
-  final String id;
-  final String name;
-  final String? displayNumber;
-  final String description;
-  final String? nationId;
-  final String? groupId;
-  final String? teamId;
-  final String position;
-  final List<dynamic> tagList;
-  final int rarity;
-  final String profession;
-  final String subProfessionId;
-  final String itemUsage;
-  final String itemDesc;
-  final List<String> names;
-  final Map<String, dynamic> loreInfo;
-  final Map<String, dynamic> voiceLangDict;
-  final List<Map<String, dynamic>> charWordsList;
-  final List<Map<String, dynamic>> skinsList;
 
-  Operator({
-    required this.operatorDict,
-    required this.id,
-    required this.name,
-    required this.rarity,
-    required this.displayNumber,
-    required this.description,
-    required this.nationId,
-    required this.groupId,
-    required this.teamId,
-    required this.position,
-    required this.profession,
-    required this.subProfessionId,
-    required this.tagList,
-    required this.itemUsage,
-    required this.itemDesc,
-    required this.names,
-    required this.loreInfo,
-    required this.voiceLangDict,
-    required this.charWordsList,
-    required this.skinsList
-  });
-
-  String professionTranslate (String prof) => switch (prof) {
-    'pioneer' => 'Vanguard',
-    'special' => 'Specialist',
-    'support' => 'Supporter',
-    'tank' => 'Defender',
-    'warrior' => 'Guard',
-    String() => prof.capitalize(),
-  };
-
-  String get professionString => professionTranslate(profession.toLowerCase());
-
-  String subProfessionTranslate(String subprof) => switch (subprof) {
-    'corecaster' => 'Core',
-    'splashcaster' => 'Splash',
-    'blastcaster' => 'Blast',
-    'funnel' => 'Mech-Accord',
-    'primcaster' => 'Primal',
-    'unyield' => 'Juggernaut',
-    'artsprotector' => 'Arts Protector',
-    'shotprotector' => 'Sentry Protector',
-    'fearless' => 'Dreadnought',
-    'artsfghter' => 'Arts Fighter',
-    'sword' => 'Swordmaster',
-    'musha' => 'Soloblade',
-    'librator' => 'Liberator',
-    'physician' => 'Medic',
-    'ringhealer' => 'Multi-Target',
-    'healer' => 'Therapist',
-    'wandermedic' => 'Wandering',
-    'incantationmedic' => 'Incantation',
-    'chainhealer' => 'Chain',
-    'fastshot' => 'Marksman',
-    'aoesniper' => 'Artilleryman',
-    'longrange' => 'Deadeye',
-    'closerange' => 'Heavyshooter',
-    'reaperrange' => 'Spreadshooter',
-    'siegesniper' => 'Besieger',
-    'bombarder' => 'Flinger',
-    'pusher' => 'Push Stroker',
-    'stalker' => 'Ambusher',
-    'traper' => 'Trapmaster',
-    'slower' => 'Dencel Binder',
-    'underminer' => 'Hexer',
-    'blessing' => 'Abjurer',
-    'craftsman' => 'Artificer',
-    'bearer' => 'Standard Bearer',
-    'hammer' => 'Earthshaker',
-    String() => subprof.capitalize()
-  };
-
-  String get subProfessionString => subProfessionTranslate(subProfessionId.toLowerCase());
-
-  factory Operator.fromJson(String key, Map<String, dynamic> dict, Map<String, dynamic> loreDict, Map<String, dynamic> voiceDict, Map<String, dynamic> charSkins) {
-    //custom names
-    String name = dict['name'];
-    var names = <String>[name];
-
-    if (name == 'Pozëmka') names.addAll(['pozemka']);
-    if (name == 'Rosa') names.addAll(['poca']);
-    if (name == 'Ling') names.addAll(['blue woman']);
-    if (name == "Ch'en" || name == "Ch'en the Holungday") names.addAll(['chen', 'blue woman']);
-    if (name == 'Młynar') names.addAll(['mlynar', 'milnar']);
-
-    List<Map<String, dynamic>> getVoices(Map<String, dynamic> charWords, String opKey) {
-      List<Map<String, dynamic>> result = [];
-
-      charWords.forEach((key, value){
-        if (key.startsWith('${opKey}_')) {
-          result.add(value);
-        }
-      });
-      return result;
-    }
-
-    List<Map<String, dynamic>> getSkins(Map<String, dynamic> charskins, String opKey) {
-      List<Map<String, dynamic>> result = [];
-      charskins.forEach((key, value){
-        if (key.startsWith(opKey)) {
-          result.add(value);
-        }
-      });
-      return result;
-    }
-
-    return Operator(
-        operatorDict: dict,
-        id: key,
-        name: dict['name'],
-        rarity: int.parse((dict['rarity'] as String).replaceAll('TIER_', '')),
-        description: dict['description'],
-        displayNumber: dict['displayNumber'],
-        groupId: dict['groupId'],
-        nationId: dict['nationId'],
-        teamId: dict['teamId'],
-        position: dict['position'],
-        profession: dict['profession'],
-        subProfessionId: dict['subProfessionId'],
-        tagList: dict['tagList'],
-        itemUsage: dict['itemUsage'],
-        itemDesc: dict['itemDesc'],
-        names: names,
-        loreInfo: loreDict[key],
-        voiceLangDict: voiceDict['voiceLangDict'][key],
-        charWordsList: getVoices(voiceDict['charWords'], key),
-        skinsList: getSkins(charSkins, key)
-    );
-  }
-}
 
 Future<List<Operator>> fetchOperators() async {
   String server = NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString;
@@ -192,7 +40,7 @@ Future<List<Operator>> fetchOperators() async {
   try {
     await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().existFiles(NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString, files);
   } catch (e) {
-    throw FormatException('Update gamedata');
+    throw const FormatException('Update gamedata');
   }
 
   List<String> response = [];
@@ -320,7 +168,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
                       children: [
                         Image.asset('assets/gif/saga_err.gif', width: 180),
                         const SizedBox(height: 12),
-                        Text((snapshot.error as FormatException).message, style: TextStyle(color: Theme.of(context).colorScheme.error))
+                        Text((snapshot.error as FormatException).message, style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w500), textScaler: const TextScaler.linear(1.10),)
                       ],
                     )
                   );
@@ -331,7 +179,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
                       children: [
                         Image.asset('assets/gif/saga_err.gif', width: 180),
                         const SizedBox(height: 12),
-                        Text('An unknown error has ocurred!', style: TextStyle(color: Theme.of(context).colorScheme.error))
+                        Text('An unknown error has ocurred!', style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w500), textScaler: const TextScaler.linear(1.10),)
                       ],
                     )
                   );
@@ -350,8 +198,6 @@ class _OperatorsPageState extends State<OperatorsPage> {
                   sortedOperatorList = finishedFutureOperatorList;
                   sorted = true;
                 }
-                
-        
                 if (isSearching && filteredOperatorList.isEmpty) {
                   if (searchString == '') {
                     return OperatorListView(operators: sortedOperatorList);
@@ -362,7 +208,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
                         children: [
                           Image.asset('assets/gif/saga_err.gif', width: 180),
                           const SizedBox(height: 12),
-                          Text('operator not found', style: TextStyle(color: Theme.of(context).colorScheme.error))
+                          Text('operator not found', style: TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer, fontWeight: FontWeight.w600), textScaler: const TextScaler.linear(1.2),)
                         ],
                       )
                     );
@@ -385,7 +231,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
                             children: [
                               Image.asset('assets/gif/saga_loading.gif', width: 180),
                               const SizedBox(height: 12),
-                              const Text('loading operators')
+                              Text('loading operators', style: TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer, fontWeight: FontWeight.w600), textScaler: const TextScaler.linear(1.3),)
                             ],
                           )
                         )

@@ -1,10 +1,10 @@
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/notification_services.dart';
-import 'package:sagahelper/pages/home_page.dart';
-import 'package:sagahelper/pages/operators_page.dart';
-import 'package:sagahelper/pages/info_page.dart';
-import 'package:sagahelper/pages/settings_page.dart';
-import 'package:sagahelper/pages/tools_page.dart';
+import 'package:sagahelper/routes/home_route.dart';
+import 'package:sagahelper/routes/operators_route.dart';
+import 'package:sagahelper/routes/info_route.dart';
+import 'package:sagahelper/routes/settings_route.dart';
+import 'package:sagahelper/routes/tools_route.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
 import 'package:sagahelper/providers/server_provider.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
@@ -194,7 +194,7 @@ class _MainWidgetState extends State<MainWidget> {
             );
           }
         ),
-        bottomNavigationBar: context.watch<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3,child: BottomNavBar(opacity: 0.5)) : BottomNavBar()
+        bottomNavigationBar: context.watch<UiProvider>().useTranslucentUi == true ? const TranslucentWidget(sigma: 3,child: BottomNavBar(opacity: 0.5)) : const BottomNavBar()
       ),
     );
   }

@@ -49,7 +49,7 @@ Future<void> initNotifications() async {
   // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
   const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('ic_saga');
 
-  final InitializationSettings initializationSettings = InitializationSettings(
+  final InitializationSettings initializationSettings = const InitializationSettings(
     android: initializationSettingsAndroid
   );
 
@@ -78,10 +78,10 @@ Future<void> initNotifications() async {
 
 enum Channels {news, downloading, downloaded}
 
-List notiChannelGroups = [AndroidNotificationChannelGroup('downloads', 'Downloads', description: 'description')];
+List notiChannelGroups = [const AndroidNotificationChannelGroup('downloads', 'Downloads', description: 'description')];
 
 Map<Channels, AndroidNotificationChannel> notiChannels = {
-  Channels.downloading : AndroidNotificationChannel(
+  Channels.downloading : const AndroidNotificationChannel(
     'downloading',
     'Download in progress',
     description: 'Downloading files',
@@ -89,7 +89,7 @@ Map<Channels, AndroidNotificationChannel> notiChannels = {
     importance: Importance.low,
     playSound: false
   ),
-  Channels.downloaded : AndroidNotificationChannel(
+  Channels.downloaded : const AndroidNotificationChannel(
     'downloaded',
     'Downloaded',
     description: 'Downloaded files',
@@ -97,7 +97,7 @@ Map<Channels, AndroidNotificationChannel> notiChannels = {
     importance: Importance.defaultImportance,
     playSound: true
   ),
-  Channels.news : AndroidNotificationChannel(
+  Channels.news : const AndroidNotificationChannel(
     'new',
     'News',
     importance: Importance.defaultImportance,
@@ -134,7 +134,7 @@ Future<void> showDownloadNotification({
           notiChannels[Channels.downloading]!.name,
           ongoing: true,
           autoCancel: false,
-          actions: [AndroidNotificationAction('cancelDownload', 'Cancel', showsUserInterface: true)],
+          actions: [const AndroidNotificationAction('cancelDownload', 'Cancel', showsUserInterface: true)],
           category: AndroidNotificationCategory.progress,
           onlyAlertOnce: true,
           showProgress: true,
