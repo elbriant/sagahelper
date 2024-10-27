@@ -1,5 +1,5 @@
 # SagaHelper
-*previously docsprts*
+*previously docsprts*  
 A fanmade Arknights app tool
 
 ## Features
@@ -18,7 +18,7 @@ Before reporting a new issue, take a look at the already opened issues.
 - Story Reader
 - Penguin Logistics implementation
 - Languagues
-- add character dynamic sprites (dont know where to find the assets)
+- add character dynamic art and chibi view
 
 ### Disclaimer
 The developer(s) of this application does not have any affiliation with Hypergryph.
