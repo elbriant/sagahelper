@@ -128,7 +128,8 @@ class InkWellDialogBox extends StatelessWidget {
                   )
                   ],
                 ),
-                child: Text(title!, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                // ignore: deprecated_member_use
+                child: Text(title!, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold), textScaler: title!.length > 42 ? TextScaler.linear(MediaQuery.textScalerOf(context).textScaleFactor-((title!.length-42)/100)) : null),
               )
             ) : const SizedBox()
             
@@ -168,9 +169,7 @@ class AudioDialogBox extends StatelessWidget {
           buffered: buffered,
           total: total,
           onSeek: manager.player.seek,
-          onDragUpdate: (details) {
-            print('${details.timeStamp}, ${details.localPosition}');
-          },
+          onDragUpdate: (details) {},
           timeLabelLocation: TimeLabelLocation.none,
           barCapShape: BarCapShape.square,
           baseBarColor: Theme.of(context).colorScheme.surface,

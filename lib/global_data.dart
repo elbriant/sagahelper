@@ -5,9 +5,30 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:async';
 import 'dart:io';
 
+ // ----------------- local data
+
+Map<String, DownloaderCore> downloadsBackgroundCores = {};
 bool loadedConfigs = false;
 bool firstTimeCheck = false;
+bool opThemed = false;
 
+
+
+// ------------- constants 
+
+// Avatar assets from yuanyan3060 repo
+const String kAvatarRepo = 'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/refs/heads/main/avatar';
+
+// Assets from ArknightsAssets repo
+const String kPortraitRepo = 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/charportraits';
+const String kArtRepo = 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/characters';
+const String kLogoRepo = 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/camplogo';
+
+// Voice Assets from Aceship's repo
+const String kVoiceRepo = 'https://github.com/Aceship/Arknight-voices/raw/refs/heads/main';
+
+
+// ---------- helper classes
 
 enum SnackBarType {normal, success, failure, warning, custom}
 
@@ -69,11 +90,8 @@ class ShowSnackBar {
   }
 }
 
-Map<String, DownloaderCore> downloadsBackgroundCores = {};
-
 class NavigationService { 
-  static GlobalKey<NavigatorState> navigatorKey = 
-  GlobalKey<NavigatorState>();
+  static GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 }
 
 class LocalDataManager {

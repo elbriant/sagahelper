@@ -85,7 +85,29 @@ class CustomTheme {
       )
     );
   }
+
+  factory CustomTheme.fast(Color color){
+    return CustomTheme(
+      name: 'Fast',
+      light_: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: color,
+          brightness: Brightness.light,
+          dynamicSchemeVariant: DynamicSchemeVariant.vibrant
+        ),
+      ),
+      dark_: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: color,
+          brightness: Brightness.dark,
+          dynamicSchemeVariant: DynamicSchemeVariant.vibrant
+        ),
+      ),
+    );
+  }
 }
+
+
 
 TextTheme createTextTheme(TextTheme baseColor, String bodyFontString, String displayFontString) {
   TextTheme bodyTextTheme = GoogleFonts.getTextTheme(bodyFontString, baseColor);

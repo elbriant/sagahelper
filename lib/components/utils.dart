@@ -4,18 +4,45 @@ import 'package:sagahelper/global_data.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+// Original character  Escaped character
+// ------------------  -----------------
+// "                   &quot;
+// '                   &apos;
+// &                   &amp;
+// <                   &lt;
+// >                   &gt;
+// <space>             &space;
+
+const Map<String, String> escapeRules = {
+  '<Substitute>' : '&lt;Substitute&gt;'
+};
+
 extension StringExtension on String {
   String capitalize() {
     return "${this[0].toUpperCase()}${substring(1).toLowerCase()}";
   }
   String akRichTextParser() {
-    return replaceAll(RegExp(r'<@'), '<info custom=').replaceAll(RegExp(r'<\$'), '<selectable custom=');
-  }
-  String varParser(Map vars) {
-    String parsed = this;
-    for (String key in vars.keys) {
-      parsed = parsed.replaceAll(RegExp('{$key}'), vars[key].toString());
+    String escapedString = this;
+
+    for (String rule in escapeRules.keys) {
+      escapedString = escapedString.replaceAll(RegExp(rule), escapeRules[rule]!);
     }
+    
+    return escapedString.replaceAll(RegExp(r'<@'), '<info custom=').replaceAll(RegExp(r'<\$'), '<selectable custom=');
+  }
+  String varParser(List<dynamic>? vars) {
+    if (vars == null) return this;
+
+    // blackboard
+    String parsed = this;
+    for (Map map in vars) {
+      if (map['valueStr'] == null) {
+        parsed = parsed.replaceAll(RegExp('{${map['key']}}'), (map['value'] as double).round().toString()).replaceAll(RegExp('{${map['key']}:0%}'), '${((map['value'] as double) * 100).round().toString()}%');
+      } else {
+        parsed = parsed.replaceAll(RegExp('{${map['key']}}'), map['value']);
+      }
+    }
+
     return parsed;
   }
   String nicknameParser() {
@@ -23,8 +50,7 @@ extension StringExtension on String {
     if (nick != null) {
       return replaceAll('{@nickname}', nick);
     } else {
-      String first = replaceAll('Dr. {@nickname}', 'Doctor');
-      return first.replaceAll('Dr.{@nickname}', 'Doctor');
+      return replaceAll('Dr. {@nickname}', 'Doctor').replaceAll('Dr.{@nickname}', 'Doctor').replaceAll('{@nickname}', 'Doctor');
     }
   }
   String githubEncode() {

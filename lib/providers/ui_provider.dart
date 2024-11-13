@@ -66,7 +66,7 @@ class UiProvider extends ChangeNotifier {
     previewThemeIndexSelected = configs['previewThemeIndexSelected'];
   }
 
-  void changeTheme ({
+  Future<void> changeTheme ({
     required CustomTheme newTheme,
   }) async {
     currentTheme = newTheme;

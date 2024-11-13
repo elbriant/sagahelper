@@ -18,8 +18,6 @@ const List<String> professionList = ['caster', 'medic', 'pioneer', 'sniper', 'sp
 //TODO complete this for filters
 const List<String> subProfessionList = ['agent', 'alchemist', 'aoesniper', 'artsfghter', 'artsprotector', 'bard', 'bearer', 'blastcaster', 'blessing', 'bombarder', 'centurion', 'chain', 'chainhealer', 'charger', ''];
 
-
-
 Future<List<Operator>> fetchOperators() async {
   String server = NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString;
   String version = NavigationService.navigatorKey.currentContext!.read<ServerProvider>().versionOf(server);
@@ -179,7 +177,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
                       children: [
                         Image.asset('assets/gif/saga_err.gif', width: 180),
                         const SizedBox(height: 12),
-                        Text('An unknown error has ocurred!', style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w500), textScaler: const TextScaler.linear(1.10),)
+                        Text('An unknown error has ocurred!\n${snapshot.error}', style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w500), textScaler: const TextScaler.linear(1.10),)
                       ],
                     )
                   );

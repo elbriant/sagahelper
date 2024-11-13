@@ -1,6 +1,5 @@
-import 'dart:ui';
-
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:sagahelper/global_data.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/routes/operator_info.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
@@ -18,7 +17,6 @@ const List<Color?> rarityColors = [
   Color.fromARGB(255, 255, 93, 12)
 ];
 
-
 class OperatorContainer extends StatelessWidget {
   final Operator operator;
   final int index;
@@ -27,14 +25,12 @@ class OperatorContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     void openOperatorInfo (Operator currOp) {
-      Navigator.of(context).push(MaterialPageRoute(allowSnapshotting: false, builder: (context) => OperatorInfo(currOp)));
+      Navigator.of(context).push(MaterialPageRoute(builder: (context) => OperatorInfo(currOp)));
     }
     
-    // get Assets from github.com/ArknightsAssets/ArknightsAssets repo
-    final String ghAvatarLink = 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/charavatars/${operator.id}.png';
-    final String ghPotraitLink = 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/charportraits/${operator.id}_1.png';
+    final String ghAvatarLink = '$kAvatarRepo/${operator.id}.png';
+    final String ghPotraitLink = '$kPortraitRepo/${operator.id}_1.png';
 
     final settings = context.watch<SettingsProvider>();
     
@@ -87,7 +83,8 @@ class OperatorContainer extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.only(bottom: 2.5),
-            child: Text(settings.operatorSearchDelegate <=4 ? operator.name : '', textAlign: TextAlign.center, textScaler: TextScaler.linear(operator.name.length <= 7 ? 1 : settings.operatorSearchDelegate >= 3 ? (clampDouble(8/operator.name.length, 0.6, 1)) : 1), style: const TextStyle(color: Colors.white),),
+            // ignore: deprecated_member_use
+            child: Text(settings.operatorSearchDelegate <=4 ? operator.name : '', textAlign: TextAlign.center, textScaler: operator.name.length > 7 ? TextScaler.linear((MediaQuery.textScalerOf(context).textScaleFactor-(operator.name.length-7)/100)*(3/settings.operatorSearchDelegate)) : TextScaler.linear(MediaQuery.textScalerOf(context).textScaleFactor*(3/settings.operatorSearchDelegate)), style: const TextStyle(color: Colors.white),),
           ),
           Material(
             type: MaterialType.transparency,

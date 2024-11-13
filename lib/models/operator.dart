@@ -1,11 +1,20 @@
 import 'package:sagahelper/components/utils.dart' show StringExtension;
 
+Map<String, List<String>> customNames = {
+  'Pozëmka' : ['pozemka'],
+  'Rosa' : ['poca'],
+  'Ling' : ['blue woman'],
+  "Ch'en" : ['chen', 'blue woman'],
+  "Ch'en the Holungday" : ['chen', 'blue woman'],
+  'Młynar' : ['mlynar', 'milnar'],
+};
+
 class Operator {
   final Map<String, dynamic> operatorDict;
   final String id;
   final String name;
   final String? displayNumber;
-  final String description;
+  final String? description;
   final String? nationId;
   final String? groupId;
   final String? teamId;
@@ -21,6 +30,13 @@ class Operator {
   final Map<String, dynamic> voiceLangDict;
   final List<Map<String, dynamic>> charWordsList;
   final List<Map<String, dynamic>> skinsList;
+  final Map<String, dynamic>? trait;
+  final List<dynamic> phases;
+  final List<dynamic> skills;
+  final List<dynamic> talents;
+  final List<dynamic> potentials;
+  final List<dynamic> favorKeyframes;
+  final List<dynamic> skillLvlMats;
     
   Operator({
     required this.operatorDict,
@@ -42,7 +58,14 @@ class Operator {
     required this.loreInfo,
     required this.voiceLangDict,
     required this.charWordsList,
-    required this.skinsList
+    required this.skinsList,
+    required this.trait,
+    required this.phases,
+    required this.talents,
+    required this.skills,
+    required this.potentials,
+    required this.favorKeyframes,
+    required this.skillLvlMats,
   });
 
   String professionTranslate (String prof) => switch (prof) {
@@ -102,17 +125,15 @@ class Operator {
     String name = dict['name'];
     var names = <String>[name];
 
-    if (name == 'Pozëmka') names.addAll(['pozemka']);
-    if (name == 'Rosa') names.addAll(['poca']);
-    if (name == 'Ling') names.addAll(['blue woman']);
-    if (name == "Ch'en" || name == "Ch'en the Holungday") names.addAll(['chen', 'blue woman']);
-    if (name == 'Młynar') names.addAll(['mlynar', 'milnar']);
+    if (customNames.containsKey(name)) {
+      names.addAll(customNames[name]!);
+    }
 
     List<Map<String, dynamic>> getVoices(Map<String, dynamic> charWords, String opKey) {
       List<Map<String, dynamic>> result = [];
 
       charWords.forEach((key, value){
-        if (key.startsWith('${opKey}_')) {
+        if (key.startsWith(opKey)) {
           result.add(value);
         }
       });
@@ -149,7 +170,14 @@ class Operator {
         loreInfo: loreDict[key],
         voiceLangDict: voiceDict['voiceLangDict'][key],
         charWordsList: getVoices(voiceDict['charWords'], key),
-        skinsList: getSkins(charSkins, key)
+        skinsList: getSkins(charSkins, key),
+        trait: dict['trait'],
+        phases: dict['phases'],
+        skills: dict['skills'],
+        talents: dict['talents'],
+        potentials: dict['potentialRanks'],
+        favorKeyframes: dict['favorKeyFrames'],
+        skillLvlMats: dict['allSkillLvlup']
     );
   }
 }

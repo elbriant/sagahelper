@@ -11,9 +11,10 @@ class TranslucentWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
+    return ClipRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
+        blendMode: BlendMode.src,
         child: child
       ),
     );

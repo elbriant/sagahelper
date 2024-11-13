@@ -18,7 +18,7 @@ import 'package:system_theme/system_theme.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  SystemTheme.fallbackColor = const Color.fromARGB(255, 110, 110, 110);
+  SystemTheme.fallbackColor = Colors.grey;
   await SystemTheme.accentColor.load();
 
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
@@ -226,38 +226,6 @@ class BottomNavBar extends StatelessWidget {
         NavigationDestination(icon: Icon(Icons.app_shortcut_outlined), label: 'Tools', selectedIcon: Icon(Icons.app_shortcut)),
         NavigationDestination(icon: Icon(Icons.settings_outlined), label: 'More', selectedIcon: Icon(Icons.settings)),
       ],
-    );
-  }
-}
-
-class LoadingScreen extends StatefulWidget {
-  const LoadingScreen({super.key});
-
-  @override
-  State<LoadingScreen> createState() => _LoadingScreenState();
-}
-
-class _LoadingScreenState extends State<LoadingScreen> {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrangeAccent, brightness: MediaQuery.platformBrightnessOf(context))
-      ),
-      home: Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.surfaceDim,
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Image.asset('assets/gif/saga_loading.gif', width: 200, height: 200),
-              const SizedBox(height: 40),
-              const CircularProgressIndicator()
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

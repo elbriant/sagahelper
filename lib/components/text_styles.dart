@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import 'package:flutter/material.dart';
 import 'package:sagahelper/global_data.dart';
 import 'package:styled_text/styled_text.dart';
@@ -99,9 +100,37 @@ Map<String, TextStyle> richTextStyles = {
   "vc.endtime": const TextStyle(color: Color(0xFFff0327))
 };
 
+const Map<String, TextStyle> statsStyles = {
+  'HP' : TextStyle(color: Color.fromARGB(255, 132, 204, 22)),
+  'ATK' : TextStyle(color: Color.fromARGB(255, 239, 68, 68)),
+  'DPCost' : TextStyle(color: Color.fromARGB(255, 223, 223, 223)),
+  'Redeploy' : TextStyle(color: Color.fromARGB(255, 236, 72, 153)),
+  'DEF' : TextStyle(color: Color.fromARGB(255, 14, 165, 233)),
+  'RES' : TextStyle(color: Color.fromARGB(255, 139, 92, 246)),
+  'Block' : TextStyle(color: Color(0xFF7f7dea)),
+  'ASPD' : TextStyle(color: Color(0xFFffcf53)),
+};
+
 Map<String, StyledTextTagBase> tagsAsHtml = {
   'b' : StyledTextTag(style: const TextStyle(fontWeight: FontWeight.bold)),
   'i' : StyledTextTag(style: const TextStyle(fontStyle: FontStyle.italic))
+};
+
+Map<String, StyledTextTagBase> tagsAsStats = {
+  'color' : StyledTextCustomTag(
+    parse: (baseStyle, attrs){
+      return statsStyles[attrs['stat']];
+    }
+  ),
+  'icon-HP' : StyledTextWidgetTag(ImageIcon(const AssetImage('assets/sortIcon/hp.png'), color: statsStyles['HP']!.color)),
+  'icon-ATK' : StyledTextWidgetTag(ImageIcon(const AssetImage('assets/sortIcon/atk.png'), color: statsStyles['ATK']!.color)),
+  'icon-DPCost' : StyledTextWidgetTag(ImageIcon(const AssetImage('assets/sortIcon/cost.png'), color: statsStyles['DPCost']!.color)),
+  'icon-Redeploy' : StyledTextWidgetTag(ImageIcon(const AssetImage('assets/sortIcon/redeploy.png'), color: statsStyles['Redeploy']!.color)),
+  'icon-DEF' : StyledTextWidgetTag(ImageIcon(const AssetImage('assets/sortIcon/def.png'), color: statsStyles['DEF']!.color)),
+  'icon-RES' : StyledTextWidgetTag(ImageIcon(const AssetImage('assets/sortIcon/res.png'), color: statsStyles['RES']!.color)),
+  'icon-Block' : StyledTextWidgetTag(ImageIcon(const AssetImage('assets/sortIcon/block.png'), color: statsStyles['Block']!.color)),
+  'icon-ASPD' : StyledTextWidgetTag(ImageIcon(const AssetImage('assets/sortIcon/atkspeed.png'), color: statsStyles['ASPD']!.color)),
+  
 };
 
 Map<String, StyledTextTagBase> tagsAsArknights = {
@@ -139,15 +168,12 @@ Map<String, StyledTextTagBase> tagsAsArknights = {
       }
     }
   ),
-  'selectable' : StyledTextWidgetBuilderTag (
-    (BuildContext context, Map<String?, String?> attributes, String? textContent) {
-      return GestureDetector(
-        onTap: (){
-          // TODO open dict
-        },
-        child: Text(textContent ?? '', style: const TextStyle(decoration: TextDecoration.underline))
-      );
-    },
-  ),
+  'selectable' : StyledTextActionTag(
+      (String? text, Map<String?, String?> attrs) {
+        dev.log('selected ${attrs.toString()}');
+        // TODO open dict
+      },
+      style: const TextStyle(decoration: TextDecoration.underline),
+    ),
 };
 // input example <@ba.vup>{cost}</> where

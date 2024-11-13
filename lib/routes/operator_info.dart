@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:developer' as dev;
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flowder/flowder.dart';
@@ -34,7 +36,6 @@ class OperatorInfo extends StatefulWidget {
 }
 
 class _OperatorInfoState extends State<OperatorInfo> with SingleTickerProviderStateMixin {
-
   late TabController _tabController;
   List<Tab> tabs = <Tab>[
     const Tab(text: 'Archive', icon: Icon(Icons.file_present)),
@@ -93,18 +94,42 @@ class HeaderInfo extends StatelessWidget {
     final professionStr = 'assets/classes/class_${operator.profession.toLowerCase()}.png';
     final subprofessionStr = 'assets/subclasses/sub_${operator.subProfessionId.toLowerCase()}_icon.png';
 
-    final String ghAvatarLink = 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/charavatars/${operator.id}.png';
+    final String ghAvatarLink = '$kAvatarRepo/${operator.id}.png';
     String? logo = operator.teamId ?? operator.groupId ?? operator.nationId;
     if (logo == 'laterano' || logo == 'leithanien') {
       logo = logo!.replaceFirst('l', 'L');
     }
-    final String ghLogoLink = logo != 'laios' && logo != 'rainbow' ? 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/camplogo/logo_$logo.png' : 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/camplogo/linkage/logo_$logo.png';
+    final String ghLogoLink = logo == 'laios' || logo == 'rainbow' ? '$kLogoRepo/linkage/logo_$logo.png' : '$kLogoRepo/logo_$logo.png';
 
     return Container(
       padding: const EdgeInsets.all(16.0),
       child: Stack(
         children: [
-          logo != null ? Positioned(right: 1, top: 0, child: Container(decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: Theme.of(context).colorScheme.primary.withOpacity(0.25) , spreadRadius: 40, blurRadius: 55)]), child: CachedNetworkImage(colorBlendMode: BlendMode.modulate, color: const Color.fromARGB(150, 255, 255, 255), imageUrl: ghLogoLink, scale: 2.5,))) : Container(),
+          logo != null ? Positioned(
+            right: 1,
+            top: 0,
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(color: Theme.of(context).colorScheme.primary.withOpacity(0.25), spreadRadius: 40, blurRadius: 55)
+                ]
+              ),
+              child: CachedNetworkImage(
+                colorBlendMode: BlendMode.modulate,
+                color: const Color.fromARGB(150, 255, 255, 255),
+                imageUrl: ghLogoLink,
+                scale: 2.5,
+                placeholder: (_, __) => Image.asset('assets/placeholders/logo.png', colorBlendMode: BlendMode.modulate, color: Colors.transparent),
+                errorWidget: (context, url, error) => Stack(
+                  children: [
+                    Image.asset('assets/placeholders/logo.png', colorBlendMode: BlendMode.modulate, color: Colors.transparent),
+                    Positioned.fill(child: Center(child: Icon(Icons.error_outline, color: Theme.of(context).colorScheme.surface))),
+                  ],
+                ),
+              )
+            )
+          ) : Container(),
           Column(
             children: [
               Row(
@@ -115,7 +140,7 @@ class HeaderInfo extends StatelessWidget {
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                           Transform(
+                          Transform(
                             transform: Matrix4.translationValues(-20, 10, -1)..rotateZ(-0.088),
                             child: Container(
                               padding: const EdgeInsets.all(0.0),
@@ -134,7 +159,15 @@ class HeaderInfo extends StatelessWidget {
                                 style: BorderStyle.solid
                                 ),
                               ),
-                              child: CachedNetworkImage(colorBlendMode: BlendMode.modulate, color: const Color.fromARGB(99, 255, 255, 255), scale: 0.9, fit: BoxFit.none, placeholder: (context, url) => const Center(child: CircularProgressIndicator()), imageUrl: ghAvatarLink, errorWidget: (context, url, error) => const Center(child: Icon(Icons.error))),
+                              child: CachedNetworkImage(
+                                colorBlendMode: BlendMode.modulate,
+                                color: const Color.fromARGB(99, 255, 255, 255),
+                                scale: 0.9,
+                                fit: BoxFit.fitWidth,
+                                placeholder: (context, url) => Image.asset('assets/placeholders/avatar.png', colorBlendMode: BlendMode.modulate, color: Colors.transparent),
+                                imageUrl: ghAvatarLink,
+                                errorWidget: (context, url, error) => Image.asset('assets/placeholders/avatar.png', colorBlendMode: BlendMode.modulate, color: Colors.transparent),
+                              ),
                             ),
                           ),
                           Transform(
@@ -143,21 +176,36 @@ class HeaderInfo extends StatelessWidget {
                               padding: const EdgeInsets.all(0.0),
                               margin: const EdgeInsets.all(10.0),
                               decoration: BoxDecoration(
-                              boxShadow: const <BoxShadow>[
-                                BoxShadow (
-                                  color: Color.fromRGBO(0, 0, 0, 0.5),
-                                  offset: Offset(0, 8.0),
-                                  blurRadius: 10.0,
-                                ),
-                              ],
-                              border: Border.all(
-                                color: Theme.of(context).colorScheme.onPrimaryContainer,
-                                width: 4.0,
-                                style: BorderStyle.solid
-                                ),
-                              color: const Color.fromARGB(255, 241, 241, 241),
+                                boxShadow: const <BoxShadow>[
+                                  BoxShadow (
+                                    color: Color.fromRGBO(0, 0, 0, 0.5),
+                                    offset: Offset(0, 8.0),
+                                    blurRadius: 10.0,
+                                  ),
+                                ],
+                                border: Border.all(
+                                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                  width: 4.0,
+                                  style: BorderStyle.solid
+                                  ),
+                                color: const Color.fromARGB(255, 241, 241, 241),
                               ),
-                              child: CachedNetworkImage(fit: BoxFit.fitWidth, placeholder: (context, url) => const Center(child: CircularProgressIndicator()), imageUrl: ghAvatarLink, errorWidget: (context, url, error) => const Center(child: Icon(Icons.error))),
+                              child: CachedNetworkImage(
+                                fit: BoxFit.fitWidth,
+                                placeholder: (context, url) => Stack(
+                                  children: [
+                                    Image.asset('assets/placeholders/avatar.png', colorBlendMode: BlendMode.modulate, color: Colors.transparent),
+                                    const Positioned.fill(child: Center(child: CircularProgressIndicator())),
+                                  ],
+                                ),
+                                imageUrl: ghAvatarLink,
+                                errorWidget: (context, url, error) => Stack(
+                                  children: [
+                                    Image.asset('assets/placeholders/avatar.png', colorBlendMode: BlendMode.modulate, color: Colors.transparent),
+                                    Positioned.fill(child: Center(child: Icon(Icons.error_outline, color: Theme.of(context).colorScheme.primary))),
+                                  ],
+                                )
+                              ),
                             ),
                           ),
                         ],
@@ -184,7 +232,7 @@ class HeaderInfo extends StatelessWidget {
                 children: List.generate(operator.tagList.length+3, (index) {
                   if (index == 0) return ActionChip(label: Text(operator.professionString), avatar: Image.asset(professionStr), backgroundColor: Theme.of(context).brightness == Brightness.light ? Theme.of(context).colorScheme.primary.withOpacity(0.7) : null, labelStyle: Theme.of(context).brightness == Brightness.light ? const TextStyle(color: Colors.white) : null, onPressed: (){});
                   if (index == 1) return ActionChip(label: Text(operator.subProfessionString), avatar: Image.asset(subprofessionStr), backgroundColor: Theme.of(context).brightness == Brightness.light ? Theme.of(context).colorScheme.primary.withOpacity(0.7) : null, labelStyle: Theme.of(context).brightness == Brightness.light ? const TextStyle(color: Colors.white) : null, onPressed: (){});
-                  if (index == 2) return ActionChip(label: Text(operator.position), side: BorderSide(color: operator.position == 'RANGED' ? Colors.yellow[600]! : Colors.red), onPressed: (){});
+                  if (index == 2) return ActionChip(label: Text(operator.position.toLowerCase().capitalize()), side: BorderSide(color: operator.position == 'RANGED' ? Colors.yellow[600]! : Colors.red), onPressed: (){});
                   return ActionChip(label: Text(operator.tagList[index-3]), side: BorderSide(color: Theme.of(context).colorScheme.tertiary), onPressed: (){});
                 }),
               )
@@ -239,22 +287,277 @@ class LoreInfo extends StatelessWidget {
   }
 }
 
-class SkillInfo extends StatelessWidget {
-  const SkillInfo({super.key});
-  // TODO
+class SkillInfo extends StatefulWidget {
+  final Operator operator;
+  const SkillInfo(this.operator, {super.key});
+
+  @override
+  State<SkillInfo> createState() => _SkillInfoState();
+}
+
+class _SkillInfoState extends State<SkillInfo> {
+  double showLevel = 83.0;
+  double maxLevel = 90;
+  int elite = 2;
+  int pot = 0;
+  int sliderTrust = 100;
+  bool trustMaxFlag = true;
+
+  String? getTraitText() {
+    String? trait;
+
+    if (widget.operator.trait !=  null) {
+      for (int phase = elite; phase >= 0 ; phase--) {
+        for (Map candidate in (widget.operator.trait!["candidates"] as List)) {
+          if (candidate["unlockCondition"]["phase"] == 'PHASE_${phase.toString()}') {
+            trait = candidate["overrideDescripton"];
+            break;
+          }
+        }
+        if (trait != null) {
+          break;
+        }
+      }
+    }
+    return trait ?? widget.operator.description;
+  }
+
+  List<dynamic>? getTraitsVars() {
+    List<dynamic>? vars;
+
+    if (widget.operator.trait !=  null) {
+      for (int phase = elite; phase >= 0 ; phase--) {
+        for (Map candidate in (widget.operator.trait!["candidates"] as List)) {
+          if (candidate["unlockCondition"]["phase"] == 'PHASE_${phase.toString()}') {
+            vars = candidate["blackboard"];
+            break;
+          }
+        }
+        if (vars != null) {
+          break;
+        }
+      }
+    }
+    return vars;
+  }
+
+  String getStat(String stat) {
+    List<dynamic> datakeyframe = widget.operator.phases[elite]['attributesKeyFrames'];
+
+    if (stat == 'baseAttackTime' || stat == 'respawnTime') {
+      return ui.lerpDouble(datakeyframe[0]['data'][stat], datakeyframe[1]['data'][stat], (showLevel-1.0)/(maxLevel-1))!.toString();
+    } else {
+      return ui.lerpDouble(datakeyframe[0]['data'][stat], datakeyframe[1]['data'][stat], (showLevel-1.0)/(maxLevel-1))!.round().toString();
+    }
+  }
+
+  void selectElite(int i) {
+    return;
+  }
+
   @override
   Widget build(BuildContext context) {
-    
-    return SizedBox(
-      height: 400,
-      child: Center(
-        child: StyledText(
-        text: r"Immediately gains <@ba.vup>{cost}</> DP; Deals <@ba.vup>{atk_scale:0%}</> ATK as Physical damage <@ba.vup>twice</> to up to 6 nearby enemies and <$ba.stun>Stuns</> them for <@ba.vup>{stun}</> seconds. Allied units within Attack Range gain <@ba.vup>{flamtl_s_2.prob:0%}</> Physical Dodge for <@ba.vup>{flamtl_s_2.duration}</> seconds".akRichTextParser().varParser({'cost' : 10.0, 'stun' : 0.5, 'atk_scale' : 1.5}),
-        tags: tagsAsArknights
-      )
-      )
+    List<Widget> statTiles = [
+      statTile('HP', getStat('maxHp')),
+      statTile('ATK', getStat('atk')),
+      statTile('Redeploy', '${getStat('respawnTime')} sec'),
+      statTile('Block', getStat('blockCnt')),
+      statTile('DEF', getStat('def')),
+      statTile('RES', '${getStat('magicResistance')}%'),
+      statTile('DP Cost', getStat('cost')),
+      statTile('ASPD', '${getStat('baseAttackTime')} sec')
+    ];
+    // maybe hold tap on elite, skill and mod to show cost material
+    // do a tip show to say this ||
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      child: Column(
+        children: [
+          getTraitText() != null ? Container(
+            padding: const EdgeInsets.all(24.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainer,
+              borderRadius: BorderRadius.circular(12.0)
+            ),
+            child: Column(
+              children: [
+                const Text('Trait'),
+                StyledText(
+                  text: getTraitText()!.varParser(getTraitsVars()).akRichTextParser(),
+                  tags: tagsAsArknights,
+
+                )
+              ],
+            )
+          ) : null,
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(24.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainer,
+              borderRadius: BorderRadius.circular(12.0)
+            ),
+            child: Column(
+              children: [
+                Wrap(
+                  spacing: 20.0,
+                  runSpacing: 20.0,
+                  children: statTiles
+                ),
+                const SizedBox(height: 20.0),
+                Row(
+                  children: [
+                    Expanded(child: potTile()),
+                    Expanded(child: rangeTile()),
+                  ],
+                ),
+                Row(
+                  children: [
+                    LilButton(
+                      selected: false,
+                      fun: (){selectElite(0);},
+                      icon: const ImageIcon(AssetImage('assets/elite/elite_0.png')),
+                      padding: const EdgeInsets.all(4.0),
+                    ),
+                    LilButton(
+                      selected: false,
+                      fun: (){selectElite(1);},
+                      icon: const ImageIcon(AssetImage('assets/elite/elite_1.png'))
+                    ),
+                    LilButton(
+                      selected: false,
+                      fun: (){selectElite(2);},
+                      icon: const ImageIcon(AssetImage('assets/elite/elite_2.png'))
+                    ),
+                    Text('Trust:\nMAX'),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Slider(
+                            value: 50,
+                            max: 100,
+                            min: 0,
+                            onChanged: (value){},
+                          ),
+                          Text('atributtes')
+                        ].nullParser(),
+                      )
+                    ),
+                  ].nullParser(),
+                ),
+                Row(
+                  children: [
+                    Text('Lv: '),
+                    Expanded(
+                      child: Slider(
+                        value: showLevel,
+                        max: maxLevel,
+                        min: 1.0,
+                        divisions: maxLevel.toInt(),
+                        onChanged: (value){
+                          setState(() {
+                            showLevel = value.roundToDouble();
+                          });
+                        },
+                      ),
+                    ),
+                    Text(showLevel.toInt().toString())
+                  ],
+                )
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+          Container(
+            width: double.maxFinite,
+            padding: const EdgeInsets.all(24.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainer,
+              borderRadius: BorderRadius.circular(12.0)
+            ),
+            child: SizedBox(
+              height: 240,
+              child: Placeholder(
+                child: Text('talents'),
+              )
+            )
+          ),
+          const SizedBox(height: 20),
+          Container(
+            width: double.maxFinite,
+            padding: const EdgeInsets.all(24.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainer,
+              borderRadius: BorderRadius.circular(12.0)
+            ),
+            child: 
+            
+            // skills needs to have: maybe a custom range show, maybe a custom summon show, maybe a lv upgrade diff shower (really easy to do), maybe a item cost to lvel
+            
+            SizedBox(
+              height: 240,
+              child: Placeholder(
+                child: Text('Skilss'),
+              )
+            )
+          ),
+          const SizedBox(height: 20),
+          Container(
+            width: double.maxFinite,
+            padding: const EdgeInsets.all(24.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainer,
+              borderRadius: BorderRadius.circular(12.0)
+            ),
+            child: 
+            // mods needs to have: maybe a lv upgrade diff shower stats (really easy to do), story show
+            
+            SizedBox(
+              height: 240,
+              child: Placeholder(
+                child: Text('Modules'),
+              )
+            )
+          ),
+          const SizedBox(height: 20),
+          Container(
+            width: double.maxFinite,
+            padding: const EdgeInsets.all(24.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainer,
+              borderRadius: BorderRadius.circular(12.0)
+            ),
+            child: SizedBox(
+              height: 240,
+              child: Placeholder(
+                child: Text('RIIC Base Skills'),
+              )
+            )
+          ),
+        ].nullParser(),
+      ),
     );
   }
+
+  Widget statTile(String stat, String value) {
+    return StyledText(
+      text: '<icon-${stat.replaceAll(r' ', '')}/><color stat="${stat.replaceAll(' ', '')}">$stat</color>\n$value',
+      tags: tagsAsStats,
+    );
+  }
+
+  Widget potTile() {
+     return const Center(
+      child: Text('here pots')
+    );
+  }
+
+  Widget rangeTile() {
+     return const Center(
+      child: Text('here range')
+    );
+  }
+  
 }
 
 class ArchivePage extends StatefulWidget {
@@ -269,8 +572,7 @@ class _ArchivePageState extends State<ArchivePage> with SingleTickerProviderStat
   late TabController _secondaryTabController;
   late final List<Widget> _secChildren;
   int _activeIndex = 0;
-  final List<Tab> _secTabs = <Tab>[const Tab(text: 'Skills'), const Tab(text: 'File')];
-  
+  final List<Tab> _secTabs = <Tab>[const Tab(text: 'Combat'), const Tab(text: 'File')];
 
   @override
   void initState() {
@@ -283,7 +585,7 @@ class _ArchivePageState extends State<ArchivePage> with SingleTickerProviderStat
     });
 
     _secChildren = [
-      const SkillInfo(),
+      SkillInfo(widget.operator),
       LoreInfo(widget.operator)
     ];
   }
@@ -294,18 +596,25 @@ class _ArchivePageState extends State<ArchivePage> with SingleTickerProviderStat
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return CustomScrollView(
       slivers: [
         SliverAppBar.medium(
-          flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3, child: Container(color: Colors.transparent, child: FlexibleSpaceBar(title: Text(widget.operator.name), titlePadding: const EdgeInsets.only(left: 72.0, bottom: 16.0, right: 32.0)))) : FlexibleSpaceBar(title: Text(widget.operator.name), titlePadding: const EdgeInsets.only(left: 72.0, bottom: 16.0, right: 32.0)),
+          flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(
+            child: FlexibleSpaceBar(
+              title: Text(widget.operator.name),
+              titlePadding: const EdgeInsets.only(left: 72.0, bottom: 16.0, right: 32.0)
+            ),
+          ) : FlexibleSpaceBar(
+            title: Text(widget.operator.name),
+            titlePadding: const EdgeInsets.only(left: 72.0, bottom: 16.0, right: 32.0)
+          ),
           backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
           leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
           actions: [
             IconButton(onPressed: (){}, icon: const Icon(Icons.more_horiz))
-          ],  
+          ],
         ),
         SliverList.list(
           children: [
@@ -355,7 +664,11 @@ class _ArtPageState extends State<ArtPage> {
   final CarouselSliderController carouselController = CarouselSliderController();
   final PageController _pageController = PageController();
 
-  //TODO add dynamic art
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   void changeOpSkin(int index) {
     selectedIndex = index;
@@ -371,30 +684,112 @@ class _ArtPageState extends State<ArtPage> {
     if (!chibimode) _pageController.animateToPage(index, duration: const Duration(milliseconds: 200), curve: Curves.easeOut);
   }
 
+  String getImageLink(int index) {
+    String opSkinId = (widget.operator.skinsList[index]['illustId'] as String).replaceFirst('illust_', '');
+    return '$kArtRepo/${widget.operator.id}/$opSkinId.png'.githubEncode();
+  }
+
   void showDynamicSkin() {
     ShowSnackBar.showSnackBar('dynamic art not supported yet');
   }
 
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
+  void fullscreen() {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => FullscreenArtsPage(NetworkImage(getImageLink(selectedIndex)), selectedIndex: selectedIndex, chibi: chibimode,)));
+  }
+
+  void chibify() {
+    setState(() {
+      chibimode = !chibimode;
+    });
+  }
+
+  void downloadArt() async {
+    Navigator.pop(context);
+
+    // this download may or may not work as i currently can't test
+    // downloading for API >= 29 doesn't require permissons (Android provides permissons for shared media)
+    // downloading for API < 29 does requires permissons and hopefully the line below provides it
+    var sdkApi = (await DeviceInfoPlugin().androidInfo).version.sdkInt;
+    if (sdkApi < 29) {
+      Permission.storage.request();
+    }
+
+    int id = getUniqueId();
+    String path = await LocalDataManager().downloadPath;
+
+    showDownloadNotification(title: 'Downloading', body: 'downloading image', id: id, ongoing: true, indeterminate: true);
+    
+    String skin = (widget.operator.skinsList[selectedIndex]['illustId'] as String).replaceFirst('illust_', '');
+    String link = '$kArtRepo/${widget.operator.id}/$skin.png'.githubEncode();
+    
+    final downloaderUtils = DownloaderUtils(
+      progressCallback: (current, total) {
+        final progress = (current / total) * 100;
+        showDownloadNotification(title: 'Downloading', body: skin, id: id, ongoing: true, indeterminate: false, progress: progress.round());
+      },
+      file: File('$path/$skin.png'),
+      progress: ProgressImplementation(),
+      onDone: () async {
+        await flutterLocalNotificationsPlugin.cancel(id);
+        showDownloadNotification(title: 'Downloaded', body: '$skin finished', id: id, ongoing: false);
+        downloadsBackgroundCores.remove(id.toString());
+      },
+      deleteOnCancel: true,
+      onError: (e) => dev.log('error: $e')
+    );
+              
+    DownloaderCore core = await Flowder.download(link, downloaderUtils);
+    downloadsBackgroundCores[id.toString()] = core;
+  }
+  
+  void showSkinInfo() async {
+    await showModalBottomSheet<void>(
+      constraints: BoxConstraints.loose(Size(MediaQuery.of(context).size.width, MediaQuery.of(context).size.height * 0.75)),
+      enableDrag: true,
+      showDragHandle: true,
+      isScrollControlled: true,
+      context: context,
+      builder: (BuildContext context) {
+        Map skinInfo = widget.operator.skinsList[selectedIndex];
+        return SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  skinInfo["displaySkin"]["skinName"] != null ? Text(skinInfo["displaySkin"]["skinName"], style: TextStyle(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.primary), textScaler: const TextScaler.linear(1.5)) : Text(skinInfo["displaySkin"]["skinGroupName"], style: TextStyle(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface), textScaler: const TextScaler.linear(1.5)),
+                  skinInfo["skinId"] != null ? Text(skinInfo["skinId"], style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontStyle: FontStyle.italic)) : null,
+                  const SizedBox(height: 20),
+                  skinInfo["displaySkin"]["modelName"] != null ? Text('Model: ${skinInfo["displaySkin"]["modelName"]}') : null,
+                  skinInfo["displaySkin"]["drawerList"] != null ? Text('Drawer: ${(skinInfo["displaySkin"]["drawerList"] as List).join(', ')}') : null,
+                  skinInfo["displaySkin"]["skinGroupName"] != null ? Text('Series: ${skinInfo["displaySkin"]["skinGroupName"]}') : null,
+                  const SizedBox(height: 20),
+                  skinInfo["displaySkin"]["content"] != null ? Container(margin: const EdgeInsets.only(bottom: 10.0), child: StyledText(text: skinInfo["displaySkin"]["content"], tags: tagsAsArknights, style: TextStyle(color: skinInfo["displaySkin"]["skinName"] != null ? Theme.of(context).colorScheme.secondary : null))) : null,
+                  skinInfo["displaySkin"]["usage"] != null ? Container(margin: const EdgeInsets.only(bottom: 10.0), child: StyledText(text: skinInfo["displaySkin"]["usage"], tags: tagsAsArknights)) : null,
+                  skinInfo["displaySkin"]["description"] != null ? Container(margin: const EdgeInsets.only(bottom: 10.0), child: StyledText(text: skinInfo["displaySkin"]["description"], tags: tagsAsArknights, style: const TextStyle(fontStyle: FontStyle.italic),)) : null,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.max,
+                    children: <Widget>[
+                      IconButtonStyled(icon: Icons.file_download_outlined, label: 'Download image', onTap: downloadArt, selected: true),
+                    ]
+                  ),
+                ].nullParser(),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
 
-    getImageLink(int index) {
-      String opSkinId = (widget.operator.skinsList[index]['illustId'] as String).replaceFirst('illust_', '');
-
-      // source ArknightsAssets repo
-      return 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/characters/${widget.operator.id}/$opSkinId.png'.githubEncode();
-    }
-
     List<Widget> skinChildren = List.generate(widget.operator.skinsList.length, (int index) {
-
-      // source yuanyan3060 repo
-      String avatarLink = 'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/refs/heads/main/avatar/${widget.operator.skinsList[index]['avatarId']}.png'.githubEncode();
+      String avatarLink = '$kAvatarRepo/${widget.operator.skinsList[index]['avatarId']}.png'.githubEncode();
 
       return Container(
         width: 80, //same as height to have a 1:1 box
@@ -420,106 +815,12 @@ class _ArtPageState extends State<ArtPage> {
         ),
       );
     });
-
-    void fullscreen() {
-     Navigator.push(context, MaterialPageRoute(builder: (context) => FullscreenArtsPage(NetworkImage(getImageLink(selectedIndex)), selectedIndex: selectedIndex)));
-    }
-
-    void chibify() {
-      setState(() {
-        chibimode = !chibimode;
-      });
-    }
-
-    void downloadArt() async {
-      Navigator.pop(context);
-
-      // this download may or may not work as i currently can't test
-      // downloading for API >= 29 doesn't require permissons (Android provides permissons for shared media)
-      // downloading for API < 29 does requires permissons and hopefully the line below provides it
-      var sdkApi = (await DeviceInfoPlugin().androidInfo).version.sdkInt;
-      if (sdkApi < 29) {
-        Permission.storage.request();
-      }
-
-      int id = getUniqueId();
-      String path = await LocalDataManager().downloadPath;
-
-      showDownloadNotification(title: 'Downloading', body: 'downloading image', id: id, ongoing: true, indeterminate: true);
-      
-      String skin = (widget.operator.skinsList[selectedIndex]['illustId'] as String).replaceFirst('illust_', '');
-      String link = 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/characters/${widget.operator.id}/$skin.png'.githubEncode();
-      
-      final downloaderUtils = DownloaderUtils(
-        progressCallback: (current, total) {
-          final progress = (current / total) * 100;
-          showDownloadNotification(title: 'Downloading', body: skin, id: id, ongoing: true, indeterminate: false, progress: progress.round());
-        },
-        file: File('$path/$skin.png'),
-        progress: ProgressImplementation(),
-        onDone: () async {
-          await flutterLocalNotificationsPlugin.cancel(id);
-          showDownloadNotification(title: 'Downloaded', body: '$skin finished', id: id, ongoing: false);
-          downloadsBackgroundCores.remove(id.toString());
-        },
-        deleteOnCancel: true,
-        onError: (e){
-          print('error: $e');
-        }
-      );
-                
-      DownloaderCore core = await Flowder.download(link, downloaderUtils);
-      downloadsBackgroundCores[id.toString()] = core;
-    }
-
-    void showSkinInfo() async {
-      await showModalBottomSheet<void>(
-        constraints: BoxConstraints.loose(Size(MediaQuery.of(context).size.width, MediaQuery.of(context).size.height * 0.75)),
-        enableDrag: true,
-        showDragHandle: true,
-        isScrollControlled: true,
-        context: context,
-        builder: (BuildContext context) {
-          Map skinInfo = widget.operator.skinsList[selectedIndex];
-          return SafeArea(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    skinInfo["displaySkin"]["skinName"] != null ? Text(skinInfo["displaySkin"]["skinName"], style: TextStyle(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.primary), textScaler: const TextScaler.linear(1.5)) : Text(skinInfo["displaySkin"]["skinGroupName"], style: TextStyle(fontWeight: FontWeight.w600, color: Theme.of(context).colorScheme.onSurface), textScaler: const TextScaler.linear(1.5)),
-                    skinInfo["skinId"] != null ? Text(skinInfo["skinId"], style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7), fontStyle: FontStyle.italic)) : null,
-                    const SizedBox(height: 20),
-                    skinInfo["displaySkin"]["modelName"] != null ? Text('Model: ${skinInfo["displaySkin"]["modelName"]}') : null,
-                    skinInfo["displaySkin"]["drawerList"] != null ? Text('Drawer: ${(skinInfo["displaySkin"]["drawerList"] as List).join(', ')}') : null,
-                    skinInfo["displaySkin"]["skinGroupName"] != null ? Text('Series: ${skinInfo["displaySkin"]["skinGroupName"]}') : null,
-                    const SizedBox(height: 20),
-                    skinInfo["displaySkin"]["content"] != null ? Container(margin: const EdgeInsets.only(bottom: 10.0), child: StyledText(text: skinInfo["displaySkin"]["content"], tags: tagsAsArknights, style: TextStyle(color: skinInfo["displaySkin"]["skinName"] != null ? Theme.of(context).colorScheme.secondary : null))) : null,
-                    skinInfo["displaySkin"]["usage"] != null ? Container(margin: const EdgeInsets.only(bottom: 10.0), child: StyledText(text: skinInfo["displaySkin"]["usage"], tags: tagsAsArknights)) : null,
-                    skinInfo["displaySkin"]["description"] != null ? Container(margin: const EdgeInsets.only(bottom: 10.0), child: StyledText(text: skinInfo["displaySkin"]["description"], tags: tagsAsArknights, style: const TextStyle(fontStyle: FontStyle.italic),)) : null,
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.max,
-                      children: <Widget>[
-                        IconButtonStyled(icon: Icons.file_download_outlined, label: 'Download image', onTap: downloadArt, selected: true),
-                      ]
-                    ),
-                  ].nullParser(),
-                ),
-              ),
-            ),
-          );
-        },
-      );
-    }
-
+    
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         actions: [
-            IconButton(onPressed: () => showSkinInfo(), icon: const Icon(Icons.info_outline_rounded)),
+            Visibility(visible: !chibimode, child: IconButton(onPressed: () => showSkinInfo(), icon: const Icon(Icons.info_outline_rounded))),
             IconButton(onPressed: () => chibify(), icon: const Icon(Icons.sync_alt_outlined)),
             Hero(tag: 'button', child: IconButton(onPressed: () => fullscreen(), icon: const Icon(Icons.fullscreen))),
           ],
@@ -527,15 +828,14 @@ class _ArtPageState extends State<ArtPage> {
         backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
       ),
-      body: ClipRRect(
+      body: ClipRect(
         child: Stack(
           children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 500),
-              transitionBuilder: (Widget child, Animation<double> animation) {
-                return AnimatedSwitcher.defaultTransitionBuilder(child, animation);
-              },
-              child: chibimode ? chibiview() : photoview(context, getImageLink),
+            Stack(
+              children: [
+                Visibility(visible: !chibimode, maintainState: true, child: photoview(context, getImageLink)),
+                Visibility(visible: chibimode, maintainState: true, child: chibiview())
+              ],
             ),
             Positioned(left: 0, right: 0, bottom: 0, child: carouselContainer(skinChildren, carouselController)),
             hasDynamicArt && chibimode == false? Positioned(right: 0, bottom: 0, child: dynamicSkinButton()) : null
@@ -546,10 +846,8 @@ class _ArtPageState extends State<ArtPage> {
   }
 
   Widget chibiview() {
-    return Container(
-      child: const Center(
-        child: Text('Chibi not supported yet'),
-      ),
+    return const Center(
+      child: Text('Chibi not supported yet'),
     );
   }
 
@@ -559,7 +857,6 @@ class _ArtPageState extends State<ArtPage> {
           childEnableAlwaysPan: true,
           backgroundDecoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerLowest),
           pageController: _pageController,
-          wantKeepAlive: true,
           itemCount: widget.operator.skinsList.length,
           builder: (BuildContext context, int index) {
             return PhotoViewGalleryPageOptions(
@@ -619,10 +916,11 @@ class _ArtPageState extends State<ArtPage> {
 }
 
 class FullscreenArtsPage extends StatefulWidget {
-  const FullscreenArtsPage(this.image, {super.key, required this.selectedIndex});
+  const FullscreenArtsPage(this.image, {super.key, required this.selectedIndex, required this.chibi});
 
   final NetworkImage image;
   final int selectedIndex;
+  final bool chibi;
 
   @override
   State<FullscreenArtsPage> createState() => _FullscreenArtsPageState();
@@ -663,7 +961,11 @@ class _FullscreenArtsPageState extends State<FullscreenArtsPage> {
         backgroundColor: Colors.transparent,
         leading: const SizedBox()
       ),
-      body: PhotoView(
+      body: widget.chibi
+        ? const Center(
+          child: Text('Chibi not supported yet'),
+        )
+        : PhotoView(
         enablePanAlways: true,
         filterQuality: FilterQuality.high,
         imageProvider: widget.image,
@@ -773,6 +1075,7 @@ class _VoicePageState extends State<VoicePage> with WidgetsBindingObserver {
     voicelines.add(widget.operator.id);
     for (var skin in widget.operator.skinsList) {
       if (skin["voiceId"] != null) {
+        if (voicelines.contains(skin["voiceId"])) continue;
         voicelines.add(skin["voiceId"]);
       }
     }
@@ -940,7 +1243,7 @@ class _VoicePageState extends State<VoicePage> with WidgetsBindingObserver {
       };
     }
 
-    String link = 'https://github.com/Aceship/Arknight-voices/raw/refs/heads/main/$voicelang/$opId/$voiceId.mp3'.githubEncode();
+    String link = '$kVoiceRepo/$voicelang/$opId/$voiceId.mp3'.githubEncode();
     
     manager.init(link);
   }

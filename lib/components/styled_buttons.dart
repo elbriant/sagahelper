@@ -87,3 +87,53 @@ class StyledLangButton extends StatelessWidget {
     );
   }
 }
+
+class LilButton extends StatelessWidget {
+  const LilButton({
+    super.key,
+    required this.selected,
+    required this.icon,
+    required this.fun,
+    this.size,
+    this.padding,
+    this.margin,
+  });
+
+  final bool selected;
+  final Widget icon;
+  final Size? size;
+  final EdgeInsets? padding;
+  final EdgeInsets? margin;
+  final Function() fun;
+
+  @override
+  Widget build(BuildContext context) {
+    if (size != null || padding != null) {
+      return Container(
+        height: size?.height,
+        width: size?.width,
+        margin: margin,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: fun,
+          child: Card.filled(
+            child: Padding(
+              padding: padding ?? const EdgeInsets.all(8.0),
+              child: icon,
+            ),
+          ),
+        ),
+      );
+
+    } else {
+      return InkWell(
+        borderRadius: BorderRadius.circular(2),
+        onTap: fun,
+        child: Card.filled(
+          margin: margin,
+          child: icon,
+        ),
+      );
+    }
+  }
+}
