@@ -298,10 +298,17 @@ class SkillInfo extends StatefulWidget {
 class _SkillInfoState extends State<SkillInfo> {
   double showLevel = 83.0;
   double maxLevel = 90;
-  int elite = 2;
+  int elite = 0;
   int pot = 0;
   int sliderTrust = 100;
   bool trustMaxFlag = true;
+
+  void _init() {
+    //get max elite
+    elite = widget.operator.phases.length-1;
+    maxLevel = (widget.operator.phases[elite]["maxLevel"] as int).toDouble();
+    showLevel = maxLevel;
+  }
 
   String? getTraitText() {
     String? trait;
@@ -352,7 +359,19 @@ class _SkillInfoState extends State<SkillInfo> {
   }
 
   void selectElite(int i) {
-    return;
+    if (elite == i) return;
+
+    setState(() {
+      elite = i;
+      maxLevel = (widget.operator.phases[elite]["maxLevel"] as int).toDouble();
+      showLevel = showLevel.clamp(1, maxLevel);
+    });
+  }
+
+  @override
+  void initState() {
+    _init();
+    super.initState();
   }
 
   @override
@@ -414,21 +433,20 @@ class _SkillInfoState extends State<SkillInfo> {
                 Row(
                   children: [
                     LilButton(
-                      selected: false,
+                      selected: elite == 0,
                       fun: (){selectElite(0);},
                       icon: const ImageIcon(AssetImage('assets/elite/elite_0.png')),
-                      padding: const EdgeInsets.all(4.0),
                     ),
-                    LilButton(
-                      selected: false,
+                    widget.operator.phases.length > 1 ? LilButton(
+                      selected: elite == 1,
                       fun: (){selectElite(1);},
-                      icon: const ImageIcon(AssetImage('assets/elite/elite_1.png'))
-                    ),
-                    LilButton(
-                      selected: false,
+                      icon: const ImageIcon(AssetImage('assets/elite/elite_1.png')),
+                    ) : null,
+                    widget.operator.phases.length > 2 ? LilButton(
+                      selected: elite == 2,
                       fun: (){selectElite(2);},
-                      icon: const ImageIcon(AssetImage('assets/elite/elite_2.png'))
-                    ),
+                      icon: const ImageIcon(AssetImage('assets/elite/elite_2.png')),
+                    ) : null,
                     Text('Trust:\nMAX'),
                     Expanded(
                       child: Column(
@@ -461,7 +479,7 @@ class _SkillInfoState extends State<SkillInfo> {
                         },
                       ),
                     ),
-                    Text(showLevel.toInt().toString())
+                    Text(showLevel.toInt().toString().padLeft(2, '  '))
                   ],
                 )
               ],

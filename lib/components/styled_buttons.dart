@@ -91,20 +91,22 @@ class StyledLangButton extends StatelessWidget {
 class LilButton extends StatelessWidget {
   const LilButton({
     super.key,
-    required this.selected,
     required this.icon,
     required this.fun,
     this.size,
     this.padding,
     this.margin,
+    this.deactivated = false,
+    this.selected = true,
   });
 
   final bool selected;
-  final Widget icon;
+  final ImageIcon icon;
   final Size? size;
   final EdgeInsets? padding;
   final EdgeInsets? margin;
   final Function() fun;
+  final bool deactivated;
 
   @override
   Widget build(BuildContext context) {
@@ -113,25 +115,29 @@ class LilButton extends StatelessWidget {
         height: size?.height,
         width: size?.width,
         margin: margin,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: fun,
-          child: Card.filled(
+        child: Card.filled(
+          color: selected ? Theme.of(context).colorScheme.surfaceContainerHighest : Theme.of(context).colorScheme.surfaceContainerHigh,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12.0),
+            onTap: !deactivated ? fun : null,
             child: Padding(
               padding: padding ?? const EdgeInsets.all(8.0),
-              child: icon,
+              child: selected ? icon : ColorFiltered(colorFilter: ColorFilter.mode(Colors.grey[600]!, BlendMode.modulate), child: icon),
             ),
           ),
         ),
       );
-
     } else {
-      return InkWell(
-        borderRadius: BorderRadius.circular(2),
-        onTap: fun,
-        child: Card.filled(
-          margin: margin,
-          child: icon,
+      return Card.filled(
+        margin: margin,
+        color: selected ? Theme.of(context).colorScheme.surfaceContainerHighest : Theme.of(context).colorScheme.surfaceContainerHigh,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12.0),
+          onTap: !deactivated ? fun : null,
+          child: Padding(
+            padding: const EdgeInsets.all(5.0),
+            child: selected ? icon : ColorFiltered(colorFilter: ColorFilter.mode(Colors.grey[600]!, BlendMode.modulate), child: icon),
+          ),
         ),
       );
     }
