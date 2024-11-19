@@ -6,4 +6,5 @@ class CacheProvider extends ChangeNotifier {
   List<Operator>? cachedListOperator;
   String? cachedListOperatorServer;
   String? cachedListOperatorVersion;
+  Map<String, dynamic>? cachedRangeTable;
 }

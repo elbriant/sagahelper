@@ -25,15 +25,23 @@ Future<List<Operator>> fetchOperators() async {
   if (NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperator != null
       && NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperatorServer == server
       && NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperatorVersion == version
+      && NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedRangeTable != null
     ) {
    return Future<List<Operator>>.value(NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperator);
   }
 
-  List<String> files = ['/excel/character_table.json', '/excel/handbook_info_table.json', '/excel/charword_table.json', '/excel/skin_table.json'];
+  List<String> files = [
+    '/excel/character_table.json',
+    '/excel/handbook_info_table.json',
+    '/excel/charword_table.json',
+    '/excel/skin_table.json',
+    '/excel/range_table.json'
+  ];
   // 0 operators
   // 1 lore
   // 2 voice
   // 3 skin
+  // 4 ranges
 
   try {
     await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().existFiles(NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString, files);
@@ -53,6 +61,7 @@ Future<List<Operator>> fetchOperators() async {
   NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperatorServer = server;
   NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperator = completedList;
   NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperatorVersion = version;
+  NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedRangeTable = jsonDecode(response[4]) as Map<String, dynamic>;
 
   return completedList;
   

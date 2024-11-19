@@ -101,7 +101,7 @@ class LilButton extends StatelessWidget {
   });
 
   final bool selected;
-  final ImageIcon icon;
+  final Widget icon;
   final Size? size;
   final EdgeInsets? padding;
   final EdgeInsets? margin;

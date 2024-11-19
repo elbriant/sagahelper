@@ -19,7 +19,8 @@ class ServerProvider extends ChangeNotifier {
     'charword_table.json',
     'handbook_info_table.json',
     'handbook_team_table.json',
-    'skin_table.json'
+    'skin_table.json',
+    'range_table.json',
   ];
 
   String yostarrepo(String server) => 'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData_YoStar/refs/heads/main/$server/gamedata/excel';

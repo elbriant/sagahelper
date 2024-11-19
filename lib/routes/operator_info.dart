@@ -20,6 +20,7 @@ import 'package:just_audio/just_audio.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:provider/provider.dart';
+import 'package:sagahelper/providers/cache_provider.dart';
 import 'package:sagahelper/providers/ui_provider.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -287,6 +288,25 @@ class LoreInfo extends StatelessWidget {
   }
 }
 
+String statTranslate (String stat) => switch (stat) {
+  "maxHp"=> 'HP',
+  "atk"=> 'ATK',
+  "def"=> 'DEF',
+  "magicResistance"=> 'RES',
+  "cost"=> 'DPCost',
+  "blockCnt"=> 'Block',
+  "attackSpeed"=> 'ASPD%',
+  "baseAttackTime"=> 'ASPD',
+  "respawnTime"=> 'Redeploy',
+  "hpRecoveryPerSec"=> 'HP/S',
+  "spRecoveryPerSec"=> 'SP/S',
+  "tauntLevel"=> 'Aggro',
+  "massLevel"=> 'Weight',
+  "stunImmune"=> '',
+  // was lazy to add all
+  String() => stat.capitalize()
+};
+
 class SkillInfo extends StatefulWidget {
   final Operator operator;
   const SkillInfo(this.operator, {super.key});
@@ -297,17 +317,20 @@ class SkillInfo extends StatefulWidget {
 
 class _SkillInfoState extends State<SkillInfo> {
   double showLevel = 83.0;
-  double maxLevel = 90;
+  double maxLevel = 90.0;
   int elite = 0;
-  int pot = 0;
-  int sliderTrust = 100;
+  int pot = -1;
+  double sliderTrust = 100.0;
   bool trustMaxFlag = true;
+
+  Map<String, double> potBuffs = {};
 
   void _init() {
     //get max elite
     elite = widget.operator.phases.length-1;
     maxLevel = (widget.operator.phases[elite]["maxLevel"] as int).toDouble();
     showLevel = maxLevel;
+    sliderTrust = (widget.operator.favorKeyframes[1]["level"] as int).toDouble();
   }
 
   String? getTraitText() {
@@ -352,9 +375,20 @@ class _SkillInfoState extends State<SkillInfo> {
     List<dynamic> datakeyframe = widget.operator.phases[elite]['attributesKeyFrames'];
 
     if (stat == 'baseAttackTime' || stat == 'respawnTime') {
-      return ui.lerpDouble(datakeyframe[0]['data'][stat], datakeyframe[1]['data'][stat], (showLevel-1.0)/(maxLevel-1))!.toString();
+      var value = ui.lerpDouble(datakeyframe[0]['data'][stat], datakeyframe[1]['data'][stat], (showLevel-1.0)/(maxLevel-1))!;
+      value += getSingleTrustBonus(stat);
+      if (stat == 'baseAttackTime') {
+        //shown value is atk interval, here we calculate the interval with the real ASPD
+        value /= ((ui.lerpDouble(datakeyframe[0]['data']['attackSpeed'], datakeyframe[1]['data']['attackSpeed'], (showLevel-1.0)/(maxLevel-1))! + (potBuffs.containsKey("attackSpeed") ? potBuffs["attackSpeed"]! : 0.0))/ 100);
+      }
+      if (stat == 'respawnTime' && potBuffs.containsKey('respawnTime')) value += potBuffs['respawnTime']!;
+      // prettify
+      return value.toStringAsFixed(3).replaceFirst(RegExp(r'\.?0*$'), '');
     } else {
-      return ui.lerpDouble(datakeyframe[0]['data'][stat], datakeyframe[1]['data'][stat], (showLevel-1.0)/(maxLevel-1))!.round().toString();
+      var value = ui.lerpDouble(datakeyframe[0]['data'][stat], datakeyframe[1]['data'][stat], (showLevel-1.0)/(maxLevel-1))!;
+      value += getSingleTrustBonus(stat);
+      if (potBuffs.containsKey(stat)) value += potBuffs[stat]!;
+      return value.round().toString();
     }
   }
 
@@ -366,6 +400,84 @@ class _SkillInfoState extends State<SkillInfo> {
       maxLevel = (widget.operator.phases[elite]["maxLevel"] as int).toDouble();
       showLevel = showLevel.clamp(1, maxLevel);
     });
+  }
+
+  double getSingleTrustBonus(String stat){
+    if (trustMaxFlag) {
+      var val = widget.operator.favorKeyframes[1]["data"][stat];
+      return val.runtimeType == int? (val as int).toDouble() : val;
+    } else {
+      var val = ui.lerpDouble(
+        widget.operator.favorKeyframes[0]["data"][stat].runtimeType == int? (widget.operator.favorKeyframes[0]["data"][stat] as int).toDouble() : widget.operator.favorKeyframes[0]["data"][stat],
+        widget.operator.favorKeyframes[1]["data"][stat].runtimeType == int? (widget.operator.favorKeyframes[1]["data"][stat] as int).toDouble() : widget.operator.favorKeyframes[1]["data"][stat],
+        sliderTrust.clamp(0.0, (widget.operator.favorKeyframes[1]["level"] as int).toDouble())/(widget.operator.favorKeyframes[1]["level"] as int).toDouble()
+      )!;
+      return val;
+    }
+  }
+
+  String getTrustBonus(){
+    List<String> text = [];
+
+    (widget.operator.favorKeyframes[1]["data"] as Map).forEach((key, value){
+      if (value.runtimeType == int || value.runtimeType == double) {
+        if (value == 0) return;
+
+        var val = value.runtimeType == int ? (value as int).toDouble() : value;
+
+        if (!trustMaxFlag) {
+          val = ui.lerpDouble(
+            widget.operator.favorKeyframes[0]["data"][key],
+            value,
+            sliderTrust.clamp(0.0, (widget.operator.favorKeyframes[1]["level"] as int).toDouble())/(widget.operator.favorKeyframes[1]["level"] as int).toDouble()
+          )!;
+        }
+        val = (val as double).round();
+
+        if (val == 0) return;
+
+        text.add('${statTranslate(key)} <col>+${val.toString()}</col>');
+      } else {
+        if (value == false) return;
+        if (!trustMaxFlag && sliderTrust < (widget.operator.favorKeyframes[1]["level"] as int).toDouble()) return;
+
+        text.add('<col>${statTranslate(key)}</col>');          
+      }
+    });
+
+    return text.join(' | ');
+  }
+
+  void calcPotBonuses(){
+    potBuffs = {};
+    for (Map potDetail in widget.operator.potentials) {
+      if (widget.operator.potentials.indexOf(potDetail) > pot) return;
+      print(widget.operator.potentials.indexOf(potDetail));
+
+      if (potDetail["type"] == 'BUFF') {
+        String name = switch ((potDetail["buff"]["attributes"]["attributeModifiers"] as List).first["attributeType"]) {
+          "COST" => "cost",
+          "RESPAWN_TIME" => "respawnTime",
+          "ATK" => "atk",
+          "ATTACK_SPEED" => "attackSpeed",
+          "MAX_HP" => "maxHp",
+          "MAGIC_RESISTANCE" => "magicResistance",
+          "DEF" =>  "def",
+          _ => 'unknown'
+        };
+
+        if (name == 'unknown') ShowSnackBar.showSnackBar('Error: pot not loaded ${(potDetail["buff"]["attributes"]["attributeModifiers"] as List).first["attributeType"]}');
+
+        potBuffs.update(
+          name,
+          (value) => value+(potDetail["buff"]["attributes"]["attributeModifiers"] as List).first["value"],
+          ifAbsent: () => (potDetail["buff"]["attributes"]["attributeModifiers"] as List).first["value"]
+        );
+      } else {
+        continue;
+      }
+
+    }
   }
 
   @override
@@ -426,42 +538,80 @@ class _SkillInfoState extends State<SkillInfo> {
                 const SizedBox(height: 20.0),
                 Row(
                   children: [
-                    Expanded(child: potTile()),
-                    Expanded(child: rangeTile()),
-                  ],
-                ),
-                Row(
-                  children: [
-                    LilButton(
-                      selected: elite == 0,
-                      fun: (){selectElite(0);},
-                      icon: const ImageIcon(AssetImage('assets/elite/elite_0.png')),
-                    ),
-                    widget.operator.phases.length > 1 ? LilButton(
-                      selected: elite == 1,
-                      fun: (){selectElite(1);},
-                      icon: const ImageIcon(AssetImage('assets/elite/elite_1.png')),
-                    ) : null,
-                    widget.operator.phases.length > 2 ? LilButton(
-                      selected: elite == 2,
-                      fun: (){selectElite(2);},
-                      icon: const ImageIcon(AssetImage('assets/elite/elite_2.png')),
-                    ) : null,
-                    Text('Trust:\nMAX'),
                     Expanded(
                       child: Column(
                         children: [
-                          Slider(
-                            value: 50,
-                            max: 100,
-                            min: 0,
-                            onChanged: (value){},
+                          rangeTile(),
+                          Row(
+                            children: [
+                              LilButton(
+                                selected: elite == 0,
+                                fun: (){selectElite(0);},
+                                icon: const ImageIcon(AssetImage('assets/elite/elite_0.png')),
+                              ),
+                              widget.operator.phases.length > 1 ? LilButton(
+                                selected: elite == 1,
+                                fun: (){selectElite(1);},
+                                icon: const ImageIcon(AssetImage('assets/elite/elite_1.png')),
+                              ) : null,
+                              widget.operator.phases.length > 2 ? LilButton(
+                                selected: elite == 2,
+                                fun: (){selectElite(2);},
+                                icon: const ImageIcon(AssetImage('assets/elite/elite_2.png')),
+                              ) : null,
+                              
+                            ].nullParser(),
+                          )
+                        ],
+                      )
+                    ),
+                    Expanded(child: potTile()),
+                  ],
+                ),
+                const SizedBox(height: 24.0),
+                Row(
+                  children: [
+                    Column(
+                      children: [
+                        const Text('Trust:'),
+                        LilButton(
+                          icon: Text(
+                            trustMaxFlag ? 'MAX' : sliderTrust.toInt().toString().padLeft(3, '  '),
+                            style: const TextStyle(fontWeight: ui.FontWeight.w800),
                           ),
-                          Text('atributtes')
+                          fun: (){
+                            setState(() {
+                              trustMaxFlag = !trustMaxFlag;
+                            });
+                          },
+                          selected: trustMaxFlag,
+                          padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 8.0),
+                        ),
+                      ],
+                    ),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          !trustMaxFlag ? Slider(
+                            value: sliderTrust,
+                            max: 200,
+                            min: 0,
+                            onChanged: (value){
+                              setState(() {
+                                sliderTrust = value.roundToDouble();
+                              });
+                            },
+                          ) : null,
+                          StyledText(
+                            text: getTrustBonus(),
+                            tags: {
+                              'col': StyledTextTag(style: const TextStyle(color: Color(0xFF0098DC))),
+                            },
+                          )
                         ].nullParser(),
                       )
                     ),
-                  ].nullParser(),
+                  ],
                 ),
                 Row(
                   children: [
@@ -565,14 +715,77 @@ class _SkillInfoState extends State<SkillInfo> {
   }
 
   Widget potTile() {
-     return const Center(
-      child: Text('here pots')
+    return Column(
+      children: List.generate(
+        widget.operator.potentials.length,
+        (index) {
+          return LilButton(
+            selected: index <= pot,
+            icon: Row(
+                children: [
+                  Image.asset('assets/pot/potential_${index+1}_small.png', scale: 1.6),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(widget.operator.potentials[index]["description"], textScaler: const TextScaler.linear(0.7))
+                  )
+                ],
+              ),
+            fun: (){
+              setState(() {
+                if (pot == 0 && index == 0){
+                  pot = -1;
+                } else {
+                  pot = index;
+                }
+                calcPotBonuses();
+              });
+            }
+          );
+        }
+      ),
     );
   }
 
   Widget rangeTile() {
-     return const Center(
-      child: Text('here range')
+    final List range = 
+      NavigationService.navigatorKey.currentContext!
+      .read<CacheProvider>().cachedRangeTable![widget.operator.phases[elite]["rangeId"]]["grids"];
+
+    int maxRowPos = 0;
+    int maxColPos = 0;
+    int maxRowNeg = 0; // Row offset
+    int maxColNeg = 0; // Col offset
+
+    for (Map tile in range) {
+      if (tile['row'] > maxRowPos) maxRowPos = tile['row'];
+      if (tile['row'] < maxRowNeg) maxRowNeg = tile['row'];
+      if (tile['col'] > maxColPos) maxColPos = tile['col'];
+      if (tile['col'] < maxColNeg) maxColNeg = tile['col'];
+    }
+
+    // has to add 1 as offset because 0 is no-existen column/row
+    // so in this case the offset should be XOffset = 1+XNeg
+    int tileRowOffset = 1 + maxRowNeg.abs();
+    int tileColOffset = 1 + maxColNeg.abs();
+    int cols = maxColPos + tileColOffset;
+    int rows = maxRowPos + tileRowOffset;
+
+    List<Widget> finishedRange = List.generate(
+      cols*rows,
+      (index) => const SizedBox.square(dimension: 2, child: Placeholder(color: Colors.red)) // void
+    );
+    for (Map tile in range) {
+      int position = cols*((tile['row'] as int)+tileRowOffset-1) + ((tile['col'] as int)+tileColOffset);
+      finishedRange[position-1] = const SizedBox.square(dimension: 2, child: Placeholder(color: Colors.grey));
+    }
+    // 0 - 0 char
+    finishedRange[cols*(tileRowOffset-1)+tileColOffset-1] = const SizedBox.square(dimension: 2, child: Placeholder(color: Colors.blue)); // player
+
+    return GridView(
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: cols),
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      children: finishedRange,
     );
   }
   
