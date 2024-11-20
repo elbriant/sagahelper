@@ -167,7 +167,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
           child: FutureBuilder<List<Operator>>(
             future: futureOperatorList,
             builder: (context, snapshot) {
-              if (snapshot.hasError) {
+              if (snapshot.hasError) {  // --------------- Error
                 if (snapshot.error is FormatException) {
                   return Center(
                     child: Column(
@@ -226,7 +226,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
                   return OperatorListView(operators: sortedOperatorList);
                 }
               } else {
-                return SafeArea(
+                return SafeArea( // ----------------- loading
                   child: Column(
                     children: [
                       const LinearProgressIndicator(),
@@ -238,7 +238,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
                             children: [
                               Image.asset('assets/gif/saga_loading.gif', width: 180),
                               const SizedBox(height: 12),
-                              Text('loading operators', style: TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer, fontWeight: FontWeight.w600), textScaler: const TextScaler.linear(1.3),)
+                              Text('Loading Operators', style: TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer, fontWeight: FontWeight.w600), textScaler: const TextScaler.linear(1.3),)
                             ],
                           )
                         )

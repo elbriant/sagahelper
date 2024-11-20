@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer' as dev;
 import 'dart:io';
+import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -538,33 +539,33 @@ class _SkillInfoState extends State<SkillInfo> {
                 const SizedBox(height: 20.0),
                 Row(
                   children: [
-                    Expanded(
-                      child: Column(
-                        children: [
-                          rangeTile(),
-                          Row(
-                            children: [
-                              LilButton(
-                                selected: elite == 0,
-                                fun: (){selectElite(0);},
-                                icon: const ImageIcon(AssetImage('assets/elite/elite_0.png')),
-                              ),
-                              widget.operator.phases.length > 1 ? LilButton(
-                                selected: elite == 1,
-                                fun: (){selectElite(1);},
-                                icon: const ImageIcon(AssetImage('assets/elite/elite_1.png')),
-                              ) : null,
-                              widget.operator.phases.length > 2 ? LilButton(
-                                selected: elite == 2,
-                                fun: (){selectElite(2);},
-                                icon: const ImageIcon(AssetImage('assets/elite/elite_2.png')),
-                              ) : null,
-                              
-                            ].nullParser(),
-                          )
-                        ],
-                      )
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        rangeTile(),
+                        Row(
+                          children: [
+                            LilButton(
+                              selected: elite == 0,
+                              fun: (){selectElite(0);},
+                              icon: const ImageIcon(AssetImage('assets/elite/elite_0.png')),
+                            ),
+                            widget.operator.phases.length > 1 ? LilButton(
+                              selected: elite == 1,
+                              fun: (){selectElite(1);},
+                              icon: const ImageIcon(AssetImage('assets/elite/elite_1.png')),
+                            ) : null,
+                            widget.operator.phases.length > 2 ? LilButton(
+                              selected: elite == 2,
+                              fun: (){selectElite(2);},
+                              icon: const ImageIcon(AssetImage('assets/elite/elite_2.png')),
+                            ) : null,
+                            
+                          ].nullParser(),
+                        )
+                      ],
                     ),
+                    const SizedBox(width: 4.0),
                     Expanded(child: potTile()),
                   ],
                 ),
@@ -772,20 +773,79 @@ class _SkillInfoState extends State<SkillInfo> {
 
     List<Widget> finishedRange = List.generate(
       cols*rows,
-      (index) => const SizedBox.square(dimension: 2, child: Placeholder(color: Colors.red)) // void
+      (index) => const SizedBox.square(dimension: 2) // void
     );
     for (Map tile in range) {
       int position = cols*((tile['row'] as int)+tileRowOffset-1) + ((tile['col'] as int)+tileColOffset);
-      finishedRange[position-1] = const SizedBox.square(dimension: 2, child: Placeholder(color: Colors.grey));
+      finishedRange[position-1] = SizedBox.square(
+        dimension: 2,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey, strokeAlign: BorderSide.strokeAlignInside, width: 2)
+          )
+        )
+      );
     }
     // 0 - 0 char
-    finishedRange[cols*(tileRowOffset-1)+tileColOffset-1] = const SizedBox.square(dimension: 2, child: Placeholder(color: Colors.blue)); // player
+    finishedRange[cols*(tileRowOffset-1)+tileColOffset-1] = SizedBox.square(
+      dimension: 2,
+      child: DecoratedBox(
+        decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary)
+      )
+    ); // player
 
-    return GridView(
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: cols),
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      children: finishedRange,
+    final gridPadding = max(finishedRange.length < 20.0 ? 30.0-finishedRange.length + (rows>2? 12.0 : 0.0) + (finishedRange.length==1? 10.0 : 0.0) : 48.0-finishedRange.length, 0.0);
+
+    return Stack(
+      alignment: Alignment.bottomCenter,
+      children: [
+        Container(
+          height: MediaQuery.sizeOf(context).width / 3,
+          width: 120,
+          margin: const EdgeInsets.only(bottom: 8.0),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Theme.of(context).colorScheme.tertiaryContainer,
+              width: 4.0,
+            ),
+            borderRadius: BorderRadius.circular(8.0)
+          ),
+          child: Column(
+            children: [
+              Expanded(
+                child: Center(
+                  child: GridView(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: cols, mainAxisSpacing: 2, crossAxisSpacing: 2),
+                    padding: EdgeInsets.fromLTRB(gridPadding, 8.0, gridPadding, 12.0),
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    children: finishedRange,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8.0)
+            ],
+          )
+        ),
+        Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.tertiaryContainer,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(4.0))
+          ),
+          child: Text(
+            'Range',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onTertiaryContainer,
+              fontWeight: ui.FontWeight.w900,
+            ),
+            // ignore: deprecated_member_use
+            textScaler: TextScaler.linear(MediaQuery.textScalerOf(context).textScaleFactor+0.1),
+            textAlign: ui.TextAlign.center,
+          ),
+        ),
+      ]
     );
   }
   
