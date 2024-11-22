@@ -113,7 +113,8 @@ const Map<String, TextStyle> statsStyles = {
 
 Map<String, StyledTextTagBase> tagsAsHtml = {
   'b' : StyledTextTag(style: const TextStyle(fontWeight: FontWeight.bold)),
-  'i' : StyledTextTag(style: const TextStyle(fontStyle: FontStyle.italic))
+  'i' : StyledTextTag(style: const TextStyle(fontStyle: FontStyle.italic)),
+  
 };
 
 Map<String, StyledTextTagBase> tagsAsStats = {
@@ -130,7 +131,6 @@ Map<String, StyledTextTagBase> tagsAsStats = {
   'icon-RES' : StyledTextWidgetTag(ImageIcon(const AssetImage('assets/sortIcon/res.png'), color: statsStyles['RES']!.color)),
   'icon-Block' : StyledTextWidgetTag(ImageIcon(const AssetImage('assets/sortIcon/block.png'), color: statsStyles['Block']!.color)),
   'icon-ASPD' : StyledTextWidgetTag(ImageIcon(const AssetImage('assets/sortIcon/atkspeed.png'), color: statsStyles['ASPD']!.color)),
-  
 };
 
 Map<String, StyledTextTagBase> tagsAsArknights = {
@@ -175,5 +175,10 @@ Map<String, StyledTextTagBase> tagsAsArknights = {
       },
       style: const TextStyle(decoration: TextDecoration.underline),
     ),
+  'icon' : StyledTextWidgetBuilderTag((context, attributes, textContent){
+      assert(attributes['src'] != null);
+      final String iconPath = attributes['src']!;
+      return ImageIcon(AssetImage(iconPath), color: Theme.of(context).textTheme.bodyMedium?.color,);
+    }),
 };
 // input example <@ba.vup>{cost}</> where

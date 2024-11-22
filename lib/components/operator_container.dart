@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:sagahelper/components/utils.dart';
 import 'package:sagahelper/global_data.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/routes/operator_info.dart';
@@ -28,7 +29,7 @@ class OperatorContainer extends StatelessWidget {
     void openOperatorInfo (Operator currOp) {
       Navigator.of(context).push(MaterialPageRoute(builder: (context) => OperatorInfo(currOp)));
     }
-    
+
     final String ghAvatarLink = '$kAvatarRepo/${operator.id}.png';
     final String ghPotraitLink = '$kPortraitRepo/${operator.id}_1.png';
 
@@ -41,7 +42,7 @@ class OperatorContainer extends StatelessWidget {
     };
 
     return GlassContainer(
-      isFrostedGlass: true,
+      isFrostedGlass: settings.operatorSearchDelegate <=4 ? true : false,
       margin: const EdgeInsets.all(4.0),
       gradient: LinearGradient(
         colors: [rarityColors[operator.rarity]!.withAlpha(125), Colors.transparent],
@@ -65,34 +66,46 @@ class OperatorContainer extends StatelessWidget {
             borderRadius: BorderRadius.circular(10.0),
             child: CachedNetworkImage(
               fit: BoxFit.fitWidth,
+              memCacheHeight: settings.getDisplayChipStr() == 'avatar'? 180 : 360,
+              memCacheWidth: 180,
               placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
               imageUrl: imgLink,
               errorWidget: (context, url, error) => const Center(child: Icon(Icons.error))
-            )
-          ),
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10.0),
-              gradient: settings.operatorSearchDelegate <=4 ? const LinearGradient(
-                colors: [Color.fromARGB(0, 0, 0, 0), Color.fromARGB(255, 0, 0, 0)],
-                stops: [0.65, 1],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ) : null
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 2.5),
-            // ignore: deprecated_member_use
-            child: Text(settings.operatorSearchDelegate <=4 ? operator.name : '', textAlign: TextAlign.center, textScaler: operator.name.length > 7 ? TextScaler.linear((MediaQuery.textScalerOf(context).textScaleFactor-(operator.name.length-7)/100)*(3/settings.operatorSearchDelegate)) : TextScaler.linear(MediaQuery.textScalerOf(context).textScaleFactor*(3/settings.operatorSearchDelegate)), style: const TextStyle(color: Colors.white),),
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.0),
+                gradient: settings.operatorSearchDelegate <=4 ? const LinearGradient(
+                  colors: [Color.fromARGB(0, 0, 0, 0), Color.fromARGB(255, 0, 0, 0)],
+                  stops: [0.65, 1],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ) : null
+              ),
+            ),
           ),
+          settings.operatorSearchDelegate <=4 ? Padding(
+            padding: const EdgeInsets.only(bottom: 2.5),
+            child: Text(
+               operator.name,
+              textAlign: TextAlign.center,
+              textScaler: operator.name.length > 7 
+                // ignore: deprecated_member_use
+                ? TextScaler.linear((MediaQuery.textScalerOf(context).textScaleFactor-(operator.name.length-7)/100)*(3/settings.operatorSearchDelegate))
+                // ignore: deprecated_member_use
+                : TextScaler.linear(MediaQuery.textScalerOf(context).textScaleFactor*(3/settings.operatorSearchDelegate)),
+              style: const TextStyle(color: Colors.white),
+            ),
+          ) : null,
           Material(
             type: MaterialType.transparency,
             child: InkWell(
               onTap: () => openOperatorInfo(operator),
             ),
           )
-        ],
+        ].nullParser(),
       ),
     );
   }

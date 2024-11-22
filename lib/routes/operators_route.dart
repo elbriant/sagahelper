@@ -369,14 +369,18 @@ class OperatorListView extends StatelessWidget {
       mainAxisMargin: 4,
       thumbColor: Theme.of(context).colorScheme.secondary.withOpacity(0.8),
       child: GridView.builder(
-        padding: EdgeInsets.only(
-            top: MediaQuery.paddingOf(context).top+4.0,
-            left: 4.0,
-            right: 4.0,
-            bottom: MediaQuery.paddingOf(context).bottom+4.0
-          ), //hard coded, for top and bottom should get appbar's height and bottomNavBar height respectively
+        cacheExtent: 1500,
+        padding: EdgeInsets.fromLTRB(
+            4.0,
+            MediaQuery.paddingOf(context).top+4.0,
+            4.0,
+            MediaQuery.paddingOf(context).bottom+4.0
+          ),
         itemCount: operators.length,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: settings.operatorSearchDelegate, childAspectRatio: settings.getDisplayChip('portrait') ? 0.55 : 1.0),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: settings.operatorSearchDelegate, 
+          childAspectRatio: settings.getDisplayChip('portrait') ? 0.55 : 1.0
+        ),
         itemBuilder: (context, index) {
           return OperatorContainer(index: index, operator: operators[index]);
         },

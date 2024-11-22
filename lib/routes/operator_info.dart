@@ -44,17 +44,11 @@ class _OperatorInfoState extends State<OperatorInfo> with SingleTickerProviderSt
     const Tab(text: 'Art', icon: Icon(Icons.filter)),
     const Tab(text: 'Voice', icon: Icon(Icons.voice_chat)),
   ];
-  int _activeIndex = 0;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(vsync: this, length: tabs.length);
-    _tabController.addListener(() {
-      setState(() {
-        _activeIndex = _tabController.index;
-      });
-    });
   }
 
   @override
@@ -70,7 +64,7 @@ class _OperatorInfoState extends State<OperatorInfo> with SingleTickerProviderSt
       extendBody: true,
       body: TabBarView(
         controller: _tabController,
-        physics: _activeIndex == 1 ? const NeverScrollableScrollPhysics() : null,
+        physics: const NeverScrollableScrollPhysics(),
         children: <Widget>[
           ArchivePage(widget.operator),
           ArtPage(widget.operator),
@@ -324,6 +318,10 @@ class _SkillInfoState extends State<SkillInfo> {
   double sliderTrust = 100.0;
   bool trustMaxFlag = true;
 
+  // talents
+  int? talentLocalElite;
+  int? talentLocalPot;
+
   Map<String, double> potBuffs = {};
 
   void _init() {
@@ -394,12 +392,24 @@ class _SkillInfoState extends State<SkillInfo> {
   }
 
   void selectElite(int i) {
-    if (elite == i) return;
-
     setState(() {
+      talentLocalElite = null;
+      if (elite == i) return;
       elite = i;
       maxLevel = (widget.operator.phases[elite]["maxLevel"] as int).toDouble();
       showLevel = showLevel.clamp(1, maxLevel);
+    });
+  }
+
+  void setPot(int index) {
+    setState(() {
+      if (pot == index+1){
+        pot -= 1;
+      } else {
+        pot = index+1;
+      }
+      talentLocalPot = null;
+      calcPotBonuses();
     });
   }
 
@@ -446,14 +456,13 @@ class _SkillInfoState extends State<SkillInfo> {
       }
     });
 
-    return text.join(' | ');
+    return text.isNotEmpty? text.join(' | ') : ' ';
   }
 
   void calcPotBonuses(){
     potBuffs = {};
     for (Map potDetail in widget.operator.potentials) {
-      if (widget.operator.potentials.indexOf(potDetail) > pot) return;
-      print(widget.operator.potentials.indexOf(potDetail));
+      if (widget.operator.potentials.indexOf(potDetail) > pot-1) return;
 
       if (potDetail["type"] == 'BUFF') {
         String name = switch ((potDetail["buff"]["attributes"]["attributeModifiers"] as List).first["attributeType"]) {
@@ -506,6 +515,7 @@ class _SkillInfoState extends State<SkillInfo> {
       child: Column(
         children: [
           getTraitText() != null ? Container(
+            width: double.maxFinite,
             padding: const EdgeInsets.all(24.0),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surfaceContainer,
@@ -572,24 +582,7 @@ class _SkillInfoState extends State<SkillInfo> {
                 const SizedBox(height: 24.0),
                 Row(
                   children: [
-                    Column(
-                      children: [
-                        const Text('Trust:'),
-                        LilButton(
-                          icon: Text(
-                            trustMaxFlag ? 'MAX' : sliderTrust.toInt().toString().padLeft(3, '  '),
-                            style: const TextStyle(fontWeight: ui.FontWeight.w800),
-                          ),
-                          fun: (){
-                            setState(() {
-                              trustMaxFlag = !trustMaxFlag;
-                            });
-                          },
-                          selected: trustMaxFlag,
-                          padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 8.0),
-                        ),
-                      ],
-                    ),
+                    const Text('Trust:'),
                     Expanded(
                       child: Column(
                         children: [
@@ -612,11 +605,24 @@ class _SkillInfoState extends State<SkillInfo> {
                         ].nullParser(),
                       )
                     ),
+                    LilButton(
+                      icon: Text(
+                        trustMaxFlag ? 'MAX' : sliderTrust.toInt().toString().padLeft(3, '  '),
+                        style: const TextStyle(fontWeight: ui.FontWeight.w800),
+                      ),
+                      fun: (){
+                        setState(() {
+                          trustMaxFlag = !trustMaxFlag;
+                        });
+                      },
+                      selected: trustMaxFlag,
+                      padding: const EdgeInsets.symmetric(vertical: 5.0, horizontal: 8.0),
+                    )
                   ],
                 ),
                 Row(
                   children: [
-                    Text('Lv: '),
+                    const Text('Lv: '),
                     Expanded(
                       child: Slider(
                         value: showLevel,
@@ -644,11 +650,12 @@ class _SkillInfoState extends State<SkillInfo> {
               color: Theme.of(context).colorScheme.surfaceContainer,
               borderRadius: BorderRadius.circular(12.0)
             ),
-            child: SizedBox(
-              height: 240,
-              child: Placeholder(
-                child: Text('talents'),
-              )
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text('Talents'),
+                talentsBuilder(context)
+              ]
             )
           ),
           const SizedBox(height: 20),
@@ -721,7 +728,7 @@ class _SkillInfoState extends State<SkillInfo> {
         widget.operator.potentials.length,
         (index) {
           return LilButton(
-            selected: index <= pot,
+            selected: index <= pot-1,
             icon: Row(
                 children: [
                   Image.asset('assets/pot/potential_${index+1}_small.png', scale: 1.6),
@@ -731,16 +738,7 @@ class _SkillInfoState extends State<SkillInfo> {
                   )
                 ],
               ),
-            fun: (){
-              setState(() {
-                if (pot == 0 && index == 0){
-                  pot = -1;
-                } else {
-                  pot = index;
-                }
-                calcPotBonuses();
-              });
-            }
+            fun: (){setPot(index);}
           );
         }
       ),
@@ -794,7 +792,7 @@ class _SkillInfoState extends State<SkillInfo> {
       )
     ); // player
 
-    final gridPadding = max(finishedRange.length < 20.0 ? 30.0-finishedRange.length + (rows>2? 12.0 : 0.0) + (finishedRange.length==1? 10.0 : 0.0) : 48.0-finishedRange.length, 0.0);
+    final gridPadding = max(finishedRange.length < 20.0 ? 30.0-finishedRange.length + (rows>2? 12.0 : 0.0) + (finishedRange.length == 2? 12.0 : 0.0) + (finishedRange.length == 1? 18.0 : 0.0) : 48.0-finishedRange.length, 0.0);
 
     return Stack(
       alignment: Alignment.bottomCenter,
@@ -846,6 +844,130 @@ class _SkillInfoState extends State<SkillInfo> {
           ),
         ),
       ]
+    );
+  }
+  
+  Widget talentsBuilder(BuildContext context) {
+    List<int> talentElites = [];
+    List<int> talentPots = [];
+
+    for (Map talent in widget.operator.talents) {
+      for (Map candidate in talent["candidates"]) {
+        int thisTalentCandidateElite = int.parse((candidate["unlockCondition"]["phase"] as String).replaceFirst('PHASE_', ''));
+        if (!talentElites.contains(thisTalentCandidateElite)) talentElites.add(thisTalentCandidateElite);
+
+        int thisTalentCandidatePot = candidate["requiredPotentialRank"];
+        if (!talentPots.contains(thisTalentCandidatePot)) talentPots.add(thisTalentCandidatePot);
+      }
+    }
+    talentElites.sort();
+    talentPots.sort();
+
+    int minElite = talentElites.lastWhere((e) => e <= elite, orElse: () => talentElites.first);
+    int minPot = talentPots.lastWhere((e) => e <= pot, orElse: () => talentPots.first);
+
+    // dev.log('minE: ${minElite.toString()}, minP: ${minPot.toString()}, locE:${talentLocalElite.toString()}, locP:${talentLocalPot.toString()}, E:${elite.toString()}, P:${pot.toString()}');
+
+    return Column(
+      children: List.generate(
+        1+widget.operator.talents.length,
+        (index) {
+          if (index == 0) {
+            return Row(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: List.generate(
+                    talentElites.length,
+                    (index) {
+                      return LilButton(
+                        selected: talentElites[index] == (talentLocalElite ?? minElite),
+                        fun: (){
+                          setState(() {
+                            talentLocalElite = talentElites[index];
+                          });
+                        },
+                        icon: ImageIcon(AssetImage('assets/elite/elite_${talentElites[index]}.png')),
+                      );
+                    }
+                  ),
+                ),
+                Row(
+                  children: List.generate(
+                    talentPots.length,
+                    (index) {
+                      return LilButton(
+                        selected: talentPots[index] == (talentLocalPot ?? minPot),
+                        fun: (){
+                          setState(() {
+                            talentLocalPot = talentPots[index];
+                          });
+                        },
+                        icon: Image.asset('assets/pot/potential_${talentPots[index]}_small.png', scale: talentPots.length < 4 ? 1 : 1.5),
+                      );
+                    }
+                  ),
+                ),
+              ],
+            );
+          } else {
+            Map? candidate = (widget.operator.talents[index-1]["candidates"] as List).lastWhere((candidate){
+              int thisTalentCandidateElite = int.parse((candidate["unlockCondition"]["phase"] as String).replaceFirst('PHASE_', ''));
+              int thisTalentCandidatePot = candidate["requiredPotentialRank"];
+
+              return (talentLocalElite ?? minElite) >= thisTalentCandidateElite && (talentLocalPot ?? minPot) >= thisTalentCandidatePot;
+            }, orElse: () => null);
+
+            bool unlocked = (candidate != null);
+
+            return Card.filled(
+              margin: const EdgeInsets.only(top: 12.0),
+              child: Container(
+                width: double.maxFinite,
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      margin: const EdgeInsets.only(bottom: 8.0),
+                      decoration: BoxDecoration(
+                        color: unlocked ? Theme.of(context).colorScheme.primary : null,
+                        borderRadius: BorderRadius.circular(12),
+                        border: unlocked? Border.all(color: Theme.of(context).colorScheme.primary) : Border.all(color: Theme.of(context).colorScheme.outline)
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 2.0),
+                      child: Text(
+                        (widget.operator.talents[index-1]["candidates"] as List).first["name"],
+                        style: TextStyle(
+                          color: unlocked ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSurface,
+                          fontWeight: FontWeight.w600
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: double.maxFinite,
+                      child: AnimatedSize(
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.ease,
+                        child: StyledText(
+                          text: unlocked
+                            ? (candidate["description"] as String).akRichTextParser()
+                            : '<icon src="assets/sortIcon/lock.png"/> Unlocks at Elite $index',
+                          tags: tagsAsArknights,
+                          textAlign: TextAlign.start,
+                      
+                        )
+                      ),
+                    )
+                  ],
+                ),
+              )
+            );
+          }
+        }
+      )
     );
   }
   
