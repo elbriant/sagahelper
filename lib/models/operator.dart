@@ -7,6 +7,7 @@ Map<String, List<String>> customNames = {
   "Ch'en" : ['chen', 'blue woman'],
   "Ch'en the Holungday" : ['chen', 'blue woman'],
   'Młynar' : ['mlynar', 'milnar'],
+  "Wiš'adel" : ['wisadel', 'walter']
 };
 
 class Operator {

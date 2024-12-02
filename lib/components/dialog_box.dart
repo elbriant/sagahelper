@@ -1,6 +1,6 @@
 import 'package:just_audio/just_audio.dart';
 import 'package:provider/provider.dart';
-import 'package:sagahelper/components/text_styles.dart';
+import 'package:sagahelper/providers/styles_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:sagahelper/components/utils.dart';
 import 'package:sagahelper/routes/operator_info.dart';
@@ -45,7 +45,7 @@ class DialogBox extends StatelessWidget {
           child: StyledText(
             text: body,
             style: const TextStyle(color: Colors.white, fontFamily: 'Noto Sans', fontWeight: FontWeight.w700),
-            tags: tagsAsHtml,
+            tags: context.read<StyleProvider>().tagsAsHtml(context: context),
           )
         ),
         title != null ? Positioned(
@@ -104,7 +104,7 @@ class InkWellDialogBox extends StatelessWidget {
                     child: StyledText(
                       text: body,
                       style: const TextStyle(color: Colors.white, fontFamily: 'Noto Sans', fontWeight: FontWeight.w700),
-                      tags: tagsAsHtml,
+                      tags: context.read<StyleProvider>().tagsAsHtml(context: context),
                     ),
                   ),
                   Center(
@@ -213,7 +213,7 @@ class AudioDialogBox extends StatelessWidget {
                       child: StyledText(
                         text: body,
                         style: const TextStyle(color: Colors.white, fontFamily: 'Noto Sans', fontWeight: FontWeight.w700),
-                        tags: tagsAsHtml,
+                        tags: context.read<StyleProvider>().tagsAsHtml(context: context),
                       ),
                     ),
                   ),

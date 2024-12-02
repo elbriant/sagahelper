@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:async';
 import 'dart:io';
+import 'dart:developer' as dev;
 
  // ----------------- local data
 
@@ -12,12 +13,11 @@ bool loadedConfigs = false;
 bool firstTimeCheck = false;
 bool opThemed = false;
 
-
-
 // ------------- constants 
 
-// Avatar assets from yuanyan3060 repo
+// Assets from yuanyan3060 repo
 const String kAvatarRepo = 'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/refs/heads/main/avatar';
+const String kSkillRepo = 'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/refs/heads/main/skill';
 
 // Assets from ArknightsAssets repo
 const String kPortraitRepo = 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/charportraits';
@@ -95,14 +95,14 @@ class NavigationService {
 }
 
 class LocalDataManager {
-  final String configPath = 'configs.txt';
+  static final String configPath = 'configs.txt';
 
-  Future<String> get _localPath async {
+  static Future<String> get _localPath async {
     final directory = await getApplicationDocumentsDirectory();
     return directory.path;
   }
 
-  Future<String> get downloadPath async {
+  static Future<String> get downloadPath async {
     String directory = "/storage/emulated/0/Download/";
 
     var dirDownloadExists = await Directory(directory).exists();
@@ -114,7 +114,7 @@ class LocalDataManager {
     return directory;
   }
 
-  Future<String> localpathServer (String server) async {
+  static Future<String> localpathServer (String server) async {
     final directory = await getApplicationDocumentsDirectory();
     if (Directory('${directory.path}/${server.toLowerCase()}').existsSync()) {
       return '${directory.path}/${server.toLowerCase()}';
@@ -131,7 +131,7 @@ class LocalDataManager {
   }
   */
 
-  Future<File> localFile (String filePath) async {
+  static Future<File> localFile (String filePath) async {
     final path = await _localPath;
     var dirExists = await File('$path/$filePath').exists();
 
@@ -142,71 +142,86 @@ class LocalDataManager {
     }
   }
 
-  writeConfigKey(String key, dynamic data) async {
+  static Future<void> writeConfigKey(String key, dynamic data) async {
+
     final file = await localFile(configPath);
     // read json
     final contents = await file.readAsString();
-
     var parsed = <String, dynamic>{};
-    
     if (contents != '') {
       // decode json to map
       parsed = jsonDecode(contents) as Map<String, dynamic>;
     } 
-
     // save data in json
     parsed[key] = data;
-
     // encode json 
     final encoded = jsonEncode(parsed);
-
     // Write json to the file
-    file.writeAsString(encoded);
+    await file.writeAsString(encoded);
   }
 
-  Future<File> writeConfigMap(Map<String, dynamic> map) async {
+  static Future<void> writeConfigMap(Map<String, dynamic> map) async {
     final file = await localFile(configPath);
     // read json
     final contents = await file.readAsString();
-
     var parsed = <String, dynamic>{};
-    
     if (contents != '') {
       // decode json to map
       parsed = jsonDecode(contents) as Map<String, dynamic>;
     }   
-
     // save data in json
     map.forEach((key, value){
       parsed[key] = value;
     });
-
     // encode json 
     final encoded = jsonEncode(parsed);
-
     // Write json to the file
-    return file.writeAsString(encoded);
+    await file.writeAsString(encoded);
   }
 
-  Future<dynamic> readConfig(String key) async {
+  static Future<dynamic> readConfigKey(String key) async {
     try {
       final file = await localFile(configPath);
-      
       // Read the file
       final contents = await file.readAsString();
-
       // decode json to map
       final parsed = jsonDecode(contents) as Map<String, dynamic>;
-
-      return parsed[key];
-
+      
+      if (parsed.containsKey(key)) {
+        return parsed[key];
+      } else {
+        return null;
+      }
     } catch (e) {
-      // If encountering an error, return -1
-      return -1;
+      //just in case
+      return null;
     }
   }
 
-  Future<bool> existConfig() async {
+  static Future<Map<String, dynamic>> readConfigMap(List<String> keys) async {
+    final file = await localFile(configPath);
+    // Read the file
+    final contents = await file.readAsString();
+    // decode json to map
+    final parsed = jsonDecode(contents) as Map<String, dynamic>;
+
+
+    final List<MapEntry<String, dynamic>> values = [];
+    for (String key in keys) {
+      dynamic val;
+      if (parsed.containsKey(key)) {
+        val = parsed[key];
+         dev.log('[LDM] - key [$key] - value $val');
+      } else {
+        dev.log('[LDM] - key [$key] doesnt exists');
+      }
+      values.add(MapEntry(key, val));
+    }
+    
+    return Map.fromEntries(values);
+  }
+
+  static Future<bool> existConfig() async {
     final file = await localFile(configPath);
     // Read the file
     final contents = await file.readAsString();
@@ -216,11 +231,172 @@ class LocalDataManager {
     } else {
       return true;
     }
-
   }
 
-  Future<void> resetConfig() async {
+  static Future<void> resetConfig() async {
     final file = await localFile(configPath);
     await file.writeAsString('');
   }
+}
+
+class StaticColors {
+  //normal colors
+  final Color green;
+  final Color onGreen;
+  final Color greenVariant;
+  final Color onGreenVariant;
+  final Color blue;
+  final Color onBlue;
+  final Color blueVariant;
+  final Color onBlueVariant;
+  final Color yellow;
+  final Color onYellow;
+  final Color yellowVariant;
+  final Color onYellowVariant;
+  final Color red;
+  final Color onRed;
+  final Color redVariant;
+  final Color onRedVariant;
+  final Color orange;
+  final Color onOrange;
+  final Color orangeVariant;
+  final Color onOrangeVariant;
+
+  //stat colors
+  final Color sHp;
+  final Color sAtk;
+  final Color sRedeploy;
+  final Color sBlock;
+  final Color sDef;
+  final Color sRes;
+  final Color sCost;
+  final Color sAspd;
+
+  //ak colors
+  final Color akBlue;
+  final Color akRed;
+
+  StaticColors({
+    required this.greenVariant, 
+    required this.onGreenVariant,
+    required this.blueVariant,
+    required this.onBlueVariant,
+    required this.yellowVariant,
+    required this.onYellowVariant,
+    required this.redVariant,
+    required this.onRedVariant,
+    required this.orangeVariant,
+    required this.onOrangeVariant,
+    required this.green,
+    required this.onGreen,
+    required this.blue,
+    required this.onBlue,
+    required this.yellow,
+    required this.onYellow,
+    required this.red,
+    required this.onRed,
+    required this.orange,
+    required this.onOrange,
+    required this.sHp,
+    required this.sAtk,
+    required this.sRedeploy,
+    required this.sBlock,
+    required this.sDef,
+    required this.sRes,
+    required this.sCost,
+    required this.sAspd,
+    required this.akBlue,
+    required this.akRed,
+  });
+
+  factory StaticColors.light(){
+    return StaticColors(
+      green: const Color(0xFF005e1b),
+      onGreen: const Color(0xFFffffff),
+      greenVariant: const Color(0xFF5cbb62),
+      onGreenVariant: const Color(0xFF002205),
+      blue: const Color(0xFF00538a),
+      onBlue: const Color(0xFFffffff),
+      blueVariant: const Color(0xFF0076d2),
+      onBlueVariant: const Color(0xFFffffff),
+      yellow: const Color(0xFF6a5f00),
+      onYellow: const Color(0xFFffffff),
+      yellowVariant: const Color(0xFFffc124),
+      onYellowVariant: const Color(0xFF4b3600),
+      red: const Color(0xFFa5000b),
+      onRed: const Color(0xFFffffff),
+      redVariant: const Color(0xFFe51f03),
+      onRedVariant: const Color(0xFFffffff),
+      orange: const Color(0xFFa14000),
+      onOrange: const Color(0xFFffffff),
+      orangeVariant: const Color(0xFFff9058),
+      onOrangeVariant: const Color(0xFF401500),
+      sHp: const Color.fromARGB(255, 92, 143, 17),
+      sAtk: const Color.fromARGB(255, 163, 47, 47),
+      sRedeploy: const Color.fromARGB(255, 170, 52, 111),
+      sDef: const Color.fromARGB(255, 10, 125, 179),
+      sCost: const Color.fromARGB(255, 138, 138, 138),
+      sAspd: const Color.fromARGB(255, 182, 147, 58),
+      sRes: const Color.fromARGB(255, 106, 71, 189),
+      sBlock: const Color.fromARGB(255, 91, 90, 168),
+      akBlue: const Color.fromARGB(255, 0, 120, 175),
+      akRed: const Color.fromARGB(255, 199, 77, 43),
+    );
+  }
+
+  factory StaticColors.dark(){
+    return StaticColors(
+      green: const Color(0xFF83da84),
+      onGreen: const Color(0xFF00390d),
+      greenVariant: const Color(0xFF47a54f),
+      onGreenVariant: const Color(0xFF000000),
+      blue: const Color(0xFF9ccaff),
+      onBlue: const Color(0xFF003257),
+      blueVariant: const Color(0xFF0076d2),
+      onBlueVariant: const Color(0xFFffffff),
+      yellow: const Color(0xFFf6e138),
+      onYellow: const Color(0xFF373100),
+      yellowVariant: const Color(0xFFf2b400),
+      onYellowVariant: const Color(0xFF402d00),
+      red: const Color(0xFFffb4aa),
+      onRed: const Color(0xFF690004),
+      redVariant: const Color(0xFFe51f03),
+      onRedVariant: const Color(0xFFffffff),
+      orange: const Color(0xFFffb694),
+      onOrange: const Color(0xFF571f00),
+      orangeVariant: const Color(0xFFf77833),
+      onOrangeVariant: const Color(0xFF1f0700),
+      sHp: const Color.fromARGB(255, 132, 204, 22),
+      sAtk: const Color.fromARGB(255, 239, 68, 68),
+      sRedeploy: const Color.fromARGB(255, 236, 72, 153),
+      sDef: const Color.fromARGB(255, 14, 165, 233),
+      sCost: const Color.fromARGB(255, 223, 223, 223),
+      sAspd: const Color(0xFFffcf53),
+      sRes: const Color.fromARGB(255, 139, 92, 246),
+      sBlock: const Color(0xFF7f7dea),
+      akBlue: const Color(0xFF0098DC),
+      akRed: const Color(0xFFFF6237),
+    );
+  }
+
+  factory StaticColors.fromBrightness(Brightness brightness){
+    if (brightness == Brightness.light) {
+      return StaticColors.light();
+    } else {
+      return StaticColors.dark();
+    }
+  }
+}
+
+class Calc {
+  static AxisDirection? valueDifference(num current, num last){
+    if (current < last) {
+      return AxisDirection.down;
+    } else if (current == last) {
+      return null;
+    } else {
+      return AxisDirection.up;
+    }
+  }
+
 }

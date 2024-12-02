@@ -1,5 +1,9 @@
+library;
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sagahelper/components/utils.dart' show ListExtension;
+import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/providers/settings_provider.dart';
 
 class IconButtonStyled extends StatelessWidget {
   const IconButtonStyled({super.key, required this.icon, required this.label, required this.onTap, this.iconFilled, this.selected = false, this.size, this.textStyle});
@@ -94,35 +98,44 @@ class LilButton extends StatelessWidget {
     required this.icon,
     required this.fun,
     this.size,
-    this.padding,
+    this.padding = const EdgeInsets.all(5.0),
     this.margin,
     this.deactivated = false,
     this.selected = true,
+    this.backgroundColor,
   });
 
   final bool selected;
   final Widget icon;
   final Size? size;
-  final EdgeInsets? padding;
+  final EdgeInsets padding;
   final EdgeInsets? margin;
   final Function() fun;
   final bool deactivated;
+  final Color? backgroundColor;
 
   @override
   Widget build(BuildContext context) {
-    if (size != null || padding != null) {
+    final color = 
+      (selected ? backgroundColor : backgroundColor?.withOpacity(0.3))
+      ?? (selected ? Theme.of(context).colorScheme.surfaceContainerHighest : Theme.of(context).colorScheme.surfaceContainerHigh);
+    final borderrad = BorderRadius.circular(12.0);
+    final child = selected ? icon : ColorFiltered(colorFilter: ColorFilter.mode(Colors.grey[600]!, BlendMode.modulate), child: icon);
+    final func = !deactivated ? fun : null;
+
+    if (size != null) {
       return Container(
         height: size?.height,
         width: size?.width,
         margin: margin,
         child: Card.filled(
-          color: selected ? Theme.of(context).colorScheme.surfaceContainerHighest : Theme.of(context).colorScheme.surfaceContainerHigh,
+          color: color,
           child: InkWell(
-            borderRadius: BorderRadius.circular(12.0),
-            onTap: !deactivated ? fun : null,
+            borderRadius: borderrad,
+            onTap: func,
             child: Padding(
-              padding: padding ?? const EdgeInsets.all(8.0),
-              child: selected ? icon : ColorFiltered(colorFilter: ColorFilter.mode(Colors.grey[600]!, BlendMode.modulate), child: icon),
+              padding: padding,
+              child: child,
             ),
           ),
         ),
@@ -130,16 +143,136 @@ class LilButton extends StatelessWidget {
     } else {
       return Card.filled(
         margin: margin,
-        color: selected ? Theme.of(context).colorScheme.surfaceContainerHighest : Theme.of(context).colorScheme.surfaceContainerHigh,
+        color: color,
         child: InkWell(
-          borderRadius: BorderRadius.circular(12.0),
-          onTap: !deactivated ? fun : null,
+          borderRadius: borderrad,
+          onTap: func,
           child: Padding(
-            padding: const EdgeInsets.all(5.0),
-            child: selected ? icon : ColorFiltered(colorFilter: ColorFilter.mode(Colors.grey[600]!, BlendMode.modulate), child: icon),
+            padding: padding,
+            child: child,
           ),
         ),
       );
     }
+  }
+}
+
+class DiffChip extends StatelessWidget {
+  const DiffChip({
+    super.key,
+    required this.label,
+    required this.value,
+    this.axis,
+    this.isPositive = true,
+    this.color,
+    this.scaleFactor = 0.7,
+    this.radius,
+    this.backgroundColor,
+    this.icon,
+    this.size = const Size(240, 24),
+    this.iconSize = 18,
+  });
+
+  /// label should use onColor to contrast
+  final String label;
+
+  final IconData? icon;
+  final double? iconSize;
+
+  /// defaults to surfaceContainerHighest of [Theme] 
+  final Color? backgroundColor;
+  final Color? color;
+
+  final String value;
+
+  /// just use up or down else will be equal or [AxisDirection.left] to not show icon
+  final AxisDirection? axis;
+
+  /// show green or red color for diff, true = green
+  final bool isPositive;
+
+  /// value scaler
+  final double scaleFactor;
+
+  final Size size;
+  /// border radius
+  /// defaults to [BorderRadius.circular(12.0)]
+  final BorderRadius? radius;
+
+  @override
+  Widget build(BuildContext context) {
+    final lBGColor = backgroundColor ?? Theme.of(context).colorScheme.surfaceContainerHighest;
+    final lColor = color ?? Theme.of(context).colorScheme.onSurface;
+    final lColorDiff = isPositive ? StaticColors.fromBrightness(Theme.of(context).brightness).greenVariant : StaticColors.fromBrightness(Theme.of(context).brightness).redVariant;
+    final Widget? lDiffIcon = switch(axis) {
+      AxisDirection.up => Icon(Icons.keyboard_double_arrow_up_rounded, color: lColorDiff, size: iconSize),
+      AxisDirection.down => Icon(Icons.keyboard_double_arrow_down_rounded, color: lColorDiff, size: iconSize),
+      AxisDirection.left => null,
+      _ => Icon(Icons.remove, color: lColor, size: iconSize)
+    };
+    final lRad = radius ?? BorderRadius.circular(6.0);
+
+    final bool advancedMode = context.watch<SettingsProvider>().prefs[PrefsFlags.menuShowAdvanced];
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: lRad
+      ),
+      clipBehavior: Clip.hardEdge,
+      constraints: BoxConstraints.loose(size),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: lBGColor
+            ),
+            padding: const EdgeInsets.only(left: 4.0, right: 4.0),
+            child: Center(
+              child: Text.rich(
+                textScaler: TextScaler.linear(scaleFactor),
+                TextSpan(
+                  style: TextStyle(color: lColor),
+                  children: [
+                    icon != null ? WidgetSpan(
+                      child: Icon(icon, size: iconSize, color: lColor,),
+                    ) : null,
+                    icon != null ? const TextSpan(
+                      text: ' ',
+                    ) : null,
+                    TextSpan(
+                      text: label,
+                    ),
+                  ].nonNulls.toList()
+                )
+              ),
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              color: lBGColor.withOpacity(0.5)
+            ),
+            padding: const EdgeInsets.only(left: 4.0, right: 4.0),
+            child: Center(
+              child: Text.rich(
+                textScaler: TextScaler.linear(scaleFactor),
+                TextSpan(
+                  style: TextStyle(color: lColor),
+                  children: [
+                    TextSpan(
+                      text: value,
+                    ),
+                    lDiffIcon != null && advancedMode == true ? WidgetSpan(
+                      child: lDiffIcon,
+                    ) : null,
+                  ].nonNulls.toList()
+                )
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

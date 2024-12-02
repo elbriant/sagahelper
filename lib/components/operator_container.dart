@@ -65,11 +65,11 @@ class OperatorContainer extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(10.0),
             child: CachedNetworkImage(
+              imageUrl: imgLink,
               fit: BoxFit.fitWidth,
               memCacheHeight: settings.getDisplayChipStr() == 'avatar'? 180 : 360,
               memCacheWidth: 180,
               placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-              imageUrl: imgLink,
               errorWidget: (context, url, error) => const Center(child: Icon(Icons.error))
             ),
           ),

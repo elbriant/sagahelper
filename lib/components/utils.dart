@@ -16,6 +16,21 @@ import 'package:url_launcher/url_launcher.dart';
 const Map<String, String> escapeRules = {
   '<Substitute>' : '&lt;Substitute&gt;'
 };
+extension ListExtension on List<Widget?> {
+  List<Widget> nullParser() {
+    List<Widget> listed = [];
+    for (var item in this) {
+      if (item != null) listed.add(item);
+    }
+    return listed;
+  }
+}
+
+extension DoubleExtension on double {
+  String toStringWithPrecision() {
+    return toStringAsFixed(3).replaceFirst(RegExp(r'\.?0*$'), '');
+  }
+}
 
 extension StringExtension on String {
   String capitalize() {
@@ -37,9 +52,11 @@ extension StringExtension on String {
     String parsed = this;
     for (Map map in vars) {
       if (map['valueStr'] == null) {
-        parsed = parsed.replaceAll(RegExp('{${map['key']}}'), (map['value'] as double).round().toString()).replaceAll(RegExp('{${map['key']}:0%}'), '${((map['value'] as double) * 100).round().toString()}%');
+        parsed = parsed.replaceAll(RegExp('{${RegExp.escape(map['key'])}}', caseSensitive: false), (map['value'] as double).toStringWithPrecision())
+          .replaceAll(RegExp('{${RegExp.escape(map['key'])}:0%}', caseSensitive: false), '${((map['value'] as double) * 100).round().toString()}%')
+          .replaceAll(RegExp('{\\-${RegExp.escape(map['key'])}:0%}', caseSensitive: false), '${((map['value'] as double) * 100 * -1).round().toString()}%');
       } else {
-        parsed = parsed.replaceAll(RegExp('{${map['key']}}'), map['value']);
+        parsed = parsed.replaceAll(RegExp('{${RegExp.escape(map['key'])}}', caseSensitive: false), map['value']);
       }
     }
 
@@ -67,14 +84,3 @@ Future<void> openUrl(String urlStr, {LaunchMode mode = LaunchMode.externalApplic
   }
 }
 
-
-
-extension ListExtension on List<Widget?> {
-  List<Widget> nullParser() {
-    List<Widget> listed = [];
-    for (var item in this) {
-      if (item != null) listed.add(item);
-    }
-    return listed;
-  }
-}

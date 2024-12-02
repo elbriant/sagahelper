@@ -7,63 +7,71 @@ import 'package:sagahelper/global_data.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
-class ServerProvider extends ChangeNotifier {
-  String enVersion = 'unknown';
-  String cnVersion = 'unknown';
-  String jpVersion = 'unknown';
-  String krVersion = 'unknown';
-  String twVersion = 'unknown';
+enum ServerProviderKeys {
+  enVersion('enVersion'),
+  cnVersion('cnVersion'),
+  jpVersion('jpVersion'),
+  krVersion('krVersion'),
+  twVersion('twVersion');
 
-  List<String> files = [
+  const ServerProviderKeys(
+    this.key,
+  );
+  final String key;
+}
+
+
+class ServerProvider extends ChangeNotifier {
+  static final Map<ServerProviderKeys, dynamic> _defaultValues = {
+    ServerProviderKeys.enVersion : 'unknown',
+    ServerProviderKeys.cnVersion : 'unknown',
+    ServerProviderKeys.jpVersion : 'unknown',
+    ServerProviderKeys.krVersion : 'unknown',
+    ServerProviderKeys.twVersion : 'unknown',
+  };
+
+  String enVersion;
+  String cnVersion;
+  String jpVersion;
+  String krVersion;
+  String twVersion;
+
+  ServerProvider({
+    required this.enVersion,
+    required this.cnVersion,
+    required this.jpVersion,
+    required this.krVersion,
+    required this.twVersion,
+  });
+
+  static final List<String> files = [
     'character_table.json',
     'charword_table.json',
     'handbook_info_table.json',
     'handbook_team_table.json',
     'skin_table.json',
     'range_table.json',
+    'skill_table.json'
   ];
 
-  String yostarrepo(String server) => 'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData_YoStar/refs/heads/main/$server/gamedata/excel';
-
-  String chServerlink = 'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/refs/heads/master/zh_CN/gamedata/excel';
-
-  final _configs = LocalDataManager();
-
-  writeDefaultValues() async {
-    return await _configs.writeConfigMap({
-      'enVersion' : 'unknown',
-      'cnVersion' : 'unknown',
-      'jpVersion' : 'unknown',
-      'krVersion' : 'unknown',
-      'twVersion' : 'unknown',
-    });
+  factory ServerProvider.fromConfig(Map configs){
+    return ServerProvider(
+      enVersion: configs[ServerProviderKeys.enVersion.key] ?? _defaultValues[ServerProviderKeys.enVersion],
+      cnVersion: configs[ServerProviderKeys.cnVersion.key] ?? _defaultValues[ServerProviderKeys.cnVersion],
+      jpVersion: configs[ServerProviderKeys.jpVersion.key] ?? _defaultValues[ServerProviderKeys.jpVersion],
+      krVersion: configs[ServerProviderKeys.krVersion.key] ?? _defaultValues[ServerProviderKeys.krVersion],
+      twVersion: configs[ServerProviderKeys.twVersion.key] ?? _defaultValues[ServerProviderKeys.twVersion],
+    );
   }
 
-  setDefaultValues() {
-    enVersion = 'unknown';
-    cnVersion = 'unknown';
-    jpVersion = 'unknown';
-    krVersion = 'unknown';
-    twVersion = 'unknown';
+  static Future<Map<String, dynamic>> loadValues () async {
+    return await LocalDataManager.readConfigMap(ServerProviderKeys.values.map((e) => e.key).toList());
   }
 
-  loadValues() async {
-    return {
-      'enVersion' : await _configs.readConfig('enVersion'),
-      'cnVersion' : await _configs.readConfig('cnVersion'),
-      'jpVersion' : await _configs.readConfig('jpVersion'),
-      'krVersion' : await _configs.readConfig('krVersion'),
-      'twVersion' : await _configs.readConfig('twVersion'),
-    };
-  }
+  static String yostarrepo(String server) => 'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData_YoStar/refs/heads/main/$server/gamedata/excel';
+  static final String chServerlink = 'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/refs/heads/master/zh_CN/gamedata/excel';
 
-  setValues(Map configs) {
-    enVersion = configs['enVersion'];
-    cnVersion = configs['cnVersion'];
-    jpVersion = configs['jpVersion'];
-    krVersion = configs['krVersion'];
-    twVersion = configs['twVersion'];
-  }
+
 
   String versionOf(String server) => switch (server) {
     'en' => enVersion,
@@ -78,23 +86,23 @@ class ServerProvider extends ChangeNotifier {
     switch (server) {
       case 'en':
         enVersion = version;
-        await _configs.writeConfigKey('enVersion', version);
+        await LocalDataManager.writeConfigKey(ServerProviderKeys.enVersion.key, version);
         break;
       case 'cn':
         cnVersion = version;
-        await _configs.writeConfigKey('cnVersion', version);
+        await LocalDataManager.writeConfigKey(ServerProviderKeys.cnVersion.key, version);
         break;
       case 'jp':
         jpVersion = version;
-        await _configs.writeConfigKey('jpVersion', version);
+        await LocalDataManager.writeConfigKey(ServerProviderKeys.jpVersion.key, version);
         break;
       case 'kr':
         krVersion = version;
-        await _configs.writeConfigKey('krVersion', version);
+        await LocalDataManager.writeConfigKey(ServerProviderKeys.krVersion.key, version);
         break;
       case 'tw':
         twVersion = version;
-        await _configs.writeConfigKey('twVersion', version);
+        await LocalDataManager.writeConfigKey(ServerProviderKeys.twVersion.key, version);
         break;
       default:
     }
@@ -102,7 +110,7 @@ class ServerProvider extends ChangeNotifier {
   }
 
   existFiles(String server, List<String> filesPaths) async {
-    String serverLocalPath = await LocalDataManager().localpathServer(server);
+    String serverLocalPath = await LocalDataManager.localpathServer(server);
 
     for (var file in filesPaths) {
       bool fileExist = await File('$serverLocalPath/$file').exists();
@@ -116,7 +124,7 @@ class ServerProvider extends ChangeNotifier {
   }
 
   Future<String> getFile(String filepath, String server) async {
-    String serverLocalPath = await LocalDataManager().localpathServer(server);
+    String serverLocalPath = await LocalDataManager.localpathServer(server);
     return File('$serverLocalPath/$filepath').readAsString();
   }
 
@@ -164,7 +172,7 @@ class ServerProvider extends ChangeNotifier {
   }
 
   Future<bool> checkFiles(String server) async {
-    String serverLocalPath = await LocalDataManager().localpathServer(server);
+    String serverLocalPath = await LocalDataManager.localpathServer(server);
     String excelFolder = '$serverLocalPath/excel';
 
     for (var file in files) {
@@ -194,8 +202,6 @@ class ServerProvider extends ChangeNotifier {
   }
 
   downloadLastest(String server) async {
-    var ldm = LocalDataManager();
-
     if (NavigationService.navigatorKey.currentContext!.mounted) {
       NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setLoadingString('Preparing download...');
       NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setIsLoadingAsync(true);
@@ -210,7 +216,7 @@ class ServerProvider extends ChangeNotifier {
       throw const FormatException('not implemented');
     }
 
-    String serverLocalPath = await ldm.localpathServer(server);
+    String serverLocalPath = await LocalDataManager.localpathServer(server);
     String excelFolder = '$serverLocalPath/excel';
 
     if (!Directory('$serverLocalPath/excel').existsSync()) {

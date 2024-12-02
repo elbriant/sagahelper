@@ -1,18 +1,19 @@
-import 'package:sagahelper/components/traslucent_ui.dart';
-import 'package:sagahelper/notification_services.dart';
-import 'package:sagahelper/routes/home_route.dart';
-import 'package:sagahelper/routes/operators_route.dart';
-import 'package:sagahelper/routes/info_route.dart';
-import 'package:sagahelper/routes/settings_route.dart';
-import 'package:sagahelper/routes/tools_route.dart';
-import 'package:sagahelper/providers/cache_provider.dart';
-import 'package:sagahelper/providers/server_provider.dart';
-import 'package:sagahelper/providers/settings_provider.dart';
-import 'package:sagahelper/providers/ui_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/notification_services.dart';
+import 'package:sagahelper/providers/cache_provider.dart';
+import 'package:sagahelper/providers/server_provider.dart';
+import 'package:sagahelper/providers/settings_provider.dart';
+import 'package:sagahelper/providers/styles_provider.dart';
+import 'package:sagahelper/providers/ui_provider.dart';
+import 'package:sagahelper/routes/home_route.dart';
+import 'package:sagahelper/routes/info_route.dart';
+import 'package:sagahelper/routes/operators_route.dart';
+import 'package:sagahelper/routes/settings_route.dart';
+import 'package:sagahelper/routes/tools_route.dart';
 import 'package:system_theme/system_theme.dart';
 
 void main() async {
@@ -32,7 +33,7 @@ void main() async {
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   bool hasError = false;
-  Map? configs;
+  Map configs = {};
   try {
     configs = await loadConfigs();
   } catch (e) {
@@ -40,15 +41,15 @@ void main() async {
   }
 
   await initNotifications();
+  await SettingsProvider.sharedPreferencesInit();
   
   runApp(MyApp(configs: configs, hasError: hasError));
 }
 
-
 class MyApp extends StatefulWidget {
-  final Map? configs;
+  final Map configs;
   final bool hasError;
-  const MyApp({super.key, this.configs, required this.hasError});
+  const MyApp({super.key, required this.configs, required this.hasError});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -59,51 +60,20 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => UiProvider()),
-        ChangeNotifierProvider(create: (context) => SettingsProvider()),
-        ChangeNotifierProvider(create: (context) => ServerProvider()),
-        ChangeNotifierProvider(create: (context) => CacheProvider())
+        ChangeNotifierProvider(create: (context) => UiProvider.fromConfig(widget.configs)),
+        ChangeNotifierProvider(create: (context) => SettingsProvider.fromConfig(widget.configs)),
+        ChangeNotifierProvider(create: (context) => ServerProvider.fromConfig(widget.configs)),
+        ChangeNotifierProvider(create: (context) => CacheProvider()),
+        ChangeNotifierProvider(create: (context) => StyleProvider())
       ],
       builder: (context, child) {
         if (loadedConfigs == true) {
           return const MainWidget();
         }
 
-        Map? loadedConfig = widget.configs;
-        bool hasError = widget.hasError;
-
-        if (hasError) {
-          resetConfigs(context);
+        if (widget.hasError) {
+          LocalDataManager.resetConfig();
           return const ErrorScreen();
-        } 
-        
-        var errorString = '';
-        try {
-          //ui
-          context.read<UiProvider>().setValues(loadedConfig!['ui_configs']);
-        } catch (e) {
-          errorString += ' [ui error]';
-        }
-
-        try {
-          //settings
-          context.read<SettingsProvider>().setValues(loadedConfig!['settings_configs']);
-        } catch (e) {
-          errorString += ' [settings error]';
-        }
-
-        try {
-          //server
-          context.read<ServerProvider>().setValues(loadedConfig!['server_configs']);
-        } catch (e) {
-          context.read<ServerProvider>().writeDefaultValues();
-          context.read<ServerProvider>().setDefaultValues();
-        }
-
-        if (errorString != '') {
-          resetConfigs(context);
-          loadedConfigs = true;
-          return MainWidget(errorDisplay: Text('Data corrupted! $errorString'));
         }
         
         loadedConfigs = true;
@@ -113,37 +83,19 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-resetConfigs(BuildContext context) async {
-  context.read<UiProvider>().setDefaultValues();
-  context.read<SettingsProvider>().setDefaultValues();
+Future<Map<String, dynamic>> loadConfigs() async {
+  var firstcheck = await LocalDataManager.existConfig();
 
-  final configs = LocalDataManager();
-  await configs.resetConfig();
-  await UiProvider().writeDefaultValues();
-  await SettingsProvider().writeDefaultValues();
-}
+  Map<String, dynamic> loadedConfigs = {};
 
-Future<Map> loadConfigs() async {
-  final configs = LocalDataManager();
-  var firstcheck = await configs.existConfig();
-
-  if (firstcheck != true) {
-    // default first configs
-    await UiProvider().writeDefaultValues();
-    await SettingsProvider().writeDefaultValues();
-    await ServerProvider().writeDefaultValues();
+  if (firstcheck) {
+    loadedConfigs.addAll(await UiProvider.loadValues());
+    loadedConfigs.addAll(await SettingsProvider.loadValues());
+    loadedConfigs.addAll(await ServerProvider.loadValues());
   }
-
-  var loadedConfigs = {
-    'ui_configs' : await UiProvider().loadValues(),
-    'settings_configs' : await SettingsProvider().loadValues(),
-    'server_configs' : await ServerProvider().loadValues()
-  };
 
   return loadedConfigs;
 }
-
-
 
 class MainWidget extends StatefulWidget {
   final Widget? errorDisplay;
@@ -166,8 +118,8 @@ class _MainWidgetState extends State<MainWidget> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: context.watch<UiProvider>().currentTheme!.colorLight,
-      darkTheme: context.watch<UiProvider>().currentTheme!.getDarkMode(context.read<UiProvider>().isUsingPureDark),
+      theme: context.watch<UiProvider>().currentTheme.colorLight,
+      darkTheme: context.watch<UiProvider>().currentTheme.getDarkMode(context.read<UiProvider>().isUsingPureDark),
       themeMode: context.watch<UiProvider>().themeMode,
       navigatorKey: NavigationService.navigatorKey,
       home: Scaffold(

@@ -10,7 +10,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:sagahelper/components/custom_tabbar.dart';
 import 'package:sagahelper/components/dialog_box.dart';
 import 'package:sagahelper/components/styled_buttons.dart';
-import 'package:sagahelper/components/text_styles.dart';
+import 'package:sagahelper/providers/settings_provider.dart';
+import 'package:sagahelper/providers/styles_provider.dart';
 import 'package:sagahelper/components/utils.dart' show ListExtension, StringExtension;
 import 'package:sagahelper/global_data.dart';
 import 'package:sagahelper/models/operator.dart';
@@ -311,16 +312,23 @@ class SkillInfo extends StatefulWidget {
 }
 
 class _SkillInfoState extends State<SkillInfo> {
+  final CarouselSliderController carouselController = CarouselSliderController();
   double showLevel = 83.0;
   double maxLevel = 90.0;
   int elite = 0;
   int pot = -1;
   double sliderTrust = 100.0;
   bool trustMaxFlag = true;
+  int showSkill = 0;
 
   // talents
   int? talentLocalElite;
   int? talentLocalPot;
+
+  // skills
+  int skillLv = 0;
+  List<Map<String, dynamic>> skillsDetails = [];
+  
 
   Map<String, double> potBuffs = {};
 
@@ -330,6 +338,16 @@ class _SkillInfoState extends State<SkillInfo> {
     maxLevel = (widget.operator.phases[elite]["maxLevel"] as int).toDouble();
     showLevel = maxLevel;
     sliderTrust = (widget.operator.favorKeyframes[1]["level"] as int).toDouble();
+
+    // get skills
+    if (widget.operator.skills.isNotEmpty) {
+      for (Map skill in widget.operator.skills) {
+        String skillId = skill['skillId'];
+        skillsDetails.add(NavigationService.navigatorKey.currentContext!
+        .read<CacheProvider>().cachedSkillTable![skillId]);
+      }
+    }
+
   }
 
   String? getTraitText() {
@@ -499,14 +517,14 @@ class _SkillInfoState extends State<SkillInfo> {
   @override
   Widget build(BuildContext context) {
     List<Widget> statTiles = [
-      statTile('HP', getStat('maxHp')),
-      statTile('ATK', getStat('atk')),
-      statTile('Redeploy', '${getStat('respawnTime')} sec'),
-      statTile('Block', getStat('blockCnt')),
-      statTile('DEF', getStat('def')),
-      statTile('RES', '${getStat('magicResistance')}%'),
-      statTile('DP Cost', getStat('cost')),
-      statTile('ASPD', '${getStat('baseAttackTime')} sec')
+      statTile('HP', getStat('maxHp'), context),
+      statTile('ATK', getStat('atk'), context),
+      statTile('Redeploy', '${getStat('respawnTime')} sec', context),
+      statTile('Block', getStat('blockCnt'), context),
+      statTile('DEF', getStat('def'), context),
+      statTile('RES', '${getStat('magicResistance')}%', context),
+      statTile('DP Cost', getStat('cost'), context),
+      statTile('ASPD', '${getStat('baseAttackTime')} sec', context)
     ];
     // maybe hold tap on elite, skill and mod to show cost material
     // do a tip show to say this ||
@@ -526,7 +544,7 @@ class _SkillInfoState extends State<SkillInfo> {
                 const Text('Trait'),
                 StyledText(
                   text: getTraitText()!.varParser(getTraitsVars()).akRichTextParser(),
-                  tags: tagsAsArknights,
+                  tags: context.read<StyleProvider>().tagsAsArknights(context: context),
 
                 )
               ],
@@ -659,25 +677,7 @@ class _SkillInfoState extends State<SkillInfo> {
             )
           ),
           const SizedBox(height: 20),
-          Container(
-            width: double.maxFinite,
-            padding: const EdgeInsets.all(24.0),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainer,
-              borderRadius: BorderRadius.circular(12.0)
-            ),
-            child: 
-            
-            // skills needs to have: maybe a custom range show, maybe a custom summon show, maybe a lv upgrade diff shower (really easy to do), maybe a item cost to lvel
-            
-            SizedBox(
-              height: 240,
-              child: Placeholder(
-                child: Text('Skilss'),
-              )
-            )
-          ),
-          const SizedBox(height: 20),
+          skillBuilder(context),
           Container(
             width: double.maxFinite,
             padding: const EdgeInsets.all(24.0),
@@ -715,10 +715,11 @@ class _SkillInfoState extends State<SkillInfo> {
     );
   }
 
-  Widget statTile(String stat, String value) {
+  Widget statTile(String stat, String value, BuildContext context) {
     return StyledText(
       text: '<icon-${stat.replaceAll(r' ', '')}/><color stat="${stat.replaceAll(' ', '')}">$stat</color>\n$value',
-      tags: tagsAsStats,
+      tags: context.read<StyleProvider>().tagsAsStats(context: context),
+      style: const TextStyle(shadows: [ui.Shadow(offset: ui.Offset.zero, blurRadius: 1.0)]),
     );
   }
 
@@ -792,7 +793,7 @@ class _SkillInfoState extends State<SkillInfo> {
       )
     ); // player
 
-    final gridPadding = max(finishedRange.length < 20.0 ? 30.0-finishedRange.length + (rows>2? 12.0 : 0.0) + (finishedRange.length == 2? 12.0 : 0.0) + (finishedRange.length == 1? 18.0 : 0.0) : 48.0-finishedRange.length, 0.0);
+    final gridPadding = max(finishedRange.length < 20.0 ? 30.0-finishedRange.length + (rows>2? 12.0 : 0.0) + (rows>4? 12.0 : 0.0) + (finishedRange.length == 2? 12.0 : 0.0) + (finishedRange.length == 1? 18.0 : 0.0) : 48.0-finishedRange.length, 0.0);
 
     return Stack(
       alignment: Alignment.bottomCenter,
@@ -955,7 +956,7 @@ class _SkillInfoState extends State<SkillInfo> {
                           text: unlocked
                             ? (candidate["description"] as String).akRichTextParser()
                             : '<icon src="assets/sortIcon/lock.png"/> Unlocks at Elite $index',
-                          tags: tagsAsArknights,
+                          tags: context.read<StyleProvider>().tagsAsArknights(context: context),
                           textAlign: TextAlign.start,
                       
                         )
@@ -971,7 +972,648 @@ class _SkillInfoState extends State<SkillInfo> {
     );
   }
   
+  Widget lvSelectWidget(int lvLength, BuildContext contx) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Expanded(
+          child: CarouselSlider(
+            carouselController: carouselController,
+            options: CarouselOptions(
+              scrollDirection: Axis.vertical,
+              onPageChanged: (int index, _) {
+                setState(() {
+                  skillLv = index;
+                });
+              },
+              enableInfiniteScroll: false,
+              reverse: true,
+              aspectRatio: 1,
+              viewportFraction: 1.0
+            ),
+            items: List.generate(
+              lvLength,
+              (int index){
+                String label = (index < 7) ? (index+1).toString() : "M${(index-6).toString()}";
+                return Builder(
+                  builder: (BuildContext context) {
+                    return Center(
+                      child: (index < 7)
+                      ? Text(
+                        label,
+                        style: const TextStyle(
+                          fontWeight: ui.FontWeight.w600,
+                          shadows: [ui.Shadow(offset: ui.Offset.zero, blurRadius: 1.0)]
+                        ),
+                        textScaler: const TextScaler.linear(2)
+                      )
+                      : Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Image.asset('assets/masteries/specialized_${index-6}_small.png'),
+                          Text(
+                            label,
+                            style: const TextStyle(
+                              shadows: [ui.Shadow(offset: ui.Offset.zero, blurRadius: 3.0)]
+                            ),
+                            textScaler: const TextScaler.linear(1.2)
+                          )
+                        ],
+                      )
+                    );
+                  },
+                );
+              }
+            ),
+          ),
+        ),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Visibility.maintain(
+              visible: skillLv != lvLength-1,
+              child: LilButton(
+                icon: const Icon(Icons.arrow_drop_up_rounded),
+                fun: () => carouselController.animateToPage(skillLv+1, curve: Curves.easeOutCubic),
+                padding: const EdgeInsets.all(0.0),
+                backgroundColor: Theme.of(contx).colorScheme.secondaryContainer,
+              ),
+            ),
+            Visibility.maintain(
+              visible: skillLv != 0,
+              child: LilButton(
+                icon: const Icon(Icons.arrow_drop_down_rounded),
+                fun: () => carouselController.animateToPage(skillLv-1, curve: Curves.easeOutCubic),
+                padding: const EdgeInsets.all(0.0),
+                backgroundColor: Theme.of(contx).colorScheme.secondaryContainer,
+              ),
+            )
+          ],
+        )
+      ],
+    );
+  }
+
+  Widget? skillBuilder(BuildContext context){
+    // skills needs to have: maybe a custom range show,
+    // maybe a custom summon show, maybe a lv upgrade diff shower (really easy to do), maybe a item cost to lvel
+    if (widget.operator.skills.isEmpty) return null;
+
+    Map selectedSkillDetailLv = skillsDetails[showSkill]["levels"][skillLv];
+    Map selectedSkillDetail = skillsDetails[showSkill];
+    Map selectedSkill = widget.operator.skills[showSkill];
+
+    Widget rangeTile(String rangeId) {
+      final List range =  
+        NavigationService.navigatorKey.currentContext!
+        .read<CacheProvider>().cachedRangeTable![rangeId]["grids"];
+
+      int maxRowPos = 0;
+      int maxColPos = 0;
+      int maxRowNeg = 0; // Row offset
+      int maxColNeg = 0; // Col offset
+
+      for (Map tile in range) {
+        if (tile['row'] > maxRowPos) maxRowPos = tile['row'];
+        if (tile['row'] < maxRowNeg) maxRowNeg = tile['row'];
+        if (tile['col'] > maxColPos) maxColPos = tile['col'];
+        if (tile['col'] < maxColNeg) maxColNeg = tile['col'];
+      }
+
+      // has to add 1 as offset because 0 is no-existen column/row
+      // so in this case the offset should be XOffset = 1+XNeg
+      int tileRowOffset = 1 + maxRowNeg.abs();
+      int tileColOffset = 1 + maxColNeg.abs();
+      int cols = maxColPos + tileColOffset;
+      int rows = maxRowPos + tileRowOffset;
+
+      List<Widget> finishedRange = List.generate(
+        cols*rows,
+        (index) => const SizedBox.square(dimension: 2) // void
+      );
+      for (Map tile in range) {
+        int position = cols*((tile['row'] as int)+tileRowOffset-1) + ((tile['col'] as int)+tileColOffset);
+        finishedRange[position-1] = SizedBox.square(
+          dimension: 2,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey, strokeAlign: BorderSide.strokeAlignInside, width: 2)
+            )
+          )
+        );
+      }
+      // 0 - 0 char
+      finishedRange[cols*(tileRowOffset-1)+tileColOffset-1] = SizedBox.square(
+        dimension: 2,
+        child: DecoratedBox(
+          decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary)
+        )
+      ); // player
+
+      final gridPadding = max(
+        finishedRange.length < 20.0 
+          ? 16.0-finishedRange.length + (rows>2? 12.0 : 0.0) + (finishedRange.length == 2? 12.0 : 0.0) + (finishedRange.length == 1? 18.0 : 0.0) + (rows>4? 12.0 : 0.0)
+          : 40.0-finishedRange.length + (rows>5? 14.0 : 0.0),
+        0.0
+      );
+
+      return Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          Container(
+            height: 90,
+            width: 90,
+            margin: const EdgeInsets.only(bottom: 8.0, top: 8.0),
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: Theme.of(context).colorScheme.tertiaryContainer,
+                width: 4.0,
+              ),
+              borderRadius: BorderRadius.circular(8.0)
+            ),
+            child: Column(
+              children: [
+                Expanded(
+                  child: Center(
+                    child: GridView(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: cols, mainAxisSpacing: 2, crossAxisSpacing: 2),
+                      padding: EdgeInsets.fromLTRB(gridPadding, 8.0, gridPadding, 12.0),
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      children: finishedRange,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8.0)
+              ],
+            )
+          ),
+          Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.tertiaryContainer,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(4.0))
+            ),
+            child: Text(
+              'Range',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onTertiaryContainer,
+                fontWeight: ui.FontWeight.w900,
+              ),
+              // ignore: deprecated_member_use
+              textScaler: TextScaler.linear(MediaQuery.textScalerOf(context).textScaleFactor+0.1),
+              textAlign: ui.TextAlign.center,
+            ),
+          ),
+        ]
+      );
+    }
+
+    List<Widget> skillSlots = List.generate(
+      3,
+      (index) {
+        if (widget.operator.skills.elementAtOrNull(index) != null) {
+          bool selected = showSkill == index;
+          return Container(
+            decoration: BoxDecoration(
+              color: selected? Theme.of(context).colorScheme.surfaceContainerHighest : Theme.of(context).colorScheme.surfaceContainerHigh,
+              borderRadius: const BorderRadius.vertical(top: ui.Radius.circular(8.0))
+            ),
+            child: SizedBox.square(
+              dimension: 128/2,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    top: -20,
+                    child: Text(
+                      (index+1).toString(),
+                      textScaler: const TextScaler.linear(5),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.1)
+                      ),
+                    )
+                  ),
+                  Container(
+                    margin: const EdgeInsets.all(12.0),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: selected? Theme.of(context).colorScheme.inverseSurface : Theme.of(context).colorScheme.inverseSurface.withOpacity(0.7),
+                        width: 1.0,
+                        strokeAlign: BorderSide.strokeAlignOutside
+                      ),
+                      borderRadius: BorderRadius.circular(4.0)
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(4.0),
+                      child: CachedNetworkImage(
+                        imageUrl: '$kSkillRepo/skill_icon_${skillsDetails[index]["iconId"] ?? skillsDetails[index]["skillId"]}.png'.githubEncode(),
+                        color: !selected? const ui.Color.fromARGB(255, 134, 134, 134) : null,
+                        colorBlendMode: BlendMode.modulate,
+                        placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                        errorWidget: (context, url, error) => const Center(child: Icon(Icons.error))
+                      ),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: InkWell(
+                        onTap: (){
+                          if (selected) return;
+                          setState(() {
+                            showSkill = index;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          );
+        } else {
+          return Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainer
+            ),
+            child: const SizedBox.square(dimension: 128/2)
+          );
+        }
+      }
+    );
+
+    List<Widget> extraSlots = [
+      selectedSkillDetailLv["rangeId"] != null
+        ? rangeTile(selectedSkillDetailLv["rangeId"])
+        : null,
+      selectedSkill["overrideTokenKey"] != null
+        ? Text(selectedSkill["overrideTokenKey"])
+        : null
+    ].nullParser();
+
+    List<Widget> dataWidgets() {
+      List<Widget?> widgets = [];
+      final EdgeInsets lPadding = const EdgeInsets.all(2.0);
+      final EdgeInsets lRightPadding = const EdgeInsets.only(right: 6.0);
+      final double textScale = 0.8;
+
+      // skill sp data
+      widgets.add(
+        switch(selectedSkillDetailLv["spData"]["spType"]){
+          "INCREASE_WITH_TIME" => Container(
+            height: 40,
+            width: 72,
+            margin: lRightPadding,
+            decoration: BoxDecoration(
+              color: StaticColors.fromBrightness(Theme.of(context).brightness).green,
+              borderRadius: BorderRadius.circular(8.0),
+              border: Border.all(
+                color: StaticColors.fromBrightness(Theme.of(context).brightness).green,
+                strokeAlign: BorderSide.strokeAlignInside,
+                width: 2.0
+              )
+            ),
+            padding: lPadding,
+            child: Text(
+              'Per Second Recovery',
+              softWrap: true,
+              textAlign: ui.TextAlign.center,
+              textScaler: TextScaler.linear(textScale),
+              style: TextStyle(
+                color: StaticColors.fromBrightness(Theme.of(context).brightness).onGreen,
+                fontWeight: ui.FontWeight.w600
+              ),
+            ),
+          ),
+          "INCREASE_WHEN_ATTACK" => Container(
+            height: 40,
+            width: 72,
+            margin: lRightPadding,
+            decoration: BoxDecoration(
+              color: StaticColors.fromBrightness(Theme.of(context).brightness).orange,
+              borderRadius: BorderRadius.circular(8.0),
+              border: Border.all(
+                color: StaticColors.fromBrightness(Theme.of(context).brightness).orange,
+                strokeAlign: BorderSide.strokeAlignInside,
+                width: 2.0
+              )
+            ),
+            padding: lPadding,
+            child: Text(
+              'Offensive Recovery',
+              softWrap: true,
+              textAlign: ui.TextAlign.center,
+              textScaler: TextScaler.linear(textScale),
+              style: TextStyle(
+                color: StaticColors.fromBrightness(Theme.of(context).brightness).onOrange,
+                fontWeight: ui.FontWeight.w600
+              ),
+            ),
+          ),
+          "INCREASE_WHEN_TAKEN_DAMAGE" => Container(
+            height: 40,
+            width: 72,
+            margin: lRightPadding,
+            decoration: BoxDecoration(
+              color: StaticColors.fromBrightness(Theme.of(context).brightness).yellow,
+              borderRadius: BorderRadius.circular(8.0),
+              border: Border.all(
+                color: StaticColors.fromBrightness(Theme.of(context).brightness).yellow,
+                strokeAlign: BorderSide.strokeAlignInside,
+                width: 2.0
+              )
+            ),
+            padding: lPadding,
+            child: Text(
+              'Deffensive Recovery',
+              softWrap: true,
+              textAlign: ui.TextAlign.center,
+              textScaler: TextScaler.linear(textScale),
+              style: TextStyle(
+                color: StaticColors.fromBrightness(Theme.of(context).brightness).onYellow,
+                fontWeight: ui.FontWeight.w600
+              ),
+            ),
+          ),
+          _ => null,
+        }
+      );
+
+      // skill activation type
+      widgets.add(
+        switch(selectedSkillDetailLv["skillType"]){
+          "MANUAL" => Container(
+            height: 40,
+            width: 72,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainer,
+              borderRadius: BorderRadius.circular(8.0),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outline,
+                strokeAlign: BorderSide.strokeAlignInside,
+                width: 2.0
+              )
+            ),
+            padding: lPadding,
+            child: Text(
+              'Manual Trigger',
+              softWrap: true,
+              textAlign: ui.TextAlign.center,
+              textScaler: TextScaler.linear(textScale),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: ui.FontWeight.w600
+              ),
+            ),
+          ),
+          "AUTO" => Container(
+            height: 40,
+            width: 72,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.inverseSurface,
+              borderRadius: BorderRadius.circular(8.0),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outline,
+                strokeAlign: BorderSide.strokeAlignInside,
+                width: 2.0
+              )
+            ),
+            padding: lPadding,
+            child: Text(
+              'Auto Trigger',
+              softWrap: true,
+              textAlign: ui.TextAlign.center,
+              textScaler: TextScaler.linear(textScale),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onInverseSurface,
+                fontWeight: ui.FontWeight.w600
+              ),
+            ),
+          ),
+          "PASSIVE" => Container(
+            height: 40,
+            width: 72,
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(8.0),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outline,
+                strokeAlign: BorderSide.strokeAlignInside,
+                width: 2.0
+              )
+            ),
+            padding: lPadding,
+            child: Center(
+              child: Text(
+                'Passive',
+                softWrap: true,
+                textAlign: ui.TextAlign.center,
+                textScaler: TextScaler.linear(textScale),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.outline,
+                  fontWeight: ui.FontWeight.w600
+                ),
+              ),
+            ),
+          ),
+          _ => null,
+        }
+      );
+      return widgets.nullParser();
+    }
+
+    List<Widget> lilDataWidgets(){
+      List<Widget?> widgets = [];
+
+      final Color textColor = Theme.of(context).colorScheme.onSecondary;
+      final Color contrastColor = Theme.of(context).colorScheme.secondary;
+
+      // skill cost
+      widgets.add(
+        DiffChip(
+          icon: Icons.bolt,
+          label: 'SP Cost',
+          value: (skillsDetails[showSkill]["levels"][skillLv]["spData"]["spCost"] as int).toString(),
+          color: textColor,
+          backgroundColor: contrastColor,
+          axis: skillLv == 0 ? AxisDirection.left : Calc.valueDifference(skillsDetails[showSkill]["levels"][skillLv]["spData"]["spCost"], skillsDetails[showSkill]["levels"][skillLv-1]["spData"]["spCost"]),
+          // TODO should do a method to detect if its a good or bad diff
+        )
+      );
+
+      // skill initial sp
+      widgets.add(
+        DiffChip(
+          icon: Icons.play_arrow,
+          label: 'Initial SP',
+          value: (skillsDetails[showSkill]["levels"][skillLv]["spData"]["initSp"] as int).toString(),
+          color: textColor,
+          backgroundColor: contrastColor,
+          axis: skillLv == 0 ? AxisDirection.left : Calc.valueDifference(skillsDetails[showSkill]["levels"][skillLv]["spData"]["initSp"], skillsDetails[showSkill]["levels"][skillLv-1]["spData"]["initSp"]),
+          // TODO should do a method to detect if its a good or bad diff
+        )
+      );
+
+      // skill duration
+      widgets.add(
+        switch((selectedSkillDetailLv["durationType"] as String)){
+          "NONE" => (selectedSkillDetailLv["duration"] > 0.0) 
+            ? DiffChip(
+              icon: Icons.timelapse,
+              label: 'Duration',
+              value: (skillsDetails[showSkill]["levels"][skillLv]["duration"] as double).toStringAsFixed(3).replaceFirst(RegExp(r'\.?0*$'), ''),
+              color: textColor,
+              backgroundColor: contrastColor,
+              axis: skillLv == 0 ? AxisDirection.left : Calc.valueDifference(skillsDetails[showSkill]["levels"][skillLv]["duration"], skillsDetails[showSkill]["levels"][skillLv-1]["duration"]),
+              // TODO should do a method to detect if its a good or bad diff
+            )
+            : null,
+          "AMMO" => ((skillsDetails[showSkill]["levels"][skillLv]["blackboard"] as List).lastWhere((i) => ((i as Map)["key"] as String).endsWith("trigger_time"), orElse: () => null) != null)
+          ? DiffChip(
+              icon: Icons.stacked_bar_chart,
+              label: 'Ammo',
+              value: (((skillsDetails[showSkill]["levels"][skillLv]["blackboard"] as List).lastWhere((i) => ((i as Map)["key"] as String).endsWith("trigger_time")) as Map)["value"] as double).toStringAsFixed(3).replaceFirst(RegExp(r'\.?0*$'), ''),
+              color: textColor,
+              backgroundColor: contrastColor,
+              axis: skillLv == 0 ? AxisDirection.left : Calc.valueDifference(((skillsDetails[showSkill]["levels"][skillLv]["blackboard"] as List).lastWhere((i) => ((i as Map)["key"] as String).endsWith("trigger_time")) as Map)["value"], ((skillsDetails[showSkill]["levels"][skillLv-1]["blackboard"] as List).lastWhere((i) => ((i as Map)["key"] as String).endsWith("trigger_time")) as Map)["value"]),
+              // TODO should do a method to detect if its a good or bad diff
+            )
+          : null,
+          _ => null,
+        }
+      );
+
+      return widgets.nullParser();
+    }
+
+    List<Widget> metadata() {
+      List<Widget> widgets = [];
+
+      final Color textColor = Theme.of(context).colorScheme.onSurface.withOpacity(0.6);
+      final Color contrastColor = Colors.grey[800]!;
+
+      // skill cost
+      for (Map metadata in selectedSkillDetailLv["blackboard"]) {
+        int index = (skillsDetails[showSkill]["levels"][skillLv]["blackboard"] as List).indexOf(metadata);
+
+        widgets.add(
+          DiffChip(
+            label: metadata["key"],
+            value: metadata["valueStr"] ?? metadata["value"].toString(),
+            color: textColor,
+            backgroundColor: contrastColor,
+            axis: skillLv == 0 ? AxisDirection.left : Calc.valueDifference(skillsDetails[showSkill]["levels"][skillLv]["blackboard"][index]["value"], skillsDetails[showSkill]["levels"][skillLv-1]["blackboard"][index]["value"]),
+          )
+        );
+      }
+
+      return widgets;
+    }
+
+    
+    return Container(
+      width: double.maxFinite,
+      padding: const EdgeInsets.all(24.0),
+      margin: const EdgeInsets.only(bottom: 20.0),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainer,
+        borderRadius: BorderRadius.circular(12.0)
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text('Skills'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: skillSlots,
+          ),
+          Container(
+            padding: const EdgeInsets.all(8.0),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.only(
+                bottomLeft: const ui.Radius.circular(8.0),
+                bottomRight: const ui.Radius.circular(8.0),
+                topRight: widget.operator.skills.length < 3 ? const ui.Radius.circular(8.0) : Radius.zero
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            selectedSkillDetailLv["name"],
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: ui.FontWeight.w800,
+                            ),
+                            textScaler: TextScaler.linear(((18.0/(selectedSkillDetailLv["name"] as String).length.toDouble())-0.2).clamp(1.3, 1.9)),
+                          ),
+                          const SizedBox(height: 4.0),
+                          Row(
+                            children: dataWidgets(),
+                          )
+                        ],
+                      ),
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(6.0),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.outline,
+                        )
+                      ),
+                      width: 90,
+                      height: 90,
+                      child: Column(
+                        children: [
+                          lvSelectWidget((selectedSkillDetail["levels"] as List).length, context),
+                          const Text('Skill Level'),
+                        ],
+                      )
+                    )
+                  ],
+                ),
+                const SizedBox(height: 6.0),
+                Wrap(
+                  runSpacing: 10.0,
+                  spacing: 6.0,
+                  children: lilDataWidgets(),
+                ),
+                const SizedBox(height: 6.0),
+                StyledText(
+                  text: (selectedSkillDetailLv["description"] as String).akRichTextParser().varParser(selectedSkillDetailLv["blackboard"]),
+                  tags: context.read<StyleProvider>().tagsAsArknights(context: context)
+                ),
+                (context.watch<SettingsProvider>().prefs[PrefsFlags.menuShowAdvanced]) ? Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Wrap (
+                    spacing: 6.0,
+                    runSpacing: 3.0,
+                    children: metadata(),
+                  ),
+                ) : null,
+                extraSlots.isNotEmpty ? Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: extraSlots,
+                ) : null
+              ].nullParser(),
+            )
+          ),
+        ],
+      )
+    );
+  }
 }
+
+
 
 class ArchivePage extends StatefulWidget {
   final Operator operator;
@@ -1004,12 +1646,6 @@ class _ArchivePageState extends State<ArchivePage> with SingleTickerProviderStat
   }
 
   @override
-  void dispose() {
-    _secondaryTabController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return CustomScrollView(
       slivers: [
@@ -1026,7 +1662,29 @@ class _ArchivePageState extends State<ArchivePage> with SingleTickerProviderStat
           backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
           leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => Navigator.pop(context)),
           actions: [
-            IconButton(onPressed: (){}, icon: const Icon(Icons.more_horiz))
+            MenuAnchor(
+              menuChildren: [
+                SwitchListTile(
+                  value: context.watch<SettingsProvider>().prefs[PrefsFlags.menuShowAdvanced],
+                  onChanged: (bool value) {
+                    context.read<SettingsProvider>().setAndSaveBoolPref(PrefsFlags.menuShowAdvanced, value);
+                  },
+                  title: const Text('Show advanced'),
+                )
+              ],
+              builder: (BuildContext context, MenuController controller, Widget? child) {
+                return IconButton(
+                  onPressed: (){
+                    if (controller.isOpen) {
+                      controller.close();
+                    } else {
+                      controller.open();
+                    }
+                  },
+                  icon: const Icon(Icons.more_horiz)
+                );
+              },
+            )
           ],
         ),
         SliverList.list(
@@ -1128,7 +1786,7 @@ class _ArtPageState extends State<ArtPage> {
     }
 
     int id = getUniqueId();
-    String path = await LocalDataManager().downloadPath;
+    String path = await LocalDataManager.downloadPath;
 
     showDownloadNotification(title: 'Downloading', body: 'downloading image', id: id, ongoing: true, indeterminate: true);
     
@@ -1164,6 +1822,7 @@ class _ArtPageState extends State<ArtPage> {
       context: context,
       builder: (BuildContext context) {
         Map skinInfo = widget.operator.skinsList[selectedIndex];
+        Map<String, StyledTextTagBase> tags = context.read<StyleProvider>().tagsAsArknights(context: context);
         return SafeArea(
           child: SingleChildScrollView(
             child: Padding(
@@ -1179,9 +1838,9 @@ class _ArtPageState extends State<ArtPage> {
                   skinInfo["displaySkin"]["drawerList"] != null ? Text('Drawer: ${(skinInfo["displaySkin"]["drawerList"] as List).join(', ')}') : null,
                   skinInfo["displaySkin"]["skinGroupName"] != null ? Text('Series: ${skinInfo["displaySkin"]["skinGroupName"]}') : null,
                   const SizedBox(height: 20),
-                  skinInfo["displaySkin"]["content"] != null ? Container(margin: const EdgeInsets.only(bottom: 10.0), child: StyledText(text: skinInfo["displaySkin"]["content"], tags: tagsAsArknights, style: TextStyle(color: skinInfo["displaySkin"]["skinName"] != null ? Theme.of(context).colorScheme.secondary : null))) : null,
-                  skinInfo["displaySkin"]["usage"] != null ? Container(margin: const EdgeInsets.only(bottom: 10.0), child: StyledText(text: skinInfo["displaySkin"]["usage"], tags: tagsAsArknights)) : null,
-                  skinInfo["displaySkin"]["description"] != null ? Container(margin: const EdgeInsets.only(bottom: 10.0), child: StyledText(text: skinInfo["displaySkin"]["description"], tags: tagsAsArknights, style: const TextStyle(fontStyle: FontStyle.italic),)) : null,
+                  skinInfo["displaySkin"]["content"] != null ? Container(margin: const EdgeInsets.only(bottom: 10.0), child: StyledText(text: skinInfo["displaySkin"]["content"], tags: tags, style: TextStyle(color: skinInfo["displaySkin"]["skinName"] != null ? Theme.of(context).colorScheme.secondary : null))) : null,
+                  skinInfo["displaySkin"]["usage"] != null ? Container(margin: const EdgeInsets.only(bottom: 10.0), child: StyledText(text: skinInfo["displaySkin"]["usage"], tags: tags)) : null,
+                  skinInfo["displaySkin"]["description"] != null ? Container(margin: const EdgeInsets.only(bottom: 10.0), child: StyledText(text: skinInfo["displaySkin"]["description"], tags: tags, style: const TextStyle(fontStyle: FontStyle.italic),)) : null,
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.max,
@@ -1266,19 +1925,19 @@ class _ArtPageState extends State<ArtPage> {
 
   PhotoViewGallery photoview(BuildContext context, String Function(int index) getImageLink) {
     return PhotoViewGallery.builder(
-          scrollPhysics: const NeverScrollableScrollPhysics(),
-          childEnableAlwaysPan: true,
-          backgroundDecoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerLowest),
-          pageController: _pageController,
-          itemCount: widget.operator.skinsList.length,
-          builder: (BuildContext context, int index) {
-            return PhotoViewGalleryPageOptions(
-              filterQuality: FilterQuality.high,
-              imageProvider: NetworkImage(getImageLink(index)),
-              heroAttributes: PhotoViewHeroAttributes(tag: '$selectedIndex hero')
-            );
-          },
+      scrollPhysics: const NeverScrollableScrollPhysics(),
+      childEnableAlwaysPan: true,
+      backgroundDecoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerLowest),
+      pageController: _pageController,
+      itemCount: widget.operator.skinsList.length,
+      builder: (BuildContext context, int index) {
+        return PhotoViewGalleryPageOptions(
+          filterQuality: FilterQuality.high,
+          imageProvider: NetworkImage(getImageLink(index)),
+          heroAttributes: PhotoViewHeroAttributes(tag: '$selectedIndex hero')
         );
+      },
+    );
   }
 
   Widget carouselContainer (List<Widget> children, CarouselSliderController controller) {

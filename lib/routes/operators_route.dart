@@ -19,29 +19,25 @@ const List<String> professionList = ['caster', 'medic', 'pioneer', 'sniper', 'sp
 const List<String> subProfessionList = ['agent', 'alchemist', 'aoesniper', 'artsfghter', 'artsprotector', 'bard', 'bearer', 'blastcaster', 'blessing', 'bombarder', 'centurion', 'chain', 'chainhealer', 'charger', ''];
 
 Future<List<Operator>> fetchOperators() async {
+  var cacheProv = NavigationService.navigatorKey.currentContext!.read<CacheProvider>();
   String server = NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString;
   String version = NavigationService.navigatorKey.currentContext!.read<ServerProvider>().versionOf(server);
-
-  if (NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperator != null
-      && NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperatorServer == server
-      && NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperatorVersion == version
-      && NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedRangeTable != null
-    ) {
-   return Future<List<Operator>>.value(NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperator);
-  }
+  if (cacheProv.isCached) return Future<List<Operator>>.value(cacheProv.cachedListOperator);
 
   List<String> files = [
     '/excel/character_table.json',
     '/excel/handbook_info_table.json',
     '/excel/charword_table.json',
     '/excel/skin_table.json',
-    '/excel/range_table.json'
+    '/excel/range_table.json',
+    '/excel/skill_table.json'
   ];
   // 0 operators
   // 1 lore
   // 2 voice
   // 3 skin
   // 4 ranges
+  // 5 skills details
 
   try {
     await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().existFiles(NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString, files);
@@ -58,10 +54,11 @@ Future<List<Operator>> fetchOperators() async {
   // Use the compute function to run parsing in a separate isolate.
   List<Operator> completedList = await compute(parseOperators, response);
 
-  NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperatorServer = server;
-  NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperator = completedList;
-  NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperatorVersion = version;
-  NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedRangeTable = jsonDecode(response[4]) as Map<String, dynamic>;
+  cacheProv.cachedListOperatorServer = server;
+  cacheProv.cachedListOperator = completedList;
+  cacheProv.cachedListOperatorVersion = version;
+  cacheProv.cachedRangeTable = jsonDecode(response[4]) as Map<String, dynamic>;
+  cacheProv.cachedSkillTable = jsonDecode(response[5]) as Map<String, dynamic>;
 
   return completedList;
   
@@ -213,7 +210,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Image.asset('assets/gif/saga_err.gif', width: 180),
+                          Image.asset('assets/gif/saga_bug.gif', width: 180),
                           const SizedBox(height: 12),
                           Text('operator not found', style: TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer, fontWeight: FontWeight.w600), textScaler: const TextScaler.linear(1.2),)
                         ],

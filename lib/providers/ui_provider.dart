@@ -4,12 +4,34 @@ import 'package:sagahelper/global_data.dart';
 
 final listAllThemeModes = [ThemeMode.system, ThemeMode.light, ThemeMode.dark];
 
+enum UiProviderKeys {
+  currentTheme('currentTheme'),
+  themeMode('themeMode'),
+  isUsingPureDark('isUsingPureDark'),
+  useTranslucentUi('useTranslucentUi'),
+  previewThemeIndexSelected('previewThemeIndexSelected');
+
+  const UiProviderKeys(
+    this.key,
+  );
+  final String key;
+}
+
 class UiProvider extends ChangeNotifier {
-  CustomTheme? currentTheme;
+  static final Map<UiProviderKeys, dynamic> _defaultValues = {
+    UiProviderKeys.currentTheme : 0,
+    UiProviderKeys.themeMode : 0,
+    UiProviderKeys.isUsingPureDark : false,
+    UiProviderKeys.useTranslucentUi : false,
+    UiProviderKeys.previewThemeIndexSelected : 0
+  };
+
+  // saved configs
+  CustomTheme currentTheme;
   ThemeMode themeMode;
-  bool isUsingPureDark = true;
-  bool useTranslucentUi = true;
-  int previewThemeIndexSelected = 0;
+  bool isUsingPureDark;
+  bool useTranslucentUi;
+  int previewThemeIndexSelected;
 
   // dialog Box
   // TODO add to configs
@@ -22,48 +44,27 @@ class UiProvider extends ChangeNotifier {
     _currentHomePageIndx = index;
     notifyListeners();
   }
-
-  final _configs = LocalDataManager();
-
-  UiProvider ({
-    this.currentTheme,
-    this.themeMode = ThemeMode.dark,
+  
+  UiProvider({
+    required this.currentTheme,
+    required this.themeMode,
+    required this.isUsingPureDark,
+    required this.useTranslucentUi,
+    required this.previewThemeIndexSelected,
   });
 
-  writeDefaultValues () async {
-    return await _configs.writeConfigMap({
-      'currentTheme': 0,
-      'themeMode': 0,
-      'isUsingPureDark': false,
-      'useTranslucentUi': false,
-      'previewThemeIndexSelected' : 0,
-    });
+  factory UiProvider.fromConfig(Map configs){
+    return UiProvider(
+      currentTheme: allCustomThemesList[configs[UiProviderKeys.currentTheme.key] ?? _defaultValues[UiProviderKeys.currentTheme]],
+      themeMode: listAllThemeModes[configs[UiProviderKeys.themeMode.key] ?? _defaultValues[UiProviderKeys.themeMode]],
+      isUsingPureDark: configs[UiProviderKeys.isUsingPureDark.key] ?? _defaultValues[UiProviderKeys.isUsingPureDark],
+      previewThemeIndexSelected: configs[UiProviderKeys.previewThemeIndexSelected.key] ?? _defaultValues[UiProviderKeys.previewThemeIndexSelected],
+      useTranslucentUi: configs[UiProviderKeys.useTranslucentUi.key] ?? _defaultValues[UiProviderKeys.useTranslucentUi],
+    );
   }
 
-  setDefaultValues () {
-    currentTheme = allCustomThemesList[0];
-    themeMode = listAllThemeModes[0];
-    isUsingPureDark = false;
-    useTranslucentUi = false;
-    previewThemeIndexSelected = 0;
-  }
-
-  loadValues () async {
-    return {
-      'currentTheme': await _configs.readConfig('currentTheme'),
-      'themeMode': await _configs.readConfig('themeMode'),
-      'isUsingPureDark': await _configs.readConfig('isUsingPureDark'),
-      'useTranslucentUi': await _configs.readConfig('useTranslucentUi'),
-      'previewThemeIndexSelected' : await _configs.readConfig('previewThemeIndexSelected'),
-    };
-  }
-
-  setValues (Map configs) {
-    currentTheme = allCustomThemesList[configs['currentTheme']];
-    themeMode = listAllThemeModes[configs['themeMode']];
-    isUsingPureDark = configs['isUsingPureDark'];
-    useTranslucentUi = configs['useTranslucentUi'];
-    previewThemeIndexSelected = configs['previewThemeIndexSelected'];
+  static Future<Map<String, dynamic>> loadValues () async {
+    return await LocalDataManager.readConfigMap(UiProviderKeys.values.map((e) => e.key).toList());
   }
 
   Future<void> changeTheme ({
@@ -77,27 +78,27 @@ class UiProvider extends ChangeNotifier {
     required ThemeMode newThemeMode
   }) async {
     themeMode = newThemeMode;
-    await _configs.writeConfigKey('themeMode', listAllThemeModes.indexOf(newThemeMode));
+    await LocalDataManager.writeConfigKey(UiProviderKeys.themeMode.key, listAllThemeModes.indexOf(newThemeMode));
     notifyListeners();
   }
 
   void togglePureDark (bool state) async {
     isUsingPureDark = state;
-    await _configs.writeConfigKey('isUsingPureDark', state);
+    await LocalDataManager.writeConfigKey(UiProviderKeys.isUsingPureDark.key, state);
     notifyListeners();
   }
 
   void toggleTraslucentUi (bool state) async {
     useTranslucentUi = state;
-    await _configs.writeConfigKey('useTranslucentUi', state);
+    await LocalDataManager.writeConfigKey(UiProviderKeys.useTranslucentUi.key, state);
     notifyListeners();
   }
 
   void previewThemeSelected (int index) async {
     previewThemeIndexSelected = index;
-    await _configs.writeConfigMap({
-      'currentTheme': index,
-      'previewThemeIndexSelected': index
+    await LocalDataManager.writeConfigMap({
+      UiProviderKeys.currentTheme.key: index,
+      UiProviderKeys.previewThemeIndexSelected.key: index
     });
     notifyListeners();
   }

@@ -123,7 +123,7 @@ TextTheme createTextTheme(TextTheme baseColor, String bodyFontString, String dis
   return textTheme;
 }
 
-CustomTheme dynamic = CustomTheme (
+CustomTheme dynamicTheme = CustomTheme (
   name: 'System dynamic',
   light_: ThemeData(
     colorScheme: ColorScheme.fromSeed(seedColor: SystemTheme.accentColor.accent, brightness: Brightness.light, dynamicSchemeVariant: DynamicSchemeVariant.vibrant),
@@ -227,4 +227,4 @@ CustomTheme wTheme = CustomTheme (
   displayFontString: "Noto Sans",
 );
 
-List<CustomTheme> allCustomThemesList = [dynamic, deepOrangeTheme, mizukiTheme, ggTheme, wTheme];
+List<CustomTheme> allCustomThemesList = [dynamicTheme, deepOrangeTheme, mizukiTheme, ggTheme, wTheme];
