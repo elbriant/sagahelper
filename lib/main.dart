@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/global_data.dart';
 import 'package:sagahelper/notification_services.dart';
+import 'package:sagahelper/pages/main_loaderror_page.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
 import 'package:sagahelper/providers/server_provider.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
@@ -26,7 +27,7 @@ void main() async {
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
-      systemNavigationBarColor: Color.fromRGBO(0, 0, 0, 0.01)
+      systemNavigationBarColor: Color.fromRGBO(0, 0, 0, 0.01),
     ),
   );
 
@@ -42,7 +43,7 @@ void main() async {
 
   await initNotifications();
   await SettingsProvider.sharedPreferencesInit();
-  
+
   runApp(MyApp(configs: configs, hasError: hasError));
 }
 
@@ -60,22 +61,26 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => UiProvider.fromConfig(widget.configs)),
-        ChangeNotifierProvider(create: (context) => SettingsProvider.fromConfig(widget.configs)),
-        ChangeNotifierProvider(create: (context) => ServerProvider.fromConfig(widget.configs)),
+        ChangeNotifierProvider(
+          create: (context) => UiProvider.fromConfig(widget.configs),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => SettingsProvider.fromConfig(widget.configs),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => ServerProvider.fromConfig(widget.configs),
+        ),
         ChangeNotifierProvider(create: (context) => CacheProvider()),
-        ChangeNotifierProvider(create: (context) => StyleProvider())
+        ChangeNotifierProvider(create: (context) => StyleProvider()),
       ],
       builder: (context, child) {
         if (loadedConfigs == true) {
           return const MainWidget();
         }
-
         if (widget.hasError) {
           LocalDataManager.resetConfig();
           return const ErrorScreen();
         }
-        
         loadedConfigs = true;
         return const MainWidget();
       },
@@ -106,13 +111,12 @@ class MainWidget extends StatefulWidget {
 }
 
 class _MainWidgetState extends State<MainWidget> {
-
   final List _pages = const [
     HomePage(),
     OperatorsPage(),
     InfoPage(),
     ToolsPage(),
-    SettingsPage()
+    SettingsPage(),
   ];
 
   @override
@@ -125,28 +129,60 @@ class _MainWidgetState extends State<MainWidget> {
       home: Scaffold(
         extendBody: true,
         body: Builder(
-          builder: (context){
+          builder: (context) {
             if (widget.errorDisplay != null) {
-              WidgetsBinding.instance.addPostFrameCallback((_) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: widget.errorDisplay!)));
+              WidgetsBinding.instance.addPostFrameCallback(
+                (_) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: widget.errorDisplay!)),
+              );
             }
             return Column(
               mainAxisSize: MainAxisSize.max,
               children: [
-                context.watch<SettingsProvider>().showNotifier ? Container(padding: EdgeInsets.fromLTRB(0,MediaQuery.of(context).padding.top+2.0,0,2.0) , height: MediaQuery.of(context).padding.top+24, color: Theme.of(context).colorScheme.primary, 
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SizedBox(height: 12, width: 12, child: CircularProgressIndicator(color: Theme.of(context).colorScheme.onPrimary, strokeWidth: 3.0,)),
-                    const SizedBox(width: 20),
-                    Text(context.watch<SettingsProvider>().loadingString, style: TextStyle(color: Theme.of(context).colorScheme.onPrimary))
-                  ]
-                )) : Container(),
-                Expanded(child: _pages[context.watch<UiProvider>().currentHomePageIndx])
+                context.watch<SettingsProvider>().showNotifier
+                    ? Container(
+                        padding: EdgeInsets.fromLTRB(
+                          0,
+                          MediaQuery.of(context).padding.top + 2.0,
+                          0,
+                          2.0,
+                        ),
+                        height: MediaQuery.of(context).padding.top + 24,
+                        color: Theme.of(context).colorScheme.primary,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SizedBox(
+                              height: 12,
+                              width: 12,
+                              child: CircularProgressIndicator(
+                                color: Theme.of(context).colorScheme.onPrimary,
+                                strokeWidth: 3.0,
+                              ),
+                            ),
+                            const SizedBox(width: 20),
+                            Text(
+                              context.watch<SettingsProvider>().loadingString,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : Container(),
+                Expanded(
+                  child: _pages[context.watch<UiProvider>().currentHomePageIndx],
+                ),
               ],
             );
-          }
+          },
         ),
-        bottomNavigationBar: context.watch<UiProvider>().useTranslucentUi == true ? const TranslucentWidget(sigma: 3,child: BottomNavBar(opacity: 0.5)) : const BottomNavBar()
+        bottomNavigationBar: context.watch<UiProvider>().useTranslucentUi == true
+            ? const TranslucentWidget(
+                sigma: 3,
+                child: BottomNavBar(opacity: 0.5),
+              )
+            : const BottomNavBar(),
       ),
     );
   }
@@ -155,12 +191,12 @@ class _MainWidgetState extends State<MainWidget> {
 class BottomNavBar extends StatelessWidget {
   final double opacity;
 
-  const BottomNavBar ({
+  const BottomNavBar({
     super.key,
     this.opacity = 1.0,
   });
 
-  void setNavBB (int index) {
+  void setNavBB(int index) {
     NavigationService.navigatorKey.currentContext!.read<UiProvider>().currentHomePageIndx = index;
   }
 
@@ -172,38 +208,32 @@ class BottomNavBar extends StatelessWidget {
       onDestinationSelected: setNavBB,
       selectedIndex: context.watch<UiProvider>().currentHomePageIndx,
       destinations: const [
-        NavigationDestination(icon: Icon(Icons.home_outlined), label: 'Home', selectedIcon: Icon(Icons.home)),
-        NavigationDestination(icon: Icon(Icons.person_search_outlined), label: 'Operators', selectedIcon: Icon(Icons.person_search)),
-        NavigationDestination(icon: Icon(Icons.library_books_outlined), label: 'Extra', selectedIcon: Icon(Icons.library_books)),
-        NavigationDestination(icon: Icon(Icons.app_shortcut_outlined), label: 'Tools', selectedIcon: Icon(Icons.app_shortcut)),
-        NavigationDestination(icon: Icon(Icons.settings_outlined), label: 'More', selectedIcon: Icon(Icons.settings)),
-      ],
-    );
-  }
-}
-
-class ErrorScreen extends StatelessWidget {
-  const ErrorScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrangeAccent, brightness: MediaQuery.platformBrightnessOf(context))
-      ),
-      home: Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Image.asset('assets/gif/saga_err.gif', width: 200, height: 200),
-              const SizedBox(height: 40),
-              Text('An error has ocurred, restart the app!', style: TextStyle(color: Theme.of(context).colorScheme.error),)
-            ],
-          ),
+        NavigationDestination(
+          icon: Icon(Icons.home_outlined),
+          label: 'Home',
+          selectedIcon: Icon(Icons.home),
         ),
-      ),
+        NavigationDestination(
+          icon: Icon(Icons.person_search_outlined),
+          label: 'Operators',
+          selectedIcon: Icon(Icons.person_search),
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.library_books_outlined),
+          label: 'Extra',
+          selectedIcon: Icon(Icons.library_books),
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.app_shortcut_outlined),
+          label: 'Tools',
+          selectedIcon: Icon(Icons.app_shortcut),
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.settings_outlined),
+          label: 'More',
+          selectedIcon: Icon(Icons.settings),
+        ),
+      ],
     );
   }
 }

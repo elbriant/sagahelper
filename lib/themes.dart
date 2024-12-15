@@ -26,20 +26,19 @@ class CustomTheme {
 
   // tachoymi, i kinda copied your code for the themes XD
 
-  CustomTheme ({
+  CustomTheme({
     required this.light_,
     required this.dark_,
     required this.name,
     this.bodyFontString,
-    this.displayFontString
+    this.displayFontString,
   });
-
 
   ThemeData get colorLight {
     return light_.copyWith(
       pageTransitionsTheme: customPageTransition,
       brightness: Brightness.light,
-      textTheme: textLight
+      textTheme: textLight,
     );
   }
 
@@ -47,7 +46,7 @@ class CustomTheme {
     return dark_.copyWith(
       pageTransitionsTheme: customPageTransition,
       brightness: Brightness.dark,
-      textTheme: textDark
+      textTheme: textDark,
     );
   }
 
@@ -55,7 +54,11 @@ class CustomTheme {
     if (bodyFontString == null || displayFontString == null) {
       return light_.textTheme;
     } else {
-      return createTextTheme(light_.textTheme, bodyFontString!, displayFontString!);
+      return createTextTheme(
+        light_.textTheme,
+        bodyFontString!,
+        displayFontString!,
+      );
     }
   }
 
@@ -63,11 +66,15 @@ class CustomTheme {
     if (bodyFontString == null || displayFontString == null) {
       return dark_.textTheme;
     } else {
-      return createTextTheme(dark_.textTheme, bodyFontString!, displayFontString!);
+      return createTextTheme(
+        dark_.textTheme,
+        bodyFontString!,
+        displayFontString!,
+      );
     }
   }
 
-  ThemeData getDarkMode(bool providerValue){
+  ThemeData getDarkMode(bool providerValue) {
     if (providerValue == false) return colorDark;
     // else pure dark
     return ThemeData(
@@ -82,34 +89,36 @@ class CustomTheme {
         surfaceContainer: pdsurfaceContainer, // Navigation bar background
         surfaceContainerHigh: pdsurfaceContainerHigh,
         surfaceContainerHighest: pdsurfaceContainerHighest,
-      )
+      ),
     );
   }
 
-  factory CustomTheme.fast(Color color){
+  factory CustomTheme.fast(Color color) {
     return CustomTheme(
       name: 'Fast',
       light_: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: color,
           brightness: Brightness.light,
-          dynamicSchemeVariant: DynamicSchemeVariant.vibrant
+          dynamicSchemeVariant: DynamicSchemeVariant.vibrant,
         ),
       ),
       dark_: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: color,
           brightness: Brightness.dark,
-          dynamicSchemeVariant: DynamicSchemeVariant.vibrant
+          dynamicSchemeVariant: DynamicSchemeVariant.vibrant,
         ),
       ),
     );
   }
 }
 
-
-
-TextTheme createTextTheme(TextTheme baseColor, String bodyFontString, String displayFontString) {
+TextTheme createTextTheme(
+  TextTheme baseColor,
+  String bodyFontString,
+  String displayFontString,
+) {
   TextTheme bodyTextTheme = GoogleFonts.getTextTheme(bodyFontString, baseColor);
   TextTheme displayTextTheme = GoogleFonts.getTextTheme(displayFontString, baseColor);
   TextTheme textTheme = displayTextTheme.copyWith(
@@ -123,108 +132,144 @@ TextTheme createTextTheme(TextTheme baseColor, String bodyFontString, String dis
   return textTheme;
 }
 
-CustomTheme dynamicTheme = CustomTheme (
+CustomTheme dynamicTheme = CustomTheme(
   name: 'System dynamic',
   light_: ThemeData(
-    colorScheme: ColorScheme.fromSeed(seedColor: SystemTheme.accentColor.accent, brightness: Brightness.light, dynamicSchemeVariant: DynamicSchemeVariant.vibrant),
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: SystemTheme.accentColor.accent,
+      brightness: Brightness.light,
+      dynamicSchemeVariant: DynamicSchemeVariant.vibrant,
+    ),
   ),
   dark_: ThemeData(
-    colorScheme: ColorScheme.fromSeed(seedColor: SystemTheme.accentColor.accent, brightness: Brightness.dark, dynamicSchemeVariant: DynamicSchemeVariant.vibrant),
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: SystemTheme.accentColor.accent,
+      brightness: Brightness.dark,
+      dynamicSchemeVariant: DynamicSchemeVariant.vibrant,
+    ),
   ),
   bodyFontString: "Noto Sans Hatran",
   displayFontString: "Noto Sans",
 );
 
-CustomTheme deepOrangeTheme = CustomTheme (
+CustomTheme deepOrangeTheme = CustomTheme(
   name: 'Deep Orange',
   light_: ThemeData(
-    colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange, brightness: Brightness.light),
-
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: Colors.deepOrange,
+      brightness: Brightness.light,
+    ),
   ),
   dark_: ThemeData(
-    colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepOrange, brightness: Brightness.dark),
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: Colors.deepOrange,
+      brightness: Brightness.dark,
+    ),
   ),
   bodyFontString: "Noto Sans Hatran",
   displayFontString: "Noto Sans",
 );
 
-CustomTheme mizukiTheme = CustomTheme (
+CustomTheme mizukiTheme = CustomTheme(
   name: 'Mizuki',
   light_: ThemeData(
-    colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue[900]!, brightness: Brightness.light),
-
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: Colors.blue[900]!,
+      brightness: Brightness.light,
+    ),
   ),
   dark_: ThemeData(
-    colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue[900]!, brightness: Brightness.dark),
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: Colors.blue[900]!,
+      brightness: Brightness.dark,
+    ),
   ),
   bodyFontString: "Noto Sans Hatran",
   displayFontString: "Noto Sans",
 );
 
-CustomTheme ggTheme = CustomTheme (
+CustomTheme ggTheme = CustomTheme(
   name: 'Golden Glow',
-  light_ : ThemeData(
-    colorScheme: ColorScheme.fromSeed(seedColor: Colors.pink[200]!, brightness: Brightness.light, dynamicSchemeVariant: DynamicSchemeVariant.tonalSpot),
+  light_: ThemeData(
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: Colors.pink[200]!,
+      brightness: Brightness.light,
+      dynamicSchemeVariant: DynamicSchemeVariant.tonalSpot,
+    ),
   ),
   dark_: ThemeData(
-    colorScheme: ColorScheme.fromSeed(seedColor: Colors.pink[200]!, brightness: Brightness.dark, dynamicSchemeVariant: DynamicSchemeVariant.tonalSpot),
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: Colors.pink[200]!,
+      brightness: Brightness.dark,
+      dynamicSchemeVariant: DynamicSchemeVariant.tonalSpot,
+    ),
   ),
   bodyFontString: "Noto Sans Hatran",
   displayFontString: "Noto Sans",
 );
 
-CustomTheme wTheme = CustomTheme (
+CustomTheme wTheme = CustomTheme(
   name: 'W',
   light_: ThemeData(
     colorScheme: const ColorScheme.light(
-      primary : Color(0xFFFF0000),
-        onPrimary : Color(0xFFFFFFFF),
-        primaryContainer : Color(0xFFFF0000),
-        onPrimaryContainer : Color(0xFFFFFFFF),
-        inversePrimary : Color(0xFF6D0D0B), // Assuming 'inversePrimary' maps to 'doom_primaryInverse'
-        secondary : Color(0xFFFF0000),
-        onSecondary : Color(0xFFFFFFFF),
-        secondaryContainer : Color(0xFFFF0000),
-        onSecondaryContainer : Color(0xFFFFFFFF),
-        tertiary : Color(0xFFBFBFBF),
-        onTertiary : Color(0xFFFF0000),
-        tertiaryContainer : Color(0xFFBFBFBF),
-        onTertiaryContainer : Color(0xFFFF0000),
-        surface : Color(0xFF212121),
-        onSurface : Color(0xFFFFFFFF),
-        onSurfaceVariant : Color(0xFFD84945),
-        surfaceTint : Color(0xFFFF0000), // Assuming 'surfaceTint' maps to 'doom_primary' or similar
-        inverseSurface : Color(0xFF424242),
-        onInverseSurface : Color(0xFFFAFAFA),
-        outline : Color(0xFFFF0000),
-    )
+      primary: Color(0xFFFF0000),
+      onPrimary: Color(0xFFFFFFFF),
+      primaryContainer: Color(0xFFFF0000),
+      onPrimaryContainer: Color(0xFFFFFFFF),
+      inversePrimary: Color(
+        0xFF6D0D0B,
+      ), // Assuming 'inversePrimary' maps to 'doom_primaryInverse'
+      secondary: Color(0xFFFF0000),
+      onSecondary: Color(0xFFFFFFFF),
+      secondaryContainer: Color(0xFFFF0000),
+      onSecondaryContainer: Color(0xFFFFFFFF),
+      tertiary: Color(0xFFBFBFBF),
+      onTertiary: Color(0xFFFF0000),
+      tertiaryContainer: Color(0xFFBFBFBF),
+      onTertiaryContainer: Color(0xFFFF0000),
+      surface: Color(0xFF212121),
+      onSurface: Color(0xFFFFFFFF),
+      onSurfaceVariant: Color(0xFFD84945),
+      surfaceTint: Color(
+        0xFFFF0000,
+      ), // Assuming 'surfaceTint' maps to 'doom_primary' or similar
+      inverseSurface: Color(0xFF424242),
+      onInverseSurface: Color(0xFFFAFAFA),
+      outline: Color(0xFFFF0000),
+    ),
   ),
   dark_: ThemeData(
     colorScheme: const ColorScheme.dark(
-      primary : Color(0xFFFF0000),
-      onPrimary : Color(0xFFFAFAFA),
-      primaryContainer : Color(0xFFFF0000),
-      onPrimaryContainer : Color(0xFFFAFAFA),
-      secondary : Color(0xFFFF0000),
-      onSecondary : Color(0xFFFAFAFA),
-      secondaryContainer : Color(0xFFFF0000),
-      onSecondaryContainer : Color(0xFFFAFAFA),
-      tertiary : Color(0xFFBFBFBF),
-      onTertiary : Color(0xFFFF0000),
-      tertiaryContainer : Color(0xFFBFBFBF),
-      onTertiaryContainer : Color(0xFFFF0000),
-      surface : Color(0xFF1B1B1B),
-      onSurface : Color(0xFFFFFFFF),
-      onSurfaceVariant : Color(0xFFD8FFFF),
-      surfaceTint : Color(0xFFFF0000),
-      inverseSurface : Color(0xFFFAFAFA),
-      onInverseSurface : Color(0xFF313131),
-      outline : Color(0xFFFF0000),
-      inversePrimary : Color(0xFF6D0D0B),
-    )
+      primary: Color(0xFFFF0000),
+      onPrimary: Color(0xFFFAFAFA),
+      primaryContainer: Color(0xFFFF0000),
+      onPrimaryContainer: Color(0xFFFAFAFA),
+      secondary: Color(0xFFFF0000),
+      onSecondary: Color(0xFFFAFAFA),
+      secondaryContainer: Color(0xFFFF0000),
+      onSecondaryContainer: Color(0xFFFAFAFA),
+      tertiary: Color(0xFFBFBFBF),
+      onTertiary: Color(0xFFFF0000),
+      tertiaryContainer: Color(0xFFBFBFBF),
+      onTertiaryContainer: Color(0xFFFF0000),
+      surface: Color(0xFF1B1B1B),
+      onSurface: Color(0xFFFFFFFF),
+      onSurfaceVariant: Color(0xFFD8FFFF),
+      surfaceTint: Color(0xFFFF0000),
+      inverseSurface: Color(0xFFFAFAFA),
+      onInverseSurface: Color(0xFF313131),
+      outline: Color(0xFFFF0000),
+      inversePrimary: Color(0xFF6D0D0B),
+    ),
   ),
   bodyFontString: "Noto Sans Hatran",
   displayFontString: "Noto Sans",
 );
 
-List<CustomTheme> allCustomThemesList = [dynamicTheme, deepOrangeTheme, mizukiTheme, ggTheme, wTheme];
+List<CustomTheme> allCustomThemesList = [
+  dynamicTheme,
+  deepOrangeTheme,
+  mizukiTheme,
+  ggTheme,
+  wTheme,
+];

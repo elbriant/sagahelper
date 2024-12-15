@@ -10,7 +10,13 @@ class ThemePreview extends StatelessWidget {
   final int selfIndex;
   final bool thisSelected;
   final InkWell inkWellChild;
-  const ThemePreview({super.key, required this.selfIndex, required this.previewedTheme, required this.thisSelected, required this.inkWellChild});
+  const ThemePreview({
+    super.key,
+    required this.selfIndex,
+    required this.previewedTheme,
+    required this.thisSelected,
+    required this.inkWellChild,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,16 +26,42 @@ class ThemePreview extends StatelessWidget {
         mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Expanded (
+          Expanded(
             flex: 9,
-            child: Container (
+            child: Container(
               width: 90,
               height: 180,
               clipBehavior: Clip.hardEdge,
-              decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), border: Border.all(strokeAlign: BorderSide.strokeAlignOutside , width: 6, color: thisSelected ? (Theme.of(context).brightness == Brightness.light ? previewedTheme.colorLight.colorScheme.primary : previewedTheme.getDarkMode(context.read<UiProvider>().isUsingPureDark).colorScheme.primary) : ((Theme.of(context).brightness == Brightness.light ? previewedTheme.colorLight.colorScheme.surfaceContainerHighest : previewedTheme.getDarkMode(context.read<UiProvider>().isUsingPureDark).colorScheme.surfaceContainerHighest)))),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  strokeAlign: BorderSide.strokeAlignOutside,
+                  width: 6,
+                  color: thisSelected
+                      ? (Theme.of(context).brightness == Brightness.light
+                          ? previewedTheme.colorLight.colorScheme.primary
+                          : previewedTheme
+                              .getDarkMode(
+                                context.read<UiProvider>().isUsingPureDark,
+                              )
+                              .colorScheme
+                              .primary)
+                      : ((Theme.of(context).brightness == Brightness.light
+                          ? previewedTheme.colorLight.colorScheme.surfaceContainerHighest
+                          : previewedTheme
+                              .getDarkMode(
+                                context.read<UiProvider>().isUsingPureDark,
+                              )
+                              .colorScheme
+                              .surfaceContainerHighest)),
+                ),
+              ),
               child: Stack(
                 children: [
-                  InnerCard(previewedTheme: previewedTheme, thisSelected: thisSelected),
+                  InnerCard(
+                    previewedTheme: previewedTheme,
+                    thisSelected: thisSelected,
+                  ),
                   Material(
                     type: MaterialType.transparency,
                     child: inkWellChild,
@@ -39,7 +71,15 @@ class ThemePreview extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Expanded(flex: 1, child: Text(previewedTheme.name, style: TextStyle(color: Theme.of(context).brightness == Brightness.light ? (previewedTheme.colorLight.colorScheme.secondary) : (previewedTheme.colorDark.colorScheme.secondary))))
+          Expanded(
+            flex: 1,
+            child: Text(
+              previewedTheme.name,
+              style: TextStyle(
+                color: Theme.of(context).brightness == Brightness.light ? (previewedTheme.colorLight.colorScheme.secondary) : (previewedTheme.colorDark.colorScheme.secondary),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -47,27 +87,30 @@ class ThemePreview extends StatelessWidget {
 }
 
 class InnerCard extends StatelessWidget {
-  const InnerCard({super.key, required this.previewedTheme, required this.thisSelected});
+  const InnerCard({
+    super.key,
+    required this.previewedTheme,
+    required this.thisSelected,
+  });
   final CustomTheme previewedTheme;
   final bool thisSelected;
 
   @override
   Widget build(BuildContext context) {
-    
-  bool getCurrentBrightness () {
-    return Theme.of(context).brightness == Brightness.light;
-  }
+    bool getCurrentBrightness() {
+      return Theme.of(context).brightness == Brightness.light;
+    }
 
-  bool usingPureDark () {
-    return context.read<UiProvider>().isUsingPureDark;
-  }
+    bool usingPureDark() {
+      return context.read<UiProvider>().isUsingPureDark;
+    }
 
-  bool usingTraslucent () {
-    return context.read<UiProvider>().useTranslucentUi;
-  }
+    bool usingTraslucent() {
+      return context.read<UiProvider>().useTranslucentUi;
+    }
 
-  ColorScheme lightColorScheme = previewedTheme.colorLight.colorScheme;
-  ColorScheme darkColorScheme = previewedTheme.getDarkMode(usingPureDark()).colorScheme;
+    ColorScheme lightColorScheme = previewedTheme.colorLight.colorScheme;
+    ColorScheme darkColorScheme = previewedTheme.getDarkMode(usingPureDark()).colorScheme;
 
     return Flex(
       direction: Axis.vertical,
@@ -82,15 +125,25 @@ class InnerCard extends StatelessWidget {
                 color: getCurrentBrightness() ? (lightColorScheme.surface) : (darkColorScheme.surface),
               ),
               Container(
-                color: getCurrentBrightness() ? (usingTraslucent() ? lightColorScheme.surfaceContainer.withOpacity(0.5) : lightColorScheme.surfaceContainer) : (usingTraslucent() ? darkColorScheme.surfaceContainer.withOpacity(0.5) : darkColorScheme.surfaceContainer) ,
+                color: getCurrentBrightness() ? (usingTraslucent() ? lightColorScheme.surfaceContainer.withOpacity(0.5) : lightColorScheme.surfaceContainer) : (usingTraslucent() ? darkColorScheme.surfaceContainer.withOpacity(0.5) : darkColorScheme.surfaceContainer),
                 child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     const SizedBox(width: 12),
-                    CustomPaint(size: const Size(40, 5), painter: TitleLine(color: getCurrentBrightness() ? (lightColorScheme.onPrimaryContainer) : (darkColorScheme.onPrimaryContainer)),
+                    CustomPaint(
+                      size: const Size(40, 5),
+                      painter: TitleLine(
+                        color: getCurrentBrightness() ? (lightColorScheme.onPrimaryContainer) : (darkColorScheme.onPrimaryContainer),
+                      ),
                     ),
                     const SizedBox(width: 5),
-                    thisSelected ? Icon(Icons.check_circle, size: 20, color: getCurrentBrightness() ? (lightColorScheme.primary) : (darkColorScheme.primary)) : Container()
+                    thisSelected
+                        ? Icon(
+                            Icons.check_circle,
+                            size: 20,
+                            color: getCurrentBrightness() ? (lightColorScheme.primary) : (darkColorScheme.primary),
+                          )
+                        : Container(),
                   ],
                 ),
               ),
@@ -107,20 +160,38 @@ class InnerCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: CustomPaint(size: const Size(double.maxFinite, 5), painter: TitleLine(color: getCurrentBrightness() ? (lightColorScheme.primary) : (darkColorScheme.primary))),
+                  child: CustomPaint(
+                    size: const Size(double.maxFinite, 5),
+                    painter: TitleLine(
+                      color: getCurrentBrightness() ? (lightColorScheme.primary) : (darkColorScheme.primary),
+                    ),
+                  ),
                 ),
                 Container(
-                  decoration: BoxDecoration(borderRadius: BorderRadius.circular(8.0), color: getCurrentBrightness() ? (lightColorScheme.primaryContainer) : (darkColorScheme.primaryContainer)),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8.0),
+                    color: getCurrentBrightness() ? (lightColorScheme.primaryContainer) : (darkColorScheme.primaryContainer),
+                  ),
                   margin: const EdgeInsets.fromLTRB(6, 2, 6, 10),
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: CustomPaint(size: const Size(double.maxFinite, 5), painter: TitleLine(color: getCurrentBrightness() ? (lightColorScheme.onPrimaryContainer) : (darkColorScheme.onPrimaryContainer))),
+                    child: CustomPaint(
+                      size: const Size(double.maxFinite, 5),
+                      painter: TitleLine(
+                        color: getCurrentBrightness() ? (lightColorScheme.onPrimaryContainer) : (darkColorScheme.onPrimaryContainer),
+                      ),
+                    ),
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                  child: CustomPaint(size: const Size(double.maxFinite, 5), painter: TitleLine(color: getCurrentBrightness() ? (lightColorScheme.onSurface) : (darkColorScheme.onSurface))),
-                )
+                  child: CustomPaint(
+                    size: const Size(double.maxFinite, 5),
+                    painter: TitleLine(
+                      color: getCurrentBrightness() ? (lightColorScheme.onSurface) : (darkColorScheme.onSurface),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -143,28 +214,34 @@ class InnerCard extends StatelessWidget {
                       flex: 3,
                       child: Container(
                         margin: const EdgeInsets.fromLTRB(8, 2, 0, 2),
-                        decoration: BoxDecoration(shape: BoxShape.circle, color: getCurrentBrightness() ? (lightColorScheme.primary) : (darkColorScheme.primary))
-                      )
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: getCurrentBrightness() ? (lightColorScheme.primary) : (darkColorScheme.primary),
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 6),
                     Expanded(
                       flex: 7,
                       child: Container(
                         margin: const EdgeInsets.fromLTRB(0, 8, 8, 8),
-                        decoration: BoxDecoration(borderRadius: BorderRadius.circular(16), shape: BoxShape.rectangle, color: getCurrentBrightness() ? (lightColorScheme.outline) : (darkColorScheme.outline))
-                      )
-                    )
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          shape: BoxShape.rectangle,
+                          color: getCurrentBrightness() ? (lightColorScheme.outline) : (darkColorScheme.outline),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
             ],
           ),
-        )
+        ),
       ],
     );
   }
 }
-
 
 class TitleLine extends CustomPainter {
   const TitleLine({this.color = Colors.black});
@@ -179,9 +256,9 @@ class TitleLine extends CustomPainter {
 
     Path path = Path();
     // why the fk i wasted 2 hours doing this
-    for (double n = 0.5; n < size.width; n+=0.5) {
+    for (double n = 0.5; n < size.width; n += 0.5) {
       var x = n;
-      var y = size.height / 2 + -((sqrt(x*4)/pow(x, 2))*sin(x)*x)*3 ;
+      var y = size.height / 2 + -((sqrt(x * 4) / pow(x, 2)) * sin(x) * x) * 3;
       path.lineTo(x, y);
     }
     canvas.drawPath(path, paint);

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sagahelper/providers/ui_provider.dart';
 
-
 class TranslucentWidget extends StatelessWidget {
   final Widget child;
   final double sigma;
@@ -15,7 +14,7 @@ class TranslucentWidget extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
         blendMode: BlendMode.src,
-        child: child
+        child: child,
       ),
     );
   }
@@ -27,10 +26,17 @@ class SystemNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (context.read<UiProvider>().useTranslucentUi) {
-      return TranslucentWidget(child: Container(height: MediaQuery.paddingOf(context).bottom, color: Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5)));
+      return TranslucentWidget(
+        child: Container(
+          height: MediaQuery.paddingOf(context).bottom,
+          color: Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5),
+        ),
+      );
     } else {
-      return Container(height: MediaQuery.paddingOf(context).bottom, color: Theme.of(context).colorScheme.surfaceContainer);
+      return Container(
+        height: MediaQuery.paddingOf(context).bottom,
+        color: Theme.of(context).colorScheme.surfaceContainer,
+      );
     }
-    
   }
 }

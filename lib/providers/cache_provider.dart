@@ -14,16 +14,18 @@ class CacheProvider extends ChangeNotifier {
   Map<String, dynamic>? cachedSkillTable;
 
   bool get isCached {
-    String server = NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString;
-    String version = NavigationService.navigatorKey.currentContext!.read<ServerProvider>().versionOf(server);
+    String server = NavigationService.navigatorKey.currentContext!
+        .read<SettingsProvider>()
+        .currentServerString;
+    String version = NavigationService.navigatorKey.currentContext!
+        .read<ServerProvider>()
+        .versionOf(server);
 
-    if (
-      cachedListOperator != null
-      && cachedListOperatorServer == server
-      && cachedListOperatorVersion == version
-      && cachedRangeTable != null
-      && cachedSkillTable != null
-    ) {
+    if (cachedListOperator != null &&
+        cachedListOperatorServer == server &&
+        cachedListOperatorVersion == version &&
+        cachedRangeTable != null &&
+        cachedSkillTable != null) {
       return true;
     } else {
       return false;

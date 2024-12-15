@@ -1,12 +1,59 @@
 import 'package:just_audio/just_audio.dart';
 import 'package:provider/provider.dart';
+import 'package:sagahelper/global_data.dart';
 import 'package:sagahelper/providers/styles_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:sagahelper/components/utils.dart';
-import 'package:sagahelper/routes/operator_info.dart';
+import 'package:sagahelper/utils/extensions.dart';
 import 'package:sagahelper/providers/ui_provider.dart';
 import 'package:styled_text/widgets/styled_text.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
+import 'package:rxdart/rxdart.dart';
+
+class AudioPlayerManager {
+  final player = AudioPlayer();
+  Stream<DurationState>? durationState;
+
+  void init(String url) async {
+    durationState = Rx.combineLatest2<Duration, PlaybackEvent, DurationState>(
+      player.positionStream,
+      player.playbackEventStream,
+      (position, playbackEvent) => DurationState(
+        progress: position,
+        buffered: playbackEvent.bufferedPosition,
+        total: playbackEvent.duration,
+      ),
+    );
+    try {
+      await player.setUrl(url);
+      player.play();
+    } on PlayerInterruptedException catch (e) {
+      // This call was interrupted since another audio source was loaded or the
+      // player was stopped or disposed before this audio source could complete
+      // loading.
+      ShowSnackBar.showSnackBar("Connection aborted: ${e.message}");
+    } catch (e) {
+      // Fallback for all other errors
+      ShowSnackBar.showSnackBar('An error occured: $e');
+    }
+  }
+
+  void play() {
+    player.play();
+  }
+
+  void pause() {
+    player.pause();
+  }
+
+  void stop() {
+    player.stop();
+  }
+
+  void dispose() async {
+    await player.stop();
+    player.dispose();
+  }
+}
 
 class DurationState {
   const DurationState({
@@ -37,35 +84,58 @@ class DialogBox extends StatelessWidget {
               const BoxShadow(
                 color: Color(0x80000000),
                 blurStyle: BlurStyle.outer,
-                blurRadius: 12.0
-              )
+                blurRadius: 12.0,
+              ),
             ],
-            color: combineWithTheme ? Color.lerp(Theme.of(context).brightness == Brightness.light? const Color.fromARGB(166, 85, 85, 85) : const Color.fromARGB(166, 0, 0, 0), Theme.of(context).colorScheme.primaryContainer, 0.35) : Theme.of(context).brightness == Brightness.light? const Color.fromARGB(166, 85, 85, 85) : const Color(0xa6000000)
+            color: combineWithTheme
+                ? Color.lerp(
+                    Theme.of(context).brightness == Brightness.light ? const Color.fromARGB(166, 85, 85, 85) : const Color.fromARGB(166, 0, 0, 0),
+                    Theme.of(context).colorScheme.primaryContainer,
+                    0.35,
+                  )
+                : Theme.of(context).brightness == Brightness.light
+                    ? const Color.fromARGB(166, 85, 85, 85)
+                    : const Color(0xa6000000),
           ),
           child: StyledText(
             text: body,
-            style: const TextStyle(color: Colors.white, fontFamily: 'Noto Sans', fontWeight: FontWeight.w700),
-            tags: context.read<StyleProvider>().tagsAsHtml(context: context),
-          )
-        ),
-        title != null ? Positioned(
-          top: 0,
-          left: 0,
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0),
-            decoration: const BoxDecoration(
-              color: Color(0xFF9e9e9e),
-              boxShadow: [
-                BoxShadow(
-                color: Color(0x80000000),
-                offset: Offset(0, 3),
-                blurRadius: 6.0
-              )
-              ],
+            style: const TextStyle(
+              color: Colors.white,
+              fontFamily: 'Noto Sans',
+              fontWeight: FontWeight.w700,
             ),
-            child: Text(title!.padRight(36), style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold), ),
-          )
-        ) : const SizedBox()
+            tags: context.read<StyleProvider>().tagsAsHtml(context: context),
+          ),
+        ),
+        title != null
+            ? Positioned(
+                top: 0,
+                left: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 2.0,
+                    horizontal: 8.0,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF9e9e9e),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0x80000000),
+                        offset: Offset(0, 3),
+                        blurRadius: 6.0,
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    title!.padRight(36),
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              )
+            : const SizedBox(),
       ],
     );
   }
@@ -75,7 +145,12 @@ class InkWellDialogBox extends StatelessWidget {
   final String? title;
   final String body;
   final Function()? inkwellFun;
-  const InkWellDialogBox({super.key, this.title, required this.body, this.inkwellFun});
+  const InkWellDialogBox({
+    super.key,
+    this.title,
+    required this.body,
+    this.inkwellFun,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -93,46 +168,78 @@ class InkWellDialogBox extends StatelessWidget {
                   const BoxShadow(
                     color: Color(0x80000000),
                     blurStyle: BlurStyle.outer,
-                    blurRadius: 12.0
-                  )
+                    blurRadius: 12.0,
+                  ),
                 ],
-                color: combineWithTheme ? Color.lerp(Theme.of(context).brightness == Brightness.light? const Color.fromARGB(166, 85, 85, 85) : const Color.fromARGB(166, 0, 0, 0), Theme.of(context).colorScheme.primaryContainer, 0.65) : Theme.of(context).brightness == Brightness.light? const Color.fromARGB(166, 85, 85, 85) : const Color(0xa6000000)
+                color: combineWithTheme
+                    ? Color.lerp(
+                        Theme.of(context).brightness == Brightness.light ? const Color.fromARGB(166, 85, 85, 85) : const Color.fromARGB(166, 0, 0, 0),
+                        Theme.of(context).colorScheme.primaryContainer,
+                        0.65,
+                      )
+                    : Theme.of(context).brightness == Brightness.light
+                        ? const Color.fromARGB(166, 85, 85, 85)
+                        : const Color(0xa6000000),
               ),
               child: Row(
                 children: [
                   Expanded(
                     child: StyledText(
                       text: body,
-                      style: const TextStyle(color: Colors.white, fontFamily: 'Noto Sans', fontWeight: FontWeight.w700),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontFamily: 'Noto Sans',
+                        fontWeight: FontWeight.w700,
+                      ),
                       tags: context.read<StyleProvider>().tagsAsHtml(context: context),
                     ),
                   ),
                   Center(
-                      child: Icon(Icons.play_arrow, color: Theme.of(context).colorScheme.primary, size: 32)
+                    child: Icon(
+                      Icons.play_arrow,
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 32,
                     ),
+                  ),
                 ],
-              )
+              ),
             ),
-            title != null ? Positioned(
-              top: 0,
-              left: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF9e9e9e),
-                  boxShadow: [
-                    BoxShadow(
-                    color: Color(0x80000000),
-                    offset: Offset(0, 3),
-                    blurRadius: 6.0
+            title != null
+                ? Positioned(
+                    top: 0,
+                    left: 0,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 2.0,
+                        horizontal: 8.0,
+                      ),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF9e9e9e),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Color(0x80000000),
+                            offset: Offset(0, 3),
+                            blurRadius: 6.0,
+                          ),
+                        ],
+                      ),
+                      // ignore: deprecated_member_use
+                      child: Text(
+                        title!,
+                        style: const TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textScaler: title!.length > 42
+                            ? TextScaler.linear(
+                                // ignore: deprecated_member_use
+                                MediaQuery.textScalerOf(context).textScaleFactor - ((title!.length - 42) / 100),
+                              )
+                            : null,
+                      ),
+                    ),
                   )
-                  ],
-                ),
-                // ignore: deprecated_member_use
-                child: Text(title!, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold), textScaler: title!.length > 42 ? TextScaler.linear(MediaQuery.textScalerOf(context).textScaleFactor-((title!.length-42)/100)) : null),
-              )
-            ) : const SizedBox()
-            
+                : const SizedBox(),
           ],
         ),
         Positioned.fill(
@@ -142,7 +249,7 @@ class InkWellDialogBox extends StatelessWidget {
               onTap: inkwellFun,
             ),
           ),
-        )
+        ),
       ],
     );
   }
@@ -154,7 +261,14 @@ class AudioDialogBox extends StatelessWidget {
   final Function()? fun;
   final bool isPlaying;
   final AudioPlayerManager manager;
-  const AudioDialogBox({super.key, this.title, required this.body, this.fun, this.isPlaying = false, required this.manager});
+  const AudioDialogBox({
+    super.key,
+    this.title,
+    required this.body,
+    this.fun,
+    this.isPlaying = false,
+    required this.manager,
+  });
 
   StreamBuilder<DurationState> _progressBar() {
     return StreamBuilder<DurationState>(
@@ -197,10 +311,18 @@ class AudioDialogBox extends StatelessWidget {
               const BoxShadow(
                 color: Color(0x80000000),
                 blurStyle: BlurStyle.outer,
-                blurRadius: 12.0
-              )
+                blurRadius: 12.0,
+              ),
             ],
-            color: combineWithTheme ? Color.lerp(Theme.of(context).brightness == Brightness.light? const Color.fromARGB(166, 85, 85, 85) : const Color.fromARGB(166, 0, 0, 0), Theme.of(context).colorScheme.primaryContainer, 0.35) : Theme.of(context).brightness == Brightness.light? const Color.fromARGB(166, 85, 85, 85) : const Color(0xa6000000)
+            color: combineWithTheme
+                ? Color.lerp(
+                    Theme.of(context).brightness == Brightness.light ? const Color.fromARGB(166, 85, 85, 85) : const Color.fromARGB(166, 0, 0, 0),
+                    Theme.of(context).colorScheme.primaryContainer,
+                    0.35,
+                  )
+                : Theme.of(context).brightness == Brightness.light
+                    ? const Color.fromARGB(166, 85, 85, 85)
+                    : const Color(0xa6000000),
           ),
           child: Stack(
             children: [
@@ -209,36 +331,59 @@ class AudioDialogBox extends StatelessWidget {
                   Expanded(
                     flex: 7,
                     child: Padding(
-                      padding: isPlaying? const EdgeInsets.fromLTRB(16.0, 16.0, 0, 16.0) : const EdgeInsets.all(16.0),
+                      padding: isPlaying ? const EdgeInsets.fromLTRB(16.0, 16.0, 0, 16.0) : const EdgeInsets.all(16.0),
                       child: StyledText(
                         text: body,
-                        style: const TextStyle(color: Colors.white, fontFamily: 'Noto Sans', fontWeight: FontWeight.w700),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontFamily: 'Noto Sans',
+                          fontWeight: FontWeight.w700,
+                        ),
                         tags: context.read<StyleProvider>().tagsAsHtml(context: context),
                       ),
                     ),
                   ),
-                  isPlaying? Expanded(
-                    flex: 2,
-                    child: Center(
-                      child: StreamBuilder<PlayerState>(
-                        stream: manager.player.playerStateStream,
-                        builder: (context, snapshot) {
-                          final playerState = snapshot.data;
-                          final processingState = playerState?.processingState;
-                          final playing = playerState?.playing;
-                          if (processingState == ProcessingState.loading || processingState == ProcessingState.buffering) {
-                            return SizedBox.square(dimension: 24, child: CircularProgressIndicator(color: Theme.of(context).colorScheme.primary));
-                          } else if (playing != true) {
-                            return Icon(Icons.play_arrow, color: Theme.of(context).colorScheme.primary, size: 32);
-                          } else if (processingState != ProcessingState.completed) {
-                            return Icon(Icons.pause, color: Theme.of(context).colorScheme.primary, size: 32);
-                          } else {
-                            return Icon(Icons.replay, color: Theme.of(context).colorScheme.primary, size: 32);
-                          }
-                        },
-                      )
-                    ),
-                  ) : null
+                  isPlaying
+                      ? Expanded(
+                          flex: 2,
+                          child: Center(
+                            child: StreamBuilder<PlayerState>(
+                              stream: manager.player.playerStateStream,
+                              builder: (context, snapshot) {
+                                final playerState = snapshot.data;
+                                final processingState = playerState?.processingState;
+                                final playing = playerState?.playing;
+                                if (processingState == ProcessingState.loading || processingState == ProcessingState.buffering) {
+                                  return SizedBox.square(
+                                    dimension: 24,
+                                    child: CircularProgressIndicator(
+                                      color: Theme.of(context).colorScheme.primary,
+                                    ),
+                                  );
+                                } else if (playing != true) {
+                                  return Icon(
+                                    Icons.play_arrow,
+                                    color: Theme.of(context).colorScheme.primary,
+                                    size: 32,
+                                  );
+                                } else if (processingState != ProcessingState.completed) {
+                                  return Icon(
+                                    Icons.pause,
+                                    color: Theme.of(context).colorScheme.primary,
+                                    size: 32,
+                                  );
+                                } else {
+                                  return Icon(
+                                    Icons.replay,
+                                    color: Theme.of(context).colorScheme.primary,
+                                    size: 32,
+                                  );
+                                }
+                              },
+                            ),
+                          ),
+                        )
+                      : null,
                 ].nullParser(),
               ),
               Positioned.fill(
@@ -250,32 +395,45 @@ class AudioDialogBox extends StatelessWidget {
                 ),
               ),
             ],
-          )
+          ),
         ),
-        title != null ? Positioned(
-          top: 0,
-          left: 0,
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 8.0),
-            decoration: const BoxDecoration(
-              color: Color(0xFF9e9e9e),
-              boxShadow: [
-                BoxShadow(
-                color: Color(0x80000000),
-                offset: Offset(0, 3),
-                blurRadius: 6.0
+        title != null
+            ? Positioned(
+                top: 0,
+                left: 0,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 2.0,
+                    horizontal: 8.0,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF9e9e9e),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0x80000000),
+                        offset: Offset(0, 3),
+                        blurRadius: 6.0,
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    title!.padRight(36),
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               )
-              ],
-            ),
-            child: Text(title!.padRight(36), style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-          )
-        ) : const SizedBox(),
-        isPlaying? Positioned(
-          bottom: 2.0,
-          right: 0,
-          left: 4.0,
-          child:  _progressBar()
-        ) : null,
+            : const SizedBox(),
+        isPlaying
+            ? Positioned(
+                bottom: 2.0,
+                right: 0,
+                left: 4.0,
+                child: _progressBar(),
+              )
+            : null,
       ].nullParser(),
     );
   }

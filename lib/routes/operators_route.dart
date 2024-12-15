@@ -13,16 +13,43 @@ import 'package:provider/provider.dart';
 import 'package:sagahelper/providers/ui_provider.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 
-const List<String> professionList = ['caster', 'medic', 'pioneer', 'sniper', 'special', 'support', 'tank', 'warrior'];
+const List<String> professionList = [
+  'caster',
+  'medic',
+  'pioneer',
+  'sniper',
+  'special',
+  'support',
+  'tank',
+  'warrior',
+];
 
 //TODO complete this for filters
-const List<String> subProfessionList = ['agent', 'alchemist', 'aoesniper', 'artsfghter', 'artsprotector', 'bard', 'bearer', 'blastcaster', 'blessing', 'bombarder', 'centurion', 'chain', 'chainhealer', 'charger', ''];
+const List<String> subProfessionList = [
+  'agent',
+  'alchemist',
+  'aoesniper',
+  'artsfghter',
+  'artsprotector',
+  'bard',
+  'bearer',
+  'blastcaster',
+  'blessing',
+  'bombarder',
+  'centurion',
+  'chain',
+  'chainhealer',
+  'charger',
+  '',
+];
 
 Future<List<Operator>> fetchOperators() async {
   var cacheProv = NavigationService.navigatorKey.currentContext!.read<CacheProvider>();
   String server = NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString;
   String version = NavigationService.navigatorKey.currentContext!.read<ServerProvider>().versionOf(server);
-  if (cacheProv.isCached) return Future<List<Operator>>.value(cacheProv.cachedListOperator);
+  if (cacheProv.isCached) {
+    return Future<List<Operator>>.value(cacheProv.cachedListOperator);
+  }
 
   List<String> files = [
     '/excel/character_table.json',
@@ -30,7 +57,7 @@ Future<List<Operator>> fetchOperators() async {
     '/excel/charword_table.json',
     '/excel/skin_table.json',
     '/excel/range_table.json',
-    '/excel/skill_table.json'
+    '/excel/skill_table.json',
   ];
   // 0 operators
   // 1 lore
@@ -40,7 +67,10 @@ Future<List<Operator>> fetchOperators() async {
   // 5 skills details
 
   try {
-    await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().existFiles(NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString, files);
+    await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().existFiles(
+          NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString,
+          files,
+        );
   } catch (e) {
     throw const FormatException('Update gamedata');
   }
@@ -48,7 +78,9 @@ Future<List<Operator>> fetchOperators() async {
   List<String> response = [];
 
   for (String filepath in files) {
-    response.add(await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().getFile(filepath, server));
+    response.add(
+      await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().getFile(filepath, server),
+    );
   }
 
   // Use the compute function to run parsing in a separate isolate.
@@ -61,7 +93,6 @@ Future<List<Operator>> fetchOperators() async {
   cacheProv.cachedSkillTable = jsonDecode(response[5]) as Map<String, dynamic>;
 
   return completedList;
-  
 }
 
 List<Operator> parseOperators(List<String> response) {
@@ -72,16 +103,20 @@ List<Operator> parseOperators(List<String> response) {
 
   List<Operator> opsLists = [];
   operatorsparsed.forEach((key, value) {
-    if (
-      (value['subProfessionId'] as String).startsWith('notchar') ||
-      key.startsWith('trap') ||
-      key.startsWith('token') ||
-      value['isNotObtainable'] == true) {
+    if ((value['subProfessionId'] as String).startsWith('notchar') || key.startsWith('trap') || key.startsWith('token') || value['isNotObtainable'] == true) {
     } else {
-      opsLists.add(Operator.fromJson(key, value, loreInfo['handbookDict'], voiceInfo, skinInfo['charSkins']));
+      opsLists.add(
+        Operator.fromJson(
+          key,
+          value,
+          loreInfo['handbookDict'],
+          voiceInfo,
+          skinInfo['charSkins'],
+        ),
+      );
     }
   });
-  
+
   return opsLists;
 }
 
@@ -116,137 +151,192 @@ class _OperatorsPageState extends State<OperatorsPage> {
       extendBody: false,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: isSearching ? TextField(
-          autofocus: true,
-          textAlignVertical: TextAlignVertical.center,
-          controller: _textController,
-          decoration: InputDecoration(
-            prefixIcon: IconButton(
-                icon: const Icon(Icons.search_off), 
-                onPressed: () {
-                  _textController.text = "";
-                  filterOperatorListByText("");
-                  setState(() {
-                    isSearching = false;
-                  });
-                }),
-            hintText: 'Search...',
-            border: const UnderlineInputBorder(),
-          ),
-          onChanged: (value) => filterOperatorListByText(value),
-          onSubmitted: (value) => filterOperatorListByText(value),
-        ) : const Text('Operators'),
-        flexibleSpace: context.read<UiProvider>().useTranslucentUi == true ? TranslucentWidget(sigma: 3,child: Container(color: Colors.transparent)) : null,
+        title: isSearching
+            ? TextField(
+                autofocus: true,
+                textAlignVertical: TextAlignVertical.center,
+                controller: _textController,
+                decoration: InputDecoration(
+                  prefixIcon: IconButton(
+                    icon: const Icon(Icons.search_off),
+                    onPressed: () {
+                      _textController.text = "";
+                      filterOperatorListByText("");
+                      setState(() {
+                        isSearching = false;
+                      });
+                    },
+                  ),
+                  hintText: 'Search...',
+                  border: const UnderlineInputBorder(),
+                ),
+                onChanged: (value) => filterOperatorListByText(value),
+                onSubmitted: (value) => filterOperatorListByText(value),
+              )
+            : const Text('Operators'),
+        flexibleSpace: context.read<UiProvider>().useTranslucentUi == true
+            ? TranslucentWidget(
+                sigma: 3,
+                child: Container(color: Colors.transparent),
+              )
+            : null,
         backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
         actions: [
-          isSearching ? Container() : IconButton(onPressed: () => setState((){isSearching = true;}), icon: const Icon(Icons.search)),
-          IconButton(onPressed: () => showFilters(context), icon: const Icon(Icons.filter_list)),
+          isSearching
+              ? Container()
+              : IconButton(
+                  onPressed: () => setState(() {
+                    isSearching = true;
+                  }),
+                  icon: const Icon(Icons.search),
+                ),
+          IconButton(
+            onPressed: () => showFilters(context),
+            icon: const Icon(Icons.filter_list),
+          ),
           MenuAnchor(
-              menuChildren: const [],
-              builder: (BuildContext context, MenuController controller,
-                  Widget? child) {
-                return IconButton(
-                  onPressed: () {
-                    if (controller.isOpen) {
-                      controller.close();
-                    } else {
-                      controller.open();
-                    }
-                  },
-                  icon: const Icon(Icons.more_vert),
-                  tooltip: 'Show menu',
-                );
-              }),
+            menuChildren: const [],
+            builder: (
+              BuildContext context,
+              MenuController controller,
+              Widget? child,
+            ) {
+              return IconButton(
+                onPressed: () {
+                  if (controller.isOpen) {
+                    controller.close();
+                  } else {
+                    controller.open();
+                  }
+                },
+                icon: const Icon(Icons.more_vert),
+                tooltip: 'Show menu',
+              );
+            },
+          ),
         ],
       ),
       body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: FutureBuilder<List<Operator>>(
-            future: futureOperatorList,
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {  // --------------- Error
-                if (snapshot.error is FormatException) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Image.asset('assets/gif/saga_err.gif', width: 180),
-                        const SizedBox(height: 12),
-                        Text((snapshot.error as FormatException).message, style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w500), textScaler: const TextScaler.linear(1.10),)
-                      ],
-                    )
-                  );
-                } else {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Image.asset('assets/gif/saga_err.gif', width: 180),
-                        const SizedBox(height: 12),
-                        Text('An unknown error has ocurred!\n${snapshot.error}', style: TextStyle(color: Theme.of(context).colorScheme.error, fontWeight: FontWeight.w500), textScaler: const TextScaler.linear(1.10),)
-                      ],
-                    )
-                  );
-                }
-              } else if (snapshot.hasData) {
-                finishedFutureOperatorList = snapshot.data!;
-
-                if (!sorted) {
-                  // sorting
-                  // by letters
-                  //finishedFutureOperatorList.sort((a,b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-                  // by rarity
-                  finishedFutureOperatorList.sort((a,b) => a.rarity.compareTo(b.rarity));
-                  finishedFutureOperatorList = finishedFutureOperatorList.reversed.toList();
-
-                  sortedOperatorList = finishedFutureOperatorList;
-                  sorted = true;
-                }
-                if (isSearching && filteredOperatorList.isEmpty) {
-                  if (searchString == '') {
-                    return OperatorListView(operators: sortedOperatorList);
-                  } else {
-                    return Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset('assets/gif/saga_bug.gif', width: 180),
-                          const SizedBox(height: 12),
-                          Text('operator not found', style: TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer, fontWeight: FontWeight.w600), textScaler: const TextScaler.linear(1.2),)
-                        ],
-                      )
-                    );
-                  }
-                } else if (isSearching && filteredOperatorList.isNotEmpty) {
-                  return OperatorListView(operators: filteredOperatorList);
-                } else {
-                  return OperatorListView(operators: sortedOperatorList);
-                }
-              } else {
-                return SafeArea( // ----------------- loading
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: FutureBuilder<List<Operator>>(
+          future: futureOperatorList,
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              // --------------- Error
+              if (snapshot.error is FormatException) {
+                return Center(
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const LinearProgressIndicator(),
-                      Expanded(
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Image.asset('assets/gif/saga_loading.gif', width: 180),
-                              const SizedBox(height: 12),
-                              Text('Loading Operators', style: TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer, fontWeight: FontWeight.w600), textScaler: const TextScaler.linear(1.3),)
-                            ],
-                          )
-                        )
-                      )
+                      Image.asset('assets/gif/saga_err.gif', width: 180),
+                      const SizedBox(height: 12),
+                      Text(
+                        (snapshot.error as FormatException).message,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textScaler: const TextScaler.linear(1.10),
+                      ),
+                    ],
+                  ),
+                );
+              } else {
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset('assets/gif/saga_err.gif', width: 180),
+                      const SizedBox(height: 12),
+                      Text(
+                        'An unknown error has ocurred!\n${snapshot.error}',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textScaler: const TextScaler.linear(1.10),
+                      ),
                     ],
                   ),
                 );
               }
-            },
-          ),
+            } else if (snapshot.hasData) {
+              finishedFutureOperatorList = snapshot.data!;
+
+              if (!sorted) {
+                // sorting
+                // by letters
+                //finishedFutureOperatorList.sort((a,b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+                // by rarity
+                finishedFutureOperatorList.sort((a, b) => a.rarity.compareTo(b.rarity));
+                finishedFutureOperatorList = finishedFutureOperatorList.reversed.toList();
+
+                sortedOperatorList = finishedFutureOperatorList;
+                sorted = true;
+              }
+              if (isSearching && filteredOperatorList.isEmpty) {
+                if (searchString == '') {
+                  return OperatorListView(operators: sortedOperatorList);
+                } else {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset('assets/gif/saga_bug.gif', width: 180),
+                        const SizedBox(height: 12),
+                        Text(
+                          'operator not found',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onPrimaryContainer,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textScaler: const TextScaler.linear(1.2),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+              } else if (isSearching && filteredOperatorList.isNotEmpty) {
+                return OperatorListView(operators: filteredOperatorList);
+              } else {
+                return OperatorListView(operators: sortedOperatorList);
+              }
+            } else {
+              return SafeArea(
+                // ----------------- loading
+                child: Column(
+                  children: [
+                    const LinearProgressIndicator(),
+                    Expanded(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Image.asset(
+                              'assets/gif/saga_loading.gif',
+                              width: 180,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Loading Operators',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textScaler: const TextScaler.linear(1.3),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+          },
         ),
+      ),
     );
   }
 
@@ -254,7 +344,13 @@ class _OperatorsPageState extends State<OperatorsPage> {
     searchString = searchText;
     if (searchText != "") {
       setState(() {
-        filteredOperatorList = sortedOperatorList.where((logObj) => logObj.names.any((name) => name.toLowerCase().contains(searchText.toLowerCase()))).toList();
+        filteredOperatorList = sortedOperatorList
+            .where(
+              (logObj) => logObj.names.any(
+                (name) => name.toLowerCase().contains(searchText.toLowerCase()),
+              ),
+            )
+            .toList();
       });
     } else {
       setState(() {
@@ -265,14 +361,21 @@ class _OperatorsPageState extends State<OperatorsPage> {
 
   void showFilters(BuildContext context) {
     showModalBottomSheet<void>(
-      constraints: BoxConstraints.loose(Size(MediaQuery.of(context).size.width, MediaQuery.of(context).size.height * 0.75)),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(45))),
+      constraints: BoxConstraints.loose(
+        Size(
+          MediaQuery.of(context).size.width,
+          MediaQuery.of(context).size.height * 0.75,
+        ),
+      ),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(45)),
+      ),
       showDragHandle: false,
       clipBehavior: Clip.antiAlias,
       context: context,
       builder: (BuildContext context) {
         return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setModalState){
+          builder: (BuildContext context, StateSetter setModalState) {
             final readSearchProvider = context.read<SettingsProvider>();
 
             return DefaultTabController(
@@ -292,60 +395,102 @@ class _OperatorsPageState extends State<OperatorsPage> {
                     AutoScaleTabBarView(
                       children: <Widget>[
                         Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 12.0),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 4.0,
+                            horizontal: 12.0,
+                          ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const ListTile(title: Text('view mode')),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                                child: Wrap (
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24.0,
+                                ),
+                                child: Wrap(
                                   spacing: 10,
                                   children: [
-                                    ChoiceChip(label: const Text('Avatar'), selected: readSearchProvider.getDisplayChip('avatar'), onSelected: (_) => setModalState(() => readSearchProvider.setDisplayChip('avatar'))),
-                                    ChoiceChip(label: const Text('Portrait'), selected: readSearchProvider.getDisplayChip('portrait'), onSelected: (_) => setModalState(() => readSearchProvider.setDisplayChip('portrait'))),
+                                    ChoiceChip(
+                                      label: const Text('Avatar'),
+                                      selected: readSearchProvider.getDisplayChip('avatar'),
+                                      onSelected: (_) => setModalState(
+                                        () => readSearchProvider.setDisplayChip('avatar'),
+                                      ),
+                                    ),
+                                    ChoiceChip(
+                                      label: const Text('Portrait'),
+                                      selected: readSearchProvider.getDisplayChip('portrait'),
+                                      onSelected: (_) => setModalState(
+                                        () => readSearchProvider.setDisplayChip('portrait'),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
                               Row(
                                 mainAxisSize: MainAxisSize.max,
                                 children: [
-                                  const Expanded(flex: 3, child: Center(child: Text('row show'))),
-                                  Expanded(flex: 7, child: Center(child: Slider(min: 2, max: 5, divisions: 3, value: readSearchProvider.operatorSearchDelegate.toDouble(), label: readSearchProvider.operatorSearchDelegate.toString(), onChanged: (value) => setModalState(() => readSearchProvider.operatorSearchDelegate = value.round().toInt()), allowedInteraction: SliderInteraction.tapAndSlide)))
+                                  const Expanded(
+                                    flex: 3,
+                                    child: Center(child: Text('row show')),
+                                  ),
+                                  Expanded(
+                                    flex: 7,
+                                    child: Center(
+                                      child: Slider(
+                                        min: 2,
+                                        max: 5,
+                                        divisions: 3,
+                                        value: readSearchProvider.operatorSearchDelegate.toDouble(),
+                                        label: readSearchProvider.operatorSearchDelegate.toString(),
+                                        onChanged: (value) => setModalState(
+                                          () => readSearchProvider.operatorSearchDelegate = value.round().toInt(),
+                                        ),
+                                        allowedInteraction: SliderInteraction.tapAndSlide,
+                                      ),
+                                    ),
+                                  ),
                                 ],
-                              )
+                              ),
                             ],
                           ),
                         ),
                         const Center(
                           child: Text("It's rainy here"),
                         ),
-                        Wrap (
+                        Wrap(
                           children: [
                             ListTile(
-                                leading: const Icon(Icons.text_snippet_outlined),
-                                title: const Text('test'),
-                                onTap: () {}),
+                              leading: const Icon(Icons.text_snippet_outlined),
+                              title: const Text('test'),
+                              onTap: () {},
+                            ),
                             ListTile(
-                                leading: const Icon(Icons.text_snippet_outlined),
-                                title: const Text('test'),
-                                onTap: () {}),
+                              leading: const Icon(Icons.text_snippet_outlined),
+                              title: const Text('test'),
+                              onTap: () {},
+                            ),
                             ListTile(
-                                leading: const Icon(Icons.text_snippet_outlined),
-                                title: const Text('test'),
-                                onTap: () {}),
+                              leading: const Icon(Icons.text_snippet_outlined),
+                              title: const Text('test'),
+                              onTap: () {},
+                            ),
                           ],
                         ),
                       ],
                     ),
                   ],
                 ),
-              )
+              ),
             );
-          }
+          },
         );
       },
-    ).whenComplete((){if (context.mounted) context.read<SettingsProvider>().writeOpPageSettings();});
+    ).whenComplete(() {
+      if (context.mounted) {
+        context.read<SettingsProvider>().writeOpPageSettings();
+      }
+    });
   }
 }
 
@@ -355,7 +500,6 @@ class OperatorListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-  
     final settings = context.watch<SettingsProvider>();
 
     return RawScrollbar(
@@ -368,15 +512,15 @@ class OperatorListView extends StatelessWidget {
       child: GridView.builder(
         cacheExtent: 1500,
         padding: EdgeInsets.fromLTRB(
-            4.0,
-            MediaQuery.paddingOf(context).top+4.0,
-            4.0,
-            MediaQuery.paddingOf(context).bottom+4.0
-          ),
+          4.0,
+          MediaQuery.paddingOf(context).top + 4.0,
+          4.0,
+          MediaQuery.paddingOf(context).bottom + 4.0,
+        ),
         itemCount: operators.length,
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: settings.operatorSearchDelegate, 
-          childAspectRatio: settings.getDisplayChip('portrait') ? 0.55 : 1.0
+          crossAxisCount: settings.operatorSearchDelegate,
+          childAspectRatio: settings.getDisplayChip('portrait') ? 0.55 : 1.0,
         ),
         itemBuilder: (context, index) {
           return OperatorContainer(index: index, operator: operators[index]);

@@ -20,14 +20,13 @@ enum ServerProviderKeys {
   final String key;
 }
 
-
 class ServerProvider extends ChangeNotifier {
   static final Map<ServerProviderKeys, dynamic> _defaultValues = {
-    ServerProviderKeys.enVersion : 'unknown',
-    ServerProviderKeys.cnVersion : 'unknown',
-    ServerProviderKeys.jpVersion : 'unknown',
-    ServerProviderKeys.krVersion : 'unknown',
-    ServerProviderKeys.twVersion : 'unknown',
+    ServerProviderKeys.enVersion: 'unknown',
+    ServerProviderKeys.cnVersion: 'unknown',
+    ServerProviderKeys.jpVersion: 'unknown',
+    ServerProviderKeys.krVersion: 'unknown',
+    ServerProviderKeys.twVersion: 'unknown',
   };
 
   String enVersion;
@@ -51,10 +50,10 @@ class ServerProvider extends ChangeNotifier {
     'handbook_team_table.json',
     'skin_table.json',
     'range_table.json',
-    'skill_table.json'
+    'skill_table.json',
   ];
 
-  factory ServerProvider.fromConfig(Map configs){
+  factory ServerProvider.fromConfig(Map configs) {
     return ServerProvider(
       enVersion: configs[ServerProviderKeys.enVersion.key] ?? _defaultValues[ServerProviderKeys.enVersion],
       cnVersion: configs[ServerProviderKeys.cnVersion.key] ?? _defaultValues[ServerProviderKeys.cnVersion],
@@ -64,45 +63,53 @@ class ServerProvider extends ChangeNotifier {
     );
   }
 
-  static Future<Map<String, dynamic>> loadValues () async {
-    return await LocalDataManager.readConfigMap(ServerProviderKeys.values.map((e) => e.key).toList());
+  static Future<Map<String, dynamic>> loadValues() async {
+    return await LocalDataManager.readConfigMap(
+      ServerProviderKeys.values.map((e) => e.key).toList(),
+    );
   }
 
   static String yostarrepo(String server) => 'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData_YoStar/refs/heads/main/$server/gamedata/excel';
   static final String chServerlink = 'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/refs/heads/master/zh_CN/gamedata/excel';
 
+  String versionOf(String server) => switch (server) { 'en' => enVersion, 'cn' => cnVersion, 'jp' => jpVersion, 'kr' => krVersion, 'tw' => twVersion, String() => 'not found' };
 
-
-  String versionOf(String server) => switch (server) {
-    'en' => enVersion,
-    'cn' => cnVersion,
-    'jp' => jpVersion,
-    'kr' => krVersion,
-    'tw' => twVersion,
-    String() => 'not found'
-  };
-
-  setVersion (String server, {String version = 'unknown'}) async {
+  setVersion(String server, {String version = 'unknown'}) async {
     switch (server) {
       case 'en':
         enVersion = version;
-        await LocalDataManager.writeConfigKey(ServerProviderKeys.enVersion.key, version);
+        await LocalDataManager.writeConfigKey(
+          ServerProviderKeys.enVersion.key,
+          version,
+        );
         break;
       case 'cn':
         cnVersion = version;
-        await LocalDataManager.writeConfigKey(ServerProviderKeys.cnVersion.key, version);
+        await LocalDataManager.writeConfigKey(
+          ServerProviderKeys.cnVersion.key,
+          version,
+        );
         break;
       case 'jp':
         jpVersion = version;
-        await LocalDataManager.writeConfigKey(ServerProviderKeys.jpVersion.key, version);
+        await LocalDataManager.writeConfigKey(
+          ServerProviderKeys.jpVersion.key,
+          version,
+        );
         break;
       case 'kr':
         krVersion = version;
-        await LocalDataManager.writeConfigKey(ServerProviderKeys.krVersion.key, version);
+        await LocalDataManager.writeConfigKey(
+          ServerProviderKeys.krVersion.key,
+          version,
+        );
         break;
       case 'tw':
         twVersion = version;
-        await LocalDataManager.writeConfigKey(ServerProviderKeys.twVersion.key, version);
+        await LocalDataManager.writeConfigKey(
+          ServerProviderKeys.twVersion.key,
+          version,
+        );
         break;
       default:
     }
@@ -130,7 +137,7 @@ class ServerProvider extends ChangeNotifier {
 
   Future<bool> checkUpdateOf(String server) async {
     String update = await fetchLastestVersion(server);
-    
+
     if (update != versionOf(server)) {
       return true;
     } else {
@@ -143,32 +150,35 @@ class ServerProvider extends ChangeNotifier {
     if (server == 'cn') {
       serverlink = chServerlink;
     } else if (server == 'en' || server == 'jp' || server == 'kr') {
-      serverlink = server == 'en' ? yostarrepo('en_US') : server == 'jp' ? yostarrepo('ja_JP') : yostarrepo('ko_KR');
+      serverlink = server == 'en'
+          ? yostarrepo('en_US')
+          : server == 'jp'
+              ? yostarrepo('ja_JP')
+              : yostarrepo('ko_KR');
     } else {
       throw Exception('not implemented');
     }
 
     final response = await http.get(Uri.parse('$serverlink/data_version.txt'));
 
-      if (response.statusCode == 200) {
-        // If the server did return a 200 OK response
-        const splitter = LineSplitter();
-        final responseSplitted = splitter.convert(response.body);
-        String result = '';
+    if (response.statusCode == 200) {
+      // If the server did return a 200 OK response
+      const splitter = LineSplitter();
+      final responseSplitted = splitter.convert(response.body);
+      String result = '';
 
-        for (var i = 0; i < responseSplitted.length; i++) {
-          if (responseSplitted[i].startsWith('VersionControl:')) {
-            result = responseSplitted[i].replaceFirst('VersionControl:', '').trim();
-          }
+      for (var i = 0; i < responseSplitted.length; i++) {
+        if (responseSplitted[i].startsWith('VersionControl:')) {
+          result = responseSplitted[i].replaceFirst('VersionControl:', '').trim();
         }
-
-        return result;
-
-      } else {
-        // If the server did not return a 200 OK response,
-        // then throw an exception.
-        throw Exception('Failed to load album');
       }
+
+      return result;
+    } else {
+      // If the server did not return a 200 OK response,
+      // then throw an exception.
+      throw Exception('Failed to load album');
+    }
   }
 
   Future<bool> checkFiles(String server) async {
@@ -188,16 +198,17 @@ class ServerProvider extends ChangeNotifier {
   }
 
   void checkDownloadedLastest(String server, String version) async {
-    
     bool result = await checkFiles(server);
 
-    if(!result) return;
-    
+    if (!result) return;
+
     setVersion(server, version: version);
     if (NavigationService.navigatorKey.currentContext!.mounted) {
       NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setLoadingString('Completed download');
       await Future.delayed(const Duration(seconds: 2));
-      if (NavigationService.navigatorKey.currentContext!.mounted) NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setIsLoadingAsync(false);
+      if (NavigationService.navigatorKey.currentContext!.mounted) {
+        NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setIsLoadingAsync(false);
+      }
     }
   }
 
@@ -206,12 +217,16 @@ class ServerProvider extends ChangeNotifier {
       NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setLoadingString('Preparing download...');
       NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setIsLoadingAsync(true);
     }
-    
+
     String serverlink;
     if (server == 'cn') {
       serverlink = chServerlink;
     } else if (server == 'en' || server == 'jp' || server == 'kr') {
-      serverlink = server == 'en' ? yostarrepo('en_US') : server == 'jp' ? yostarrepo('ja_JP') : yostarrepo('ko_KR');
+      serverlink = server == 'en'
+          ? yostarrepo('en_US')
+          : server == 'jp'
+              ? yostarrepo('ja_JP')
+              : yostarrepo('ko_KR');
     } else {
       throw const FormatException('not implemented');
     }
@@ -221,8 +236,8 @@ class ServerProvider extends ChangeNotifier {
 
     if (!Directory('$serverLocalPath/excel').existsSync()) {
       await Directory('$serverLocalPath/excel').create(recursive: true);
-    } 
-    
+    }
+
     for (var file in files) {
       bool fileExist = await File('$excelFolder/$file').exists();
       if (fileExist) {
@@ -253,17 +268,15 @@ class ServerProvider extends ChangeNotifier {
           checkDownloadedLastest(server, version);
         },
         deleteOnCancel: true,
-        onError: (_){}
+        onError: (_) {},
       );
 
       if (NavigationService.navigatorKey.currentContext!.mounted) {
         NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setLoadingString('Starting $file download...');
       }
-              
+
       List core = [];
       core.add(await Flowder.download('$serverlink/$file', downloaderUtils));
     }
-  
-
   }
 }

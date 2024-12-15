@@ -6,47 +6,55 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:developer' as dev;
 
- // ----------------- local data
+// ----------------- local data
 
 Map<String, DownloaderCore> downloadsBackgroundCores = {};
 bool loadedConfigs = false;
 bool firstTimeCheck = false;
 bool opThemed = false;
 
-// ------------- constants 
+// ------------- constants
 
 // Assets from yuanyan3060 repo
-const String kAvatarRepo = 'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/refs/heads/main/avatar';
-const String kSkillRepo = 'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/refs/heads/main/skill';
+const String kAvatarRepo =
+    'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/refs/heads/main/avatar';
+const String kSkillRepo =
+    'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/refs/heads/main/skill';
 
 // Assets from ArknightsAssets repo
-const String kPortraitRepo = 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/charportraits';
-const String kArtRepo = 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/characters';
-const String kLogoRepo = 'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/camplogo';
+const String kPortraitRepo =
+    'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/charportraits';
+const String kArtRepo =
+    'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/characters';
+const String kLogoRepo =
+    'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/camplogo';
 
 // Voice Assets from Aceship's repo
-const String kVoiceRepo = 'https://github.com/Aceship/Arknight-voices/raw/refs/heads/main';
-
+const String kVoiceRepo =
+    'https://github.com/Aceship/Arknight-voices/raw/refs/heads/main';
 
 // ---------- helper classes
 
-enum SnackBarType {normal, success, failure, warning, custom}
+enum SnackBarType { normal, success, failure, warning, custom }
 
 class ShowSnackBar {
-  static void showSnackBar(String? text, {SnackBarType type = SnackBarType.normal, SnackBar? snackbar}) {
+  static void showSnackBar(String? text,
+      {SnackBarType type = SnackBarType.normal, SnackBar? snackbar,}) {
     switch (type) {
       case SnackBarType.normal:
         assert(text != null);
-        ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(SnackBar(content: Text(text!)));
+        ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!)
+            .showSnackBar(SnackBar(content: Text(text!)));
         break;
       case SnackBarType.success:
         assert(text != null);
-        ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(
+        ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!)
+            .showSnackBar(
           SnackBar(
             content: Row(
               children: [
                 Icon(Icons.done, color: Colors.green[700]),
-                Text(text!)
+                Text(text!),
               ],
             ),
             backgroundColor: Colors.green[50],
@@ -55,27 +63,45 @@ class ShowSnackBar {
         break;
       case SnackBarType.failure:
         assert(text != null);
-        ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(
+        ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!)
+            .showSnackBar(
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.warning_amber, color: Theme.of(NavigationService.navigatorKey.currentContext!).colorScheme.error),
+                Icon(Icons.warning_amber,
+                    color:
+                        Theme.of(NavigationService.navigatorKey.currentContext!)
+                            .colorScheme
+                            .error,),
                 const SizedBox(width: 10),
-                Expanded(child: Text(text!, style: TextStyle(color: Theme.of(NavigationService.navigatorKey.currentContext!).colorScheme.onErrorContainer),))
+                Expanded(
+                  child: Text(
+                    text!,
+                    style: TextStyle(
+                        color: Theme.of(
+                                NavigationService.navigatorKey.currentContext!,)
+                            .colorScheme
+                            .onErrorContainer,),
+                  ),
+                ),
               ],
             ),
-            backgroundColor: Theme.of(NavigationService.navigatorKey.currentContext!).colorScheme.errorContainer,
+            backgroundColor:
+                Theme.of(NavigationService.navigatorKey.currentContext!)
+                    .colorScheme
+                    .errorContainer,
           ),
         );
         break;
       case SnackBarType.warning:
         assert(text != null);
-        ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(
+        ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!)
+            .showSnackBar(
           SnackBar(
             content: Row(
               children: [
                 Icon(Icons.warning_amber, color: Colors.amber[600]),
-                Text(text!)
+                Text(text!),
               ],
             ),
             backgroundColor: Colors.amber[100],
@@ -84,13 +110,14 @@ class ShowSnackBar {
         break;
       case SnackBarType.custom:
         assert(snackbar != null);
-        ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(snackbar!);
+        ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!)
+            .showSnackBar(snackbar!);
         break;
     }
   }
 }
 
-class NavigationService { 
+class NavigationService {
   static GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 }
 
@@ -106,20 +133,21 @@ class LocalDataManager {
     String directory = "/storage/emulated/0/Download/";
 
     var dirDownloadExists = await Directory(directory).exists();
-    if(dirDownloadExists){
+    if (dirDownloadExists) {
       directory = "/storage/emulated/0/Download/";
-    }else{
+    } else {
       directory = "/storage/emulated/0/Downloads/";
     }
     return directory;
   }
 
-  static Future<String> localpathServer (String server) async {
+  static Future<String> localpathServer(String server) async {
     final directory = await getApplicationDocumentsDirectory();
     if (Directory('${directory.path}/${server.toLowerCase()}').existsSync()) {
       return '${directory.path}/${server.toLowerCase()}';
     } else {
-      await Directory('${directory.path}/${server.toLowerCase()}').create(recursive: true);
+      await Directory('${directory.path}/${server.toLowerCase()}')
+          .create(recursive: true);
       return '${directory.path}/${server.toLowerCase()}';
     }
   }
@@ -131,7 +159,7 @@ class LocalDataManager {
   }
   */
 
-  static Future<File> localFile (String filePath) async {
+  static Future<File> localFile(String filePath) async {
     final path = await _localPath;
     var dirExists = await File('$path/$filePath').exists();
 
@@ -143,7 +171,6 @@ class LocalDataManager {
   }
 
   static Future<void> writeConfigKey(String key, dynamic data) async {
-
     final file = await localFile(configPath);
     // read json
     final contents = await file.readAsString();
@@ -151,10 +178,10 @@ class LocalDataManager {
     if (contents != '') {
       // decode json to map
       parsed = jsonDecode(contents) as Map<String, dynamic>;
-    } 
+    }
     // save data in json
     parsed[key] = data;
-    // encode json 
+    // encode json
     final encoded = jsonEncode(parsed);
     // Write json to the file
     await file.writeAsString(encoded);
@@ -168,12 +195,12 @@ class LocalDataManager {
     if (contents != '') {
       // decode json to map
       parsed = jsonDecode(contents) as Map<String, dynamic>;
-    }   
+    }
     // save data in json
-    map.forEach((key, value){
+    map.forEach((key, value) {
       parsed[key] = value;
     });
-    // encode json 
+    // encode json
     final encoded = jsonEncode(parsed);
     // Write json to the file
     await file.writeAsString(encoded);
@@ -186,7 +213,7 @@ class LocalDataManager {
       final contents = await file.readAsString();
       // decode json to map
       final parsed = jsonDecode(contents) as Map<String, dynamic>;
-      
+
       if (parsed.containsKey(key)) {
         return parsed[key];
       } else {
@@ -205,19 +232,18 @@ class LocalDataManager {
     // decode json to map
     final parsed = jsonDecode(contents) as Map<String, dynamic>;
 
-
     final List<MapEntry<String, dynamic>> values = [];
     for (String key in keys) {
       dynamic val;
       if (parsed.containsKey(key)) {
         val = parsed[key];
-         dev.log('[LDM] - key [$key] - value $val');
+        dev.log('[LDM] - key [$key] - value $val');
       } else {
         dev.log('[LDM] - key [$key] doesnt exists');
       }
       values.add(MapEntry(key, val));
     }
-    
+
     return Map.fromEntries(values);
   }
 
@@ -277,7 +303,7 @@ class StaticColors {
   final Color akRed;
 
   StaticColors({
-    required this.greenVariant, 
+    required this.greenVariant,
     required this.onGreenVariant,
     required this.blueVariant,
     required this.onBlueVariant,
@@ -309,7 +335,7 @@ class StaticColors {
     required this.akRed,
   });
 
-  factory StaticColors.light(){
+  factory StaticColors.light() {
     return StaticColors(
       green: const Color(0xFF005e1b),
       onGreen: const Color(0xFFffffff),
@@ -344,7 +370,7 @@ class StaticColors {
     );
   }
 
-  factory StaticColors.dark(){
+  factory StaticColors.dark() {
     return StaticColors(
       green: const Color(0xFF83da84),
       onGreen: const Color(0xFF00390d),
@@ -379,7 +405,7 @@ class StaticColors {
     );
   }
 
-  factory StaticColors.fromBrightness(Brightness brightness){
+  factory StaticColors.fromBrightness(Brightness brightness) {
     if (brightness == Brightness.light) {
       return StaticColors.light();
     } else {
@@ -389,7 +415,7 @@ class StaticColors {
 }
 
 class Calc {
-  static AxisDirection? valueDifference(num current, num last){
+  static AxisDirection? valueDifference(num current, num last) {
     if (current < last) {
       return AxisDirection.down;
     } else if (current == last) {
@@ -398,5 +424,4 @@ class Calc {
       return AxisDirection.up;
     }
   }
-
 }

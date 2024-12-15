@@ -7,7 +7,7 @@ const List<String> displayList = ['avatar', 'portrait'];
 
 enum PrefsFlags {
   menuShowAdvanced('opInfo_menushowadvanced');
-  
+
   const PrefsFlags(this.key);
   final String key;
 }
@@ -29,13 +29,13 @@ enum SettingsProviderKeys {
 
 class SettingsProvider extends ChangeNotifier {
   static final Map<SettingsProviderKeys, dynamic> _defaultValues = {
-    SettingsProviderKeys.currentServer : 0,
-    SettingsProviderKeys._operatorSearchDelegate : 2,
-    SettingsProviderKeys._operatorDisplay : 0,
-    SettingsProviderKeys.homeHour12Format : false,
-    SettingsProviderKeys.homeShowDate : false,
-    SettingsProviderKeys.homeShowSeconds : false,
-    SettingsProviderKeys.homeCompactMode : false,
+    SettingsProviderKeys.currentServer: 0,
+    SettingsProviderKeys._operatorSearchDelegate: 2,
+    SettingsProviderKeys._operatorDisplay: 0,
+    SettingsProviderKeys.homeHour12Format: false,
+    SettingsProviderKeys.homeShowDate: false,
+    SettingsProviderKeys.homeShowSeconds: false,
+    SettingsProviderKeys.homeCompactMode: false,
   };
 
   // ----- saved
@@ -53,8 +53,7 @@ class SettingsProvider extends ChangeNotifier {
 
   SettingsProvider(
     this._operatorSearchDelegate,
-    this._operatorDisplay,
-  {
+    this._operatorDisplay, {
     required this.currentServer,
     required this.homeHour12Format,
     required this.homeShowDate,
@@ -63,7 +62,7 @@ class SettingsProvider extends ChangeNotifier {
     this.nickname,
   });
 
-  factory SettingsProvider.fromConfig(Map configs){
+  factory SettingsProvider.fromConfig(Map configs) {
     final provider = SettingsProvider(
       configs[SettingsProviderKeys._operatorSearchDelegate.key] ?? _defaultValues[SettingsProviderKeys._operatorSearchDelegate],
       configs[SettingsProviderKeys._operatorDisplay.key] ?? _defaultValues[SettingsProviderKeys._operatorDisplay],
@@ -77,30 +76,35 @@ class SettingsProvider extends ChangeNotifier {
     return provider;
   }
 
-  static Future<Map<String, dynamic>> loadValues () async {
-    return await LocalDataManager.readConfigMap(SettingsProviderKeys.values.map((e) => e.key).toList());
+  static Future<Map<String, dynamic>> loadValues() async {
+    return await LocalDataManager.readConfigMap(
+      SettingsProviderKeys.values.map((e) => e.key).toList(),
+    );
   }
 
   // ------ tempo
   bool isLoadingHome = false;
-  void setIsLoadingHome (bool state) {
+  void setIsLoadingHome(bool state) {
     isLoadingHome = state;
     updateNotifier();
   }
+
   bool isLoadingAsync = false;
-  void setIsLoadingAsync (bool state) {
+  void setIsLoadingAsync(bool state) {
     isLoadingAsync = state;
     updateNotifier();
   }
+
   String loadingString = 'test: test';
-  void setLoadingString (String string) {
+  void setLoadingString(String string) {
     loadingString = string;
     notifyListeners();
   }
-  
+
   bool showNotifier = false;
-  void updateNotifier () {
-    if (isLoadingAsync || isLoadingHome) { // here other optional loadings
+  void updateNotifier() {
+    if (isLoadingAsync || isLoadingHome) {
+      // here other optional loadings
       showNotifier = true;
     } else {
       showNotifier = false;
@@ -108,13 +112,12 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  
   Map prefs = {
-    PrefsFlags.menuShowAdvanced: false
+    PrefsFlags.menuShowAdvanced: false,
   };
 
   static SharedPreferencesWithCache? _cachedPrefs;
-  
+
   static Future<void> sharedPreferencesInit() async {
     if (_cachedPrefs != null) return;
     final allowList = Set<String>.from(PrefsFlags.values.map((e) => e.key));
@@ -128,19 +131,23 @@ class SettingsProvider extends ChangeNotifier {
 
     return;
   }
-  void loadSharedPreferences(){
+
+  void loadSharedPreferences() {
     for (PrefsFlags flag in PrefsFlags.values) {
       if (_cachedPrefs!.get(flag.key) == null) continue;
-      print('$flag - ${_cachedPrefs!.get(flag.key)}');
       prefs[flag] = _cachedPrefs!.get(flag.key);
     }
   }
+
   void sharedPreferencesClear() async {
     await _cachedPrefs?.clear();
     _cachedPrefs = null;
   }
+
   void setAndSaveBoolPref(PrefsFlags flag, bool value) async {
-    if (_cachedPrefs == null) throw const FormatException('prefs not initialized');
+    if (_cachedPrefs == null) {
+      throw const FormatException('prefs not initialized');
+    }
     prefs[flag] = value;
     await _cachedPrefs!.setBool(flag.key, value);
     notifyListeners();
@@ -148,57 +155,72 @@ class SettingsProvider extends ChangeNotifier {
 
   String get currentServerString => serverList[currentServer];
   int get operatorSearchDelegate => _operatorSearchDelegate;
-  set operatorSearchDelegate (value) {
+  set operatorSearchDelegate(value) {
     _operatorSearchDelegate = value;
     notifyListeners();
   }
 
   String getDisplayChipStr() => displayList[_operatorDisplay];
-  bool getDisplayChip(String chip){
+  bool getDisplayChip(String chip) {
     return displayList.indexOf(chip) == _operatorDisplay;
   }
-  void setDisplayChip (String chip) {
+
+  void setDisplayChip(String chip) {
     if (displayList.indexOf(chip) != _operatorDisplay) {
       _operatorDisplay = displayList.indexOf(chip);
       notifyListeners();
     }
   }
 
-  void writeOpPageSettings () async {
+  void writeOpPageSettings() async {
     await LocalDataManager.writeConfigMap({
-      SettingsProviderKeys._operatorSearchDelegate.key : _operatorSearchDelegate,
-      SettingsProviderKeys._operatorDisplay.key : _operatorDisplay,
+      SettingsProviderKeys._operatorSearchDelegate.key: _operatorSearchDelegate,
+      SettingsProviderKeys._operatorDisplay.key: _operatorDisplay,
     });
   }
 
-  void changeServer (int server) async {
+  void changeServer(int server) async {
     currentServer = server;
-    await LocalDataManager.writeConfigKey(SettingsProviderKeys.currentServer.key, server);
+    await LocalDataManager.writeConfigKey(
+      SettingsProviderKeys.currentServer.key,
+      server,
+    );
     notifyListeners();
   }
 
-  void setHourFormat (bool value) async {
+  void setHourFormat(bool value) async {
     homeHour12Format = value;
-    await LocalDataManager.writeConfigKey(SettingsProviderKeys.homeHour12Format.key, value);
+    await LocalDataManager.writeConfigKey(
+      SettingsProviderKeys.homeHour12Format.key,
+      value,
+    );
     notifyListeners();
   }
 
-  void sethomeShowDate (bool value) async {
+  void sethomeShowDate(bool value) async {
     homeShowDate = value;
-    await LocalDataManager.writeConfigKey(SettingsProviderKeys.homeShowDate.key, value);
+    await LocalDataManager.writeConfigKey(
+      SettingsProviderKeys.homeShowDate.key,
+      value,
+    );
     notifyListeners();
   }
 
-  void sethomeShowSeconds (bool value) async {
+  void sethomeShowSeconds(bool value) async {
     homeShowSeconds = value;
-    await LocalDataManager.writeConfigKey(SettingsProviderKeys.homeShowSeconds.key, value);
+    await LocalDataManager.writeConfigKey(
+      SettingsProviderKeys.homeShowSeconds.key,
+      value,
+    );
     notifyListeners();
   }
 
-  void sethomeCompactMode (bool value) async {
+  void sethomeCompactMode(bool value) async {
     homeCompactMode = value;
-    await LocalDataManager.writeConfigKey(SettingsProviderKeys.homeCompactMode.key, value);
+    await LocalDataManager.writeConfigKey(
+      SettingsProviderKeys.homeCompactMode.key,
+      value,
+    );
     notifyListeners();
   }
-
 }

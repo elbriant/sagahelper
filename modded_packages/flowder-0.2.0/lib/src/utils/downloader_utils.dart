@@ -29,7 +29,6 @@ class DownloaderUtils {
   /// Function(int bytes, int total) => print('current byte: $bytes and total of bytes: $total');
   /// ```
   final ProgressCallback progressCallback;
-  
 
   DownloaderUtils({
     required this.progress,

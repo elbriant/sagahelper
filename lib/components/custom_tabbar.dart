@@ -5,7 +5,12 @@ class CustomTabBar extends StatelessWidget implements PreferredSizeWidget {
   final TabController controller;
   final List<Tab> tabs;
   final bool isTransparent;
-  const CustomTabBar({super.key, required this.controller, required this.tabs, this.isTransparent = false});
+  const CustomTabBar({
+    super.key,
+    required this.controller,
+    required this.tabs,
+    this.isTransparent = false,
+  });
 
   @override
   Size get preferredSize => TabBar(tabs: tabs).preferredSize;

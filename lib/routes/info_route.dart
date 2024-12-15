@@ -9,7 +9,8 @@ class InfoPage extends StatelessWidget {
       extendBody: true,
       appBar: AppBar(
         title: const Text('Extra'),
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow.withOpacity(0.2),
+        backgroundColor:
+            Theme.of(context).colorScheme.surfaceContainerLow.withOpacity(0.2),
         elevation: 0,
       ),
       body: const Center(
