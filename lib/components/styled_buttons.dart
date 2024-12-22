@@ -43,7 +43,9 @@ class IconButtonStyled extends StatelessWidget {
             children: [
               Icon(
                 selected == true && iconFilled != null ? iconFilled : icon,
-                color: selected == true ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.outline,
+                color: selected == true
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.outline,
                 size: sizing.width / 3,
               ),
               Text(
@@ -51,7 +53,9 @@ class IconButtonStyled extends StatelessWidget {
                 style: textStyle ??
                     TextStyle(
                       fontSize: sizing.width / 7,
-                      color: selected == true ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.outline,
+                      color: selected == true
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context).colorScheme.outline,
                     ),
                 textAlign: TextAlign.center,
               ),
@@ -170,7 +174,10 @@ class LilButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = (selected ? backgroundColor : backgroundColor?.withOpacity(0.3)) ?? (selected ? Theme.of(context).colorScheme.surfaceContainerHighest : Theme.of(context).colorScheme.surfaceContainerHigh);
+    final color = (selected ? backgroundColor : backgroundColor?.withOpacity(0.3)) ??
+        (selected
+            ? Theme.of(context).colorScheme.surfaceContainerHighest
+            : Theme.of(context).colorScheme.surfaceContainerHigh);
     final borderrad = BorderRadius.circular(12.0);
     final child = selected
         ? icon
@@ -226,7 +233,7 @@ class DiffChip extends StatelessWidget {
     this.radius,
     this.backgroundColor,
     this.icon,
-    this.size = const Size(240, 24),
+    this.size,
     this.iconSize = 18,
   });
 
@@ -251,7 +258,7 @@ class DiffChip extends StatelessWidget {
   /// value scaler
   final double scaleFactor;
 
-  final Size size;
+  final Size? size;
 
   /// border radius
   /// defaults to [BorderRadius.circular(12.0)]
@@ -261,7 +268,10 @@ class DiffChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final lBGColor = backgroundColor ?? Theme.of(context).colorScheme.surfaceContainerHighest;
     final lColor = color ?? Theme.of(context).colorScheme.onSurface;
-    final lColorDiff = isPositive ? StaticColors.fromBrightness(Theme.of(context).brightness).greenVariant : StaticColors.fromBrightness(Theme.of(context).brightness).redVariant;
+    final lColorDiff = isPositive
+        ? StaticColors.fromBrightness(Theme.of(context).brightness).greenVariant
+        : StaticColors.fromBrightness(Theme.of(context).brightness).redVariant;
+    final lsize = size ?? Size(MediaQuery.sizeOf(context).width, 24);
     final Widget? lDiffIcon = switch (axis) {
       AxisDirection.up => Icon(
           Icons.keyboard_double_arrow_up_rounded,
@@ -285,41 +295,48 @@ class DiffChip extends StatelessWidget {
         borderRadius: lRad,
       ),
       clipBehavior: Clip.hardEdge,
-      constraints: BoxConstraints.loose(size),
+      constraints: BoxConstraints.loose(lsize),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            decoration: BoxDecoration(
-              color: lBGColor,
-            ),
-            padding: const EdgeInsets.only(left: 4.0, right: 4.0),
-            child: Center(
-              child: Text.rich(
-                textScaler: TextScaler.linear(scaleFactor),
-                TextSpan(
-                  style: TextStyle(color: lColor),
-                  children: [
-                    icon != null
-                        ? WidgetSpan(
-                            child: Icon(
-                              icon,
-                              size: iconSize,
-                              color: lColor,
-                            ),
-                          )
-                        : null,
-                    icon != null
-                        ? const TextSpan(
-                            text: ' ',
-                          )
-                        : null,
+          Flexible(
+            child: Container(
+              decoration: BoxDecoration(
+                color: lBGColor,
+              ),
+              padding: const EdgeInsets.only(left: 4.0, right: 4.0),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Text.rich(
+                    style: const TextStyle(overflow: TextOverflow.ellipsis),
+                    textScaler: TextScaler.linear(scaleFactor),
                     TextSpan(
-                      text: label,
+                      style: TextStyle(color: lColor),
+                      children: [
+                        icon != null
+                            ? WidgetSpan(
+                                child: Icon(
+                                  icon,
+                                  size: iconSize,
+                                  color: lColor,
+                                ),
+                              )
+                            : null,
+                        icon != null
+                            ? const TextSpan(
+                                text: ' ',
+                              )
+                            : null,
+                        TextSpan(
+                          text: label,
+                        ),
+                      ].nonNulls.toList(),
                     ),
-                  ].nonNulls.toList(),
-                ),
+                  ),
+                ],
               ),
             ),
           ),

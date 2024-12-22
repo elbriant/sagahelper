@@ -38,6 +38,8 @@ class Operator {
   final List<dynamic> potentials;
   final List<dynamic> favorKeyframes;
   final List<dynamic> skillLvlMats;
+  final Map<String, dynamic> baseSkills;
+  final List<String>? modules;
 
   Operator({
     required this.operatorDict,
@@ -67,6 +69,8 @@ class Operator {
     required this.potentials,
     required this.favorKeyframes,
     required this.skillLvlMats,
+    required this.baseSkills,
+    required this.modules,
   });
 
   String professionTranslate(String prof) => switch (prof) {
@@ -127,6 +131,8 @@ class Operator {
     Map<String, dynamic> loreDict,
     Map<String, dynamic> voiceDict,
     Map<String, dynamic> charSkins,
+    Map<String, dynamic> baseSkills,
+    Map<String, dynamic> modTable,
   ) {
     //custom names
     String name = dict['name'];
@@ -191,6 +197,8 @@ class Operator {
       potentials: dict['potentialRanks'],
       favorKeyframes: dict['favorKeyFrames'],
       skillLvlMats: dict['allSkillLvlup'],
+      baseSkills: baseSkills[key],
+      modules: (modTable[key] as List<dynamic>?)?.map((e) => e as String).toList(),
     );
   }
 }

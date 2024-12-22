@@ -20,6 +20,8 @@ const String kAvatarRepo =
     'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/refs/heads/main/avatar';
 const String kSkillRepo =
     'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/refs/heads/main/skill';
+const String kBaseSkillRepo =
+    'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/refs/heads/main/building_skill';
 
 // Assets from ArknightsAssets repo
 const String kPortraitRepo =
@@ -30,16 +32,18 @@ const String kLogoRepo =
     'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/camplogo';
 
 // Voice Assets from Aceship's repo
-const String kVoiceRepo =
-    'https://github.com/Aceship/Arknight-voices/raw/refs/heads/main';
+const String kVoiceRepo = 'https://github.com/Aceship/Arknight-voices/raw/refs/heads/main';
 
 // ---------- helper classes
 
 enum SnackBarType { normal, success, failure, warning, custom }
 
 class ShowSnackBar {
-  static void showSnackBar(String? text,
-      {SnackBarType type = SnackBarType.normal, SnackBar? snackbar,}) {
+  static void showSnackBar(
+    String? text, {
+    SnackBarType type = SnackBarType.normal,
+    SnackBar? snackbar,
+  }) {
     switch (type) {
       case SnackBarType.normal:
         assert(text != null);
@@ -48,8 +52,7 @@ class ShowSnackBar {
         break;
       case SnackBarType.success:
         assert(text != null);
-        ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!)
-            .showSnackBar(
+        ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(
           SnackBar(
             content: Row(
               children: [
@@ -63,40 +66,35 @@ class ShowSnackBar {
         break;
       case SnackBarType.failure:
         assert(text != null);
-        ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!)
-            .showSnackBar(
+        ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(
           SnackBar(
             content: Row(
               children: [
-                Icon(Icons.warning_amber,
-                    color:
-                        Theme.of(NavigationService.navigatorKey.currentContext!)
-                            .colorScheme
-                            .error,),
+                Icon(
+                  Icons.warning_amber,
+                  color: Theme.of(NavigationService.navigatorKey.currentContext!).colorScheme.error,
+                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     text!,
                     style: TextStyle(
-                        color: Theme.of(
-                                NavigationService.navigatorKey.currentContext!,)
-                            .colorScheme
-                            .onErrorContainer,),
+                      color: Theme.of(
+                        NavigationService.navigatorKey.currentContext!,
+                      ).colorScheme.onErrorContainer,
+                    ),
                   ),
                 ),
               ],
             ),
             backgroundColor:
-                Theme.of(NavigationService.navigatorKey.currentContext!)
-                    .colorScheme
-                    .errorContainer,
+                Theme.of(NavigationService.navigatorKey.currentContext!).colorScheme.errorContainer,
           ),
         );
         break;
       case SnackBarType.warning:
         assert(text != null);
-        ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!)
-            .showSnackBar(
+        ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(
           SnackBar(
             content: Row(
               children: [
@@ -146,8 +144,7 @@ class LocalDataManager {
     if (Directory('${directory.path}/${server.toLowerCase()}').existsSync()) {
       return '${directory.path}/${server.toLowerCase()}';
     } else {
-      await Directory('${directory.path}/${server.toLowerCase()}')
-          .create(recursive: true);
+      await Directory('${directory.path}/${server.toLowerCase()}').create(recursive: true);
       return '${directory.path}/${server.toLowerCase()}';
     }
   }

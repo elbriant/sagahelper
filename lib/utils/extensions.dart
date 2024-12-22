@@ -25,8 +25,8 @@ extension ListExtension on List<Widget?> {
 }
 
 extension DoubleExtension on double {
-  String toStringWithPrecision() {
-    return toStringAsFixed(3).replaceFirst(RegExp(r'\.?0*$'), '');
+  String toStringWithPrecision([int? precision]) {
+    return toStringAsFixed(precision ?? 3).replaceFirst(RegExp(r'\.?0*$'), '');
   }
 }
 
@@ -42,7 +42,9 @@ extension StringExtension on String {
       escapedString = escapedString.replaceAll(RegExp(rule), escapeRules[rule]!);
     }
 
-    return escapedString.replaceAll(RegExp(r'<@'), '<info custom=').replaceAll(RegExp(r'<\$'), '<selectable custom=');
+    return escapedString
+        .replaceAll(RegExp(r'<@'), '<info custom=')
+        .replaceAll(RegExp(r'<\$'), '<selectable custom=');
   }
 
   String varParser(List<dynamic>? vars) {
@@ -54,29 +56,22 @@ extension StringExtension on String {
       if (map['valueStr'] == null) {
         parsed = parsed
             .replaceAll(
-              RegExp('{${RegExp.escape(map['key'])}}', caseSensitive: false),
+              RegExp('{${RegExp.escape(map['key'])}(:0)?(.0)?}', caseSensitive: false),
               (map['value'] as double).toStringWithPrecision(),
             )
             .replaceAll(
               RegExp(
-                '{${RegExp.escape(map['key'])}:0%}',
+                '{${RegExp.escape(map['key'])}:0(.0)?%}',
                 caseSensitive: false,
               ),
-              '${((map['value'] as double) * 100).round().toString()}%',
+              '${((map['value'] as double) * 100).toStringWithPrecision()}%',
             )
             .replaceAll(
               RegExp(
-                '{\\-${RegExp.escape(map['key'])}:0%}',
+                '{\\-${RegExp.escape(map['key'])}:0(.0)?%}',
                 caseSensitive: false,
               ),
-              '${((map['value'] as double) * 100 * -1).round().toString()}%',
-            )
-            .replaceAll(
-              RegExp(
-                '{\\-${RegExp.escape(map['key'])}:0.0}',
-                caseSensitive: false,
-              ),
-              (map['value'] as double).toStringWithPrecision(),
+              '${((map['value'] as double) * 100 * -1).toStringWithPrecision()}%',
             );
       } else {
         parsed = parsed.replaceAll(
@@ -94,11 +89,29 @@ extension StringExtension on String {
     if (nick != null) {
       return replaceAll('{@nickname}', nick);
     } else {
-      return replaceAll('Dr. {@nickname}', 'Doctor').replaceAll('Dr.{@nickname}', 'Doctor').replaceAll('{@nickname}', 'Doctor');
+      return replaceAll('Dr. {@nickname}', 'Doctor')
+          .replaceAll('Dr.{@nickname}', 'Doctor')
+          .replaceAll('{@nickname}', 'Doctor');
     }
   }
 
   String githubEncode() {
     return Uri.encodeFull(this).replaceAll('#', '%23');
+  }
+
+  Color parseAsHex() {
+    assert(length >= 6 && length <= 9);
+
+    String hexColor = this;
+
+    if (startsWith('#')) hexColor = substring(1);
+
+    final String alphaChannel = (hexColor.length == 8) ? hexColor.substring(6, 8) : 'FF';
+
+    final Color color = Color(
+      int.parse('0x$alphaChannel${hexColor.substring(0, 6)}'),
+    );
+
+    return color;
   }
 }

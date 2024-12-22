@@ -35,7 +35,9 @@ class _DataSettingsState extends State<DataSettings> {
                 child: Container(color: Colors.transparent),
               )
             : null,
-        backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
+        backgroundColor: context.read<UiProvider>().useTranslucentUi == true
+            ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5)
+            : null,
         title: const Text('Data Management'),
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
@@ -104,7 +106,7 @@ class _DataSettingsState extends State<DataSettings> {
 
       try {
         bool result = await servprov.checkUpdateOf(server);
-        bool fileIntegrity = await servprov.checkFiles(server);
+        bool fileIntegrity = await servprov.checkAllFiles(server);
 
         if (result || !fileIntegrity) {
           status = 'has';
@@ -115,11 +117,13 @@ class _DataSettingsState extends State<DataSettings> {
         status = 'err';
       }
 
-      setState(() {
-        if (server == 'en') enHasUpdate = status;
-        if (server == 'cn') cnHasUpdate = status;
-        if (server == 'jp') jpHasUpdate = status;
-      });
+      if (context.mounted) {
+        setState(() {
+          if (server == 'en') enHasUpdate = status;
+          if (server == 'cn') cnHasUpdate = status;
+          if (server == 'jp') jpHasUpdate = status;
+        });
+      }
     }
   }
 

@@ -24,14 +24,17 @@ class HeaderInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final professionStr = 'assets/classes/class_${operator.profession.toLowerCase()}.png';
-    final subprofessionStr = 'assets/subclasses/sub_${operator.subProfessionId.toLowerCase()}_icon.png';
+    final subprofessionStr =
+        'assets/subclasses/sub_${operator.subProfessionId.toLowerCase()}_icon.png';
 
     final String ghAvatarLink = '$kAvatarRepo/${operator.id}.png';
     String? logo = operator.teamId ?? operator.groupId ?? operator.nationId;
     if (logo == 'laterano' || logo == 'leithanien') {
       logo = logo!.replaceFirst('l', 'L');
     }
-    final String ghLogoLink = logo == 'laios' || logo == 'rainbow' ? '$kLogoRepo/linkage/logo_$logo.png' : '$kLogoRepo/logo_$logo.png';
+    final String ghLogoLink = logo == 'laios' || logo == 'rainbow'
+        ? '$kLogoRepo/linkage/logo_$logo.png'
+        : '$kLogoRepo/logo_$logo.png';
 
     return Container(
       padding: const EdgeInsets.all(16.0),
@@ -223,8 +226,12 @@ class HeaderInfo extends StatelessWidget {
                     return ActionChip(
                       label: Text(operator.professionString),
                       avatar: Image.asset(professionStr),
-                      backgroundColor: Theme.of(context).brightness == Brightness.light ? Theme.of(context).colorScheme.primary.withOpacity(0.7) : null,
-                      labelStyle: Theme.of(context).brightness == Brightness.light ? const TextStyle(color: Colors.white) : null,
+                      backgroundColor: Theme.of(context).brightness == Brightness.light
+                          ? Theme.of(context).colorScheme.primary.withOpacity(0.7)
+                          : null,
+                      labelStyle: Theme.of(context).brightness == Brightness.light
+                          ? const TextStyle(color: Colors.white)
+                          : null,
                       onPressed: () {},
                     );
                   }
@@ -232,8 +239,12 @@ class HeaderInfo extends StatelessWidget {
                     return ActionChip(
                       label: Text(operator.subProfessionString),
                       avatar: Image.asset(subprofessionStr),
-                      backgroundColor: Theme.of(context).brightness == Brightness.light ? Theme.of(context).colorScheme.primary.withOpacity(0.7) : null,
-                      labelStyle: Theme.of(context).brightness == Brightness.light ? const TextStyle(color: Colors.white) : null,
+                      backgroundColor: Theme.of(context).brightness == Brightness.light
+                          ? Theme.of(context).colorScheme.primary.withOpacity(0.7)
+                          : null,
+                      labelStyle: Theme.of(context).brightness == Brightness.light
+                          ? const TextStyle(color: Colors.white)
+                          : null,
                       onPressed: () {},
                     );
                   }
@@ -268,7 +279,8 @@ class LoreInfo extends StatelessWidget {
   final Operator operator;
 
   void playOperatorRecord() {
-    ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!).showSnackBar(const SnackBar(content: Text('not implemented yet')));
+    ScaffoldMessenger.of(NavigationService.navigatorKey.currentContext!)
+        .showSnackBar(const SnackBar(content: Text('not implemented yet')));
   }
 
   @override
@@ -280,13 +292,17 @@ class LoreInfo extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: List.generate(hasOperatorRecords ? storyTextList.length + operatorRecords.length : storyTextList.length, (index) {
+      children: List.generate(
+          hasOperatorRecords ? storyTextList.length + operatorRecords.length : storyTextList.length,
+          (index) {
         if (hasOperatorRecords && index >= storyTextList.length) {
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 24.0),
             child: InkWellDialogBox(
-              title: 'Operator Record: ${operatorRecords[index - storyTextList.length]['storySetName']}',
-              body: ((operatorRecords[index - storyTextList.length]['avgList'] as List).first as Map)['storyIntro'],
+              title:
+                  'Operator Record: ${operatorRecords[index - storyTextList.length]['storySetName']}',
+              body: ((operatorRecords[index - storyTextList.length]['avgList'] as List).first
+                  as Map)['storyIntro'],
               inkwellFun: playOperatorRecord,
             ),
           );
@@ -332,7 +348,7 @@ class SkillInfo extends StatefulWidget {
 
 class _SkillInfoState extends State<SkillInfo> {
   final CarouselSliderController carouselController = CarouselSliderController();
-  double showLevel = 83.0;
+  double showLevel = 1.0;
   double maxLevel = 90.0;
   int elite = 0;
   int pot = -1;
@@ -343,6 +359,10 @@ class _SkillInfoState extends State<SkillInfo> {
   // talents
   int? talentLocalElite;
   int? talentLocalPot;
+
+  // base skills
+  int? baseLocalElite;
+  int? baseLocalLv;
 
   // skills
   int skillLv = 0;
@@ -362,7 +382,9 @@ class _SkillInfoState extends State<SkillInfo> {
       for (Map skill in widget.operator.skills) {
         String skillId = skill['skillId'];
         skillsDetails.add(
-          NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedSkillTable![skillId],
+          NavigationService.navigatorKey.currentContext!
+              .read<CacheProvider>()
+              .cachedSkillTable![skillId],
         );
       }
     }
@@ -426,7 +448,9 @@ class _SkillInfoState extends State<SkillInfo> {
                 (potBuffs.containsKey("attackSpeed") ? potBuffs["attackSpeed"]! : 0.0)) /
             100);
       }
-      if (stat == 'respawnTime' && potBuffs.containsKey('respawnTime')) value += potBuffs['respawnTime']!;
+      if (stat == 'respawnTime' && potBuffs.containsKey('respawnTime')) {
+        value += potBuffs['respawnTime']!;
+      }
       // prettify
       return value.toStringAsFixed(3).replaceFirst(RegExp(r'\.?0*$'), '');
     } else {
@@ -469,8 +493,12 @@ class _SkillInfoState extends State<SkillInfo> {
       return val.runtimeType == int ? (val as int).toDouble() : val;
     } else {
       var val = ui.lerpDouble(
-        widget.operator.favorKeyframes[0]["data"][stat].runtimeType == int ? (widget.operator.favorKeyframes[0]["data"][stat] as int).toDouble() : widget.operator.favorKeyframes[0]["data"][stat],
-        widget.operator.favorKeyframes[1]["data"][stat].runtimeType == int ? (widget.operator.favorKeyframes[1]["data"][stat] as int).toDouble() : widget.operator.favorKeyframes[1]["data"][stat],
+        widget.operator.favorKeyframes[0]["data"][stat].runtimeType == int
+            ? (widget.operator.favorKeyframes[0]["data"][stat] as int).toDouble()
+            : widget.operator.favorKeyframes[0]["data"][stat],
+        widget.operator.favorKeyframes[1]["data"][stat].runtimeType == int
+            ? (widget.operator.favorKeyframes[1]["data"][stat] as int).toDouble()
+            : widget.operator.favorKeyframes[1]["data"][stat],
         sliderTrust.clamp(
               0.0,
               (widget.operator.favorKeyframes[1]["level"] as int).toDouble(),
@@ -508,7 +536,8 @@ class _SkillInfoState extends State<SkillInfo> {
         text.add('${statTranslate(key)} <col>+${val.toString()}</col>');
       } else {
         if (value == false) return;
-        if (!trustMaxFlag && sliderTrust < (widget.operator.favorKeyframes[1]["level"] as int).toDouble()) return;
+        if (!trustMaxFlag &&
+            sliderTrust < (widget.operator.favorKeyframes[1]["level"] as int).toDouble()) return;
 
         text.add('<col>${statTranslate(key)}</col>');
       }
@@ -523,7 +552,8 @@ class _SkillInfoState extends State<SkillInfo> {
       if (widget.operator.potentials.indexOf(potDetail) > pot - 1) return;
 
       if (potDetail["type"] == 'BUFF') {
-        String name = switch ((potDetail["buff"]["attributes"]["attributeModifiers"] as List).first["attributeType"]) {
+        String name = switch ((potDetail["buff"]["attributes"]["attributeModifiers"] as List)
+            .first["attributeType"]) {
           "COST" => "cost",
           "RESPAWN_TIME" => "respawnTime",
           "ATK" => "atk",
@@ -542,8 +572,11 @@ class _SkillInfoState extends State<SkillInfo> {
 
         potBuffs.update(
           name,
-          (value) => value + (potDetail["buff"]["attributes"]["attributeModifiers"] as List).first["value"],
-          ifAbsent: () => (potDetail["buff"]["attributes"]["attributeModifiers"] as List).first["value"],
+          (value) =>
+              value +
+              (potDetail["buff"]["attributes"]["attributeModifiers"] as List).first["value"],
+          ifAbsent: () =>
+              (potDetail["buff"]["attributes"]["attributeModifiers"] as List).first["value"],
         );
       } else {
         continue;
@@ -748,7 +781,6 @@ class _SkillInfoState extends State<SkillInfo> {
             ),
             child:
                 // mods needs to have: maybe a lv upgrade diff shower stats (really easy to do), story show
-
                 const SizedBox(
               height: 240,
               child: Placeholder(
@@ -764,11 +796,9 @@ class _SkillInfoState extends State<SkillInfo> {
               color: Theme.of(context).colorScheme.surfaceContainer,
               borderRadius: BorderRadius.circular(12.0),
             ),
-            child: const SizedBox(
-              height: 240,
-              child: Placeholder(
-                child: Text('RIIC Base Skills'),
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [const Text('RIIC Base Skills'), baseSkillBuilder(context)],
             ),
           ),
         ].nullParser(),
@@ -778,11 +808,142 @@ class _SkillInfoState extends State<SkillInfo> {
 
   Widget statTile(String stat, String value, BuildContext context) {
     return StyledText(
-      text: '<icon-${stat.replaceAll(r' ', '')}/><color stat="${stat.replaceAll(' ', '')}">$stat</color>\n$value',
+      text:
+          '<icon-${stat.replaceAll(r' ', '')}/><color stat="${stat.replaceAll(' ', '')}">$stat</color>\n$value',
       tags: context.read<StyleProvider>().tagsAsStats(context: context),
       style: const TextStyle(
         shadows: [ui.Shadow(offset: ui.Offset.zero, blurRadius: 1.0)],
       ),
+    );
+  }
+
+  Widget smolRangeTile(String rangeId) {
+    final List range = NavigationService.navigatorKey.currentContext!
+        .read<CacheProvider>()
+        .cachedRangeTable![rangeId]["grids"];
+
+    int maxRowPos = 0;
+    int maxColPos = 0;
+    int maxRowNeg = 0; // Row offset
+    int maxColNeg = 0; // Col offset
+
+    for (Map tile in range) {
+      if (tile['row'] > maxRowPos) maxRowPos = tile['row'];
+      if (tile['row'] < maxRowNeg) maxRowNeg = tile['row'];
+      if (tile['col'] > maxColPos) maxColPos = tile['col'];
+      if (tile['col'] < maxColNeg) maxColNeg = tile['col'];
+    }
+
+    // has to add 1 as offset because 0 is no-existen column/row
+    // so in this case the offset should be XOffset = 1+XNeg
+    int tileRowOffset = 1 + maxRowNeg.abs();
+    int tileColOffset = 1 + maxColNeg.abs();
+    int cols = maxColPos + tileColOffset;
+    int rows = maxRowPos + tileRowOffset;
+
+    List<Widget> finishedRange = List.generate(
+      cols * rows, (index) => const SizedBox.square(dimension: 2), // void
+    );
+    for (Map tile in range) {
+      int position = cols * ((tile['row'] as int) + tileRowOffset - 1) +
+          ((tile['col'] as int) + tileColOffset);
+      finishedRange[position - 1] = SizedBox.square(
+        dimension: 2,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Colors.grey,
+              strokeAlign: BorderSide.strokeAlignInside,
+              width: 2,
+            ),
+          ),
+        ),
+      );
+    }
+    // 0 - 0 char
+    finishedRange[cols * (tileRowOffset - 1) + tileColOffset - 1] = SizedBox.square(
+      dimension: 2,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      ),
+    ); // player
+
+    final gridPadding = max(
+      finishedRange.length < 20.0
+          ? 16.0 -
+              finishedRange.length +
+              (rows > 2 ? 12.0 : 0.0) +
+              (finishedRange.length == 2 ? 12.0 : 0.0) +
+              (finishedRange.length == 1 ? 18.0 : 0.0) +
+              (rows > 4 ? 12.0 : 0.0)
+          : 40.0 - finishedRange.length + (rows > 5 ? 14.0 : 0.0),
+      0.0,
+    );
+
+    return Stack(
+      alignment: Alignment.bottomCenter,
+      children: [
+        Container(
+          height: 90,
+          width: 90,
+          margin: const EdgeInsets.only(bottom: 8.0, top: 8.0),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: Theme.of(context).colorScheme.tertiaryContainer,
+              width: 4.0,
+            ),
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          child: Column(
+            children: [
+              Expanded(
+                child: Center(
+                  child: GridView(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: cols,
+                      mainAxisSpacing: 2,
+                      crossAxisSpacing: 2,
+                    ),
+                    padding: EdgeInsets.fromLTRB(
+                      gridPadding,
+                      8.0,
+                      gridPadding,
+                      12.0,
+                    ),
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    children: finishedRange,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8.0),
+            ],
+          ),
+        ),
+        Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.tertiaryContainer,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(4.0)),
+          ),
+          child: Text(
+            'Range',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onTertiaryContainer,
+              fontWeight: ui.FontWeight.w900,
+            ),
+            // ignore: deprecated_member_use
+            textScaler: TextScaler.linear(
+              // ignore: deprecated_member_use
+              MediaQuery.textScalerOf(context).textScaleFactor + 0.1,
+            ),
+            textAlign: ui.TextAlign.center,
+          ),
+        ),
+      ],
     );
   }
 
@@ -815,7 +976,9 @@ class _SkillInfoState extends State<SkillInfo> {
   }
 
   Widget rangeTile() {
-    final List range = NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedRangeTable![widget.operator.phases[elite]["rangeId"]]["grids"];
+    final List range = NavigationService.navigatorKey.currentContext!
+        .read<CacheProvider>()
+        .cachedRangeTable![widget.operator.phases[elite]["rangeId"]]["grids"];
 
     int maxRowPos = 0;
     int maxColPos = 0;
@@ -840,7 +1003,8 @@ class _SkillInfoState extends State<SkillInfo> {
       cols * rows, (index) => const SizedBox.square(dimension: 2), // void
     );
     for (Map tile in range) {
-      int position = cols * ((tile['row'] as int) + tileRowOffset - 1) + ((tile['col'] as int) + tileColOffset);
+      int position = cols * ((tile['row'] as int) + tileRowOffset - 1) +
+          ((tile['col'] as int) + tileColOffset);
       finishedRange[position - 1] = SizedBox.square(
         dimension: 2,
         child: DecoratedBox(
@@ -865,7 +1029,14 @@ class _SkillInfoState extends State<SkillInfo> {
     ); // player
 
     final gridPadding = max(
-      finishedRange.length < 20.0 ? 30.0 - finishedRange.length + (rows > 2 ? 12.0 : 0.0) + (rows > 4 ? 12.0 : 0.0) + (finishedRange.length == 2 ? 12.0 : 0.0) + (finishedRange.length == 1 ? 18.0 : 0.0) : 48.0 - finishedRange.length,
+      finishedRange.length < 20.0
+          ? 30.0 -
+              finishedRange.length +
+              (rows > 2 ? 12.0 : 0.0) +
+              (rows > 4 ? 12.0 : 0.0) +
+              (finishedRange.length == 2 ? 12.0 : 0.0) +
+              (finishedRange.length == 1 ? 18.0 : 0.0)
+          : 48.0 - finishedRange.length,
       0.0,
     );
 
@@ -943,7 +1114,9 @@ class _SkillInfoState extends State<SkillInfo> {
         int thisTalentCandidateElite = int.parse(
           (candidate["unlockCondition"]["phase"] as String).replaceFirst('PHASE_', ''),
         );
-        if (!talentElites.contains(thisTalentCandidateElite)) talentElites.add(thisTalentCandidateElite);
+        if (!talentElites.contains(thisTalentCandidateElite)) {
+          talentElites.add(thisTalentCandidateElite);
+        }
 
         int thisTalentCandidatePot = candidate["requiredPotentialRank"];
         if (!talentPots.contains(thisTalentCandidatePot)) talentPots.add(thisTalentCandidatePot);
@@ -1009,13 +1182,28 @@ class _SkillInfoState extends State<SkillInfo> {
                 (candidate["unlockCondition"]["phase"] as String).replaceFirst('PHASE_', ''),
               );
               int thisTalentCandidatePot = candidate["requiredPotentialRank"];
-
-              return (talentLocalElite ?? minElite) >= thisTalentCandidateElite && (talentLocalPot ?? minPot) >= thisTalentCandidatePot;
+              return (talentLocalElite ?? minElite) >= thisTalentCandidateElite &&
+                  (talentLocalPot ?? minPot) >= thisTalentCandidatePot;
             },
             orElse: () => null,
           );
 
+          if (candidate != null && candidate["isHideTalent"] == true) return null;
+
           bool unlocked = (candidate != null);
+
+          List<Widget> extraSlots = [
+            // fck tomimi
+            if (candidate?["rangeId"] != null &&
+                (candidate?["blackboard"] as List).singleWhere(
+                      (e) => e?["key"] == "talent_override_rangeid_flag",
+                      orElse: () => null,
+                    )?["value"] ==
+                    1.0)
+              smolRangeTile(candidate?["rangeId"]),
+            //fck summoners
+            candidate?["tokenKey"] != null ? Text(candidate?["tokenKey"]) : null,
+          ].nullParser();
 
           return Card.filled(
             margin: const EdgeInsets.only(top: 12.0),
@@ -1044,23 +1232,36 @@ class _SkillInfoState extends State<SkillInfo> {
                       vertical: 2.0,
                     ),
                     child: Text(
-                      (widget.operator.talents[index - 1]["candidates"] as List).first["name"],
+                      (widget.operator.talents[index - 1]["candidates"] as List).first["name"] ??
+                          '',
                       style: TextStyle(
-                        color: unlocked ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSurface,
+                        color: unlocked
+                            ? Theme.of(context).colorScheme.onPrimary
+                            : Theme.of(context).colorScheme.onSurface,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
-                  SizedBox(
-                    width: double.maxFinite,
-                    child: AnimatedSize(
-                      duration: const Duration(milliseconds: 250),
-                      curve: Curves.ease,
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.ease,
+                    child: SizedBox(
+                      width: double.maxFinite,
                       child: StyledText(
-                        text: unlocked ? (candidate["description"] as String).akRichTextParser() : '<icon src="assets/sortIcon/lock.png"/> Unlocks at Elite $index',
+                        text: unlocked
+                            ? ((candidate["description"] ?? '') as String).akRichTextParser()
+                            : '<icon src="assets/sortIcon/lock.png"/> Unlocks at Elite $index',
                         tags: context.read<StyleProvider>().tagsAsArknights(context: context),
                         textAlign: TextAlign.start,
                       ),
+                    ),
+                  ),
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.ease,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: extraSlots,
                     ),
                   ),
                 ],
@@ -1068,7 +1269,7 @@ class _SkillInfoState extends State<SkillInfo> {
             ),
           );
         }
-      }),
+      }).nullParser(),
     );
   }
 
@@ -1178,132 +1379,14 @@ class _SkillInfoState extends State<SkillInfo> {
     Map selectedSkillDetail = skillsDetails[showSkill];
     Map selectedSkill = widget.operator.skills[showSkill];
 
-    Widget rangeTile(String rangeId) {
-      final List range = NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedRangeTable![rangeId]["grids"];
-
-      int maxRowPos = 0;
-      int maxColPos = 0;
-      int maxRowNeg = 0; // Row offset
-      int maxColNeg = 0; // Col offset
-
-      for (Map tile in range) {
-        if (tile['row'] > maxRowPos) maxRowPos = tile['row'];
-        if (tile['row'] < maxRowNeg) maxRowNeg = tile['row'];
-        if (tile['col'] > maxColPos) maxColPos = tile['col'];
-        if (tile['col'] < maxColNeg) maxColNeg = tile['col'];
-      }
-
-      // has to add 1 as offset because 0 is no-existen column/row
-      // so in this case the offset should be XOffset = 1+XNeg
-      int tileRowOffset = 1 + maxRowNeg.abs();
-      int tileColOffset = 1 + maxColNeg.abs();
-      int cols = maxColPos + tileColOffset;
-      int rows = maxRowPos + tileRowOffset;
-
-      List<Widget> finishedRange = List.generate(
-        cols * rows, (index) => const SizedBox.square(dimension: 2), // void
-      );
-      for (Map tile in range) {
-        int position = cols * ((tile['row'] as int) + tileRowOffset - 1) + ((tile['col'] as int) + tileColOffset);
-        finishedRange[position - 1] = SizedBox.square(
-          dimension: 2,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Colors.grey,
-                strokeAlign: BorderSide.strokeAlignInside,
-                width: 2,
-              ),
-            ),
-          ),
-        );
-      }
-      // 0 - 0 char
-      finishedRange[cols * (tileRowOffset - 1) + tileColOffset - 1] = SizedBox.square(
-        dimension: 2,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary,
-          ),
-        ),
-      ); // player
-
-      final gridPadding = max(
-        finishedRange.length < 20.0 ? 16.0 - finishedRange.length + (rows > 2 ? 12.0 : 0.0) + (finishedRange.length == 2 ? 12.0 : 0.0) + (finishedRange.length == 1 ? 18.0 : 0.0) + (rows > 4 ? 12.0 : 0.0) : 40.0 - finishedRange.length + (rows > 5 ? 14.0 : 0.0),
-        0.0,
-      );
-
-      return Stack(
-        alignment: Alignment.bottomCenter,
-        children: [
-          Container(
-            height: 90,
-            width: 90,
-            margin: const EdgeInsets.only(bottom: 8.0, top: 8.0),
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Theme.of(context).colorScheme.tertiaryContainer,
-                width: 4.0,
-              ),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            child: Column(
-              children: [
-                Expanded(
-                  child: Center(
-                    child: GridView(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: cols,
-                        mainAxisSpacing: 2,
-                        crossAxisSpacing: 2,
-                      ),
-                      padding: EdgeInsets.fromLTRB(
-                        gridPadding,
-                        8.0,
-                        gridPadding,
-                        12.0,
-                      ),
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      children: finishedRange,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8.0),
-              ],
-            ),
-          ),
-          Container(
-            margin: const EdgeInsets.only(bottom: 10),
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.tertiaryContainer,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(4.0)),
-            ),
-            child: Text(
-              'Range',
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onTertiaryContainer,
-                fontWeight: ui.FontWeight.w900,
-              ),
-              // ignore: deprecated_member_use
-              textScaler: TextScaler.linear(
-                // ignore: deprecated_member_use
-                MediaQuery.textScalerOf(context).textScaleFactor + 0.1,
-              ),
-              textAlign: ui.TextAlign.center,
-            ),
-          ),
-        ],
-      );
-    }
-
     List<Widget> skillSlots = List.generate(3, (index) {
       if (widget.operator.skills.elementAtOrNull(index) != null) {
         bool selected = showSkill == index;
         return Container(
           decoration: BoxDecoration(
-            color: selected ? Theme.of(context).colorScheme.surfaceContainerHighest : Theme.of(context).colorScheme.surfaceContainerHigh,
+            color: selected
+                ? Theme.of(context).colorScheme.surfaceContainerHighest
+                : Theme.of(context).colorScheme.surfaceContainerHigh,
             borderRadius: const BorderRadius.vertical(top: ui.Radius.circular(8.0)),
           ),
           child: SizedBox.square(
@@ -1325,7 +1408,9 @@ class _SkillInfoState extends State<SkillInfo> {
                   margin: const EdgeInsets.all(12.0),
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: selected ? Theme.of(context).colorScheme.inverseSurface : Theme.of(context).colorScheme.inverseSurface.withOpacity(0.7),
+                      color: selected
+                          ? Theme.of(context).colorScheme.inverseSurface
+                          : Theme.of(context).colorScheme.inverseSurface.withOpacity(0.7),
                       width: 1.0,
                       strokeAlign: BorderSide.strokeAlignOutside,
                     ),
@@ -1334,10 +1419,13 @@ class _SkillInfoState extends State<SkillInfo> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(4.0),
                     child: CachedNetworkImage(
-                      imageUrl: '$kSkillRepo/skill_icon_${skillsDetails[index]["iconId"] ?? skillsDetails[index]["skillId"]}.png'.githubEncode(),
+                      imageUrl:
+                          '$kSkillRepo/skill_icon_${skillsDetails[index]["iconId"] ?? skillsDetails[index]["skillId"]}.png'
+                              .githubEncode(),
                       color: !selected ? const ui.Color.fromARGB(255, 134, 134, 134) : null,
                       colorBlendMode: BlendMode.modulate,
-                      placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                      placeholder: (context, url) =>
+                          const Center(child: CircularProgressIndicator()),
                       errorWidget: (context, url, error) => const Center(child: Icon(Icons.error)),
                     ),
                   ),
@@ -1370,7 +1458,9 @@ class _SkillInfoState extends State<SkillInfo> {
     });
 
     List<Widget> extraSlots = [
-      selectedSkillDetailLv["rangeId"] != null ? rangeTile(selectedSkillDetailLv["rangeId"]) : null,
+      selectedSkillDetailLv["rangeId"] != null
+          ? smolRangeTile(selectedSkillDetailLv["rangeId"])
+          : null,
       selectedSkill["overrideTokenKey"] != null ? Text(selectedSkill["overrideTokenKey"]) : null,
     ].nullParser();
 
@@ -1568,7 +1658,8 @@ class _SkillInfoState extends State<SkillInfo> {
         DiffChip(
           icon: Icons.bolt,
           label: 'SP Cost',
-          value: (skillsDetails[showSkill]["levels"][skillLv]["spData"]["spCost"] as int).toString(),
+          value:
+              (skillsDetails[showSkill]["levels"][skillLv]["spData"]["spCost"] as int).toString(),
           color: textColor,
           backgroundColor: contrastColor,
           axis: skillLv == 0
@@ -1586,7 +1677,8 @@ class _SkillInfoState extends State<SkillInfo> {
         DiffChip(
           icon: Icons.play_arrow,
           label: 'Initial SP',
-          value: (skillsDetails[showSkill]["levels"][skillLv]["spData"]["initSp"] as int).toString(),
+          value:
+              (skillsDetails[showSkill]["levels"][skillLv]["spData"]["initSp"] as int).toString(),
           color: textColor,
           backgroundColor: contrastColor,
           axis: skillLv == 0
@@ -1606,7 +1698,9 @@ class _SkillInfoState extends State<SkillInfo> {
               ? DiffChip(
                   icon: Icons.timelapse,
                   label: 'Duration',
-                  value: (skillsDetails[showSkill]["levels"][skillLv]["duration"] as double).toStringAsFixed(3).replaceFirst(RegExp(r'\.?0*$'), ''),
+                  value: (skillsDetails[showSkill]["levels"][skillLv]["duration"] as double)
+                      .toStringAsFixed(3)
+                      .replaceFirst(RegExp(r'\.?0*$'), ''),
                   color: textColor,
                   backgroundColor: contrastColor,
                   axis: skillLv == 0
@@ -1626,7 +1720,8 @@ class _SkillInfoState extends State<SkillInfo> {
               ? DiffChip(
                   icon: Icons.stacked_bar_chart,
                   label: 'Ammo',
-                  value: (((skillsDetails[showSkill]["levels"][skillLv]["blackboard"] as List).lastWhere(
+                  value: (((skillsDetails[showSkill]["levels"][skillLv]["blackboard"] as List)
+                          .lastWhere(
                     (i) => ((i as Map)["key"] as String).endsWith("trigger_time"),
                   ) as Map)["value"] as double)
                       .toStringAsFixed(3)
@@ -1636,10 +1731,12 @@ class _SkillInfoState extends State<SkillInfo> {
                   axis: skillLv == 0
                       ? AxisDirection.left
                       : Calc.valueDifference(
-                          ((skillsDetails[showSkill]["levels"][skillLv]["blackboard"] as List).lastWhere(
+                          ((skillsDetails[showSkill]["levels"][skillLv]["blackboard"] as List)
+                              .lastWhere(
                             (i) => ((i as Map)["key"] as String).endsWith("trigger_time"),
                           ) as Map)["value"],
-                          ((skillsDetails[showSkill]["levels"][skillLv - 1]["blackboard"] as List).lastWhere(
+                          ((skillsDetails[showSkill]["levels"][skillLv - 1]["blackboard"] as List)
+                              .lastWhere(
                             (i) => ((i as Map)["key"] as String).endsWith("trigger_time"),
                           ) as Map)["value"],
                         ),
@@ -1656,17 +1753,18 @@ class _SkillInfoState extends State<SkillInfo> {
     List<Widget> metadata() {
       List<Widget> widgets = [];
 
-      final Color textColor = Theme.of(context).colorScheme.onSurface.withOpacity(0.6);
+      final Color textColor = Colors.white60;
       final Color contrastColor = Colors.grey[800]!;
 
       // skill cost
       for (Map metadata in selectedSkillDetailLv["blackboard"]) {
-        int index = (skillsDetails[showSkill]["levels"][skillLv]["blackboard"] as List).indexOf(metadata);
+        int index =
+            (skillsDetails[showSkill]["levels"][skillLv]["blackboard"] as List).indexOf(metadata);
 
         widgets.add(
           DiffChip(
             label: metadata["key"],
-            value: metadata["valueStr"] ?? metadata["value"].toString(),
+            value: metadata["valueStr"] ?? (metadata["value"] as double).toStringWithPrecision(),
             color: textColor,
             backgroundColor: contrastColor,
             axis: skillLv == 0
@@ -1705,7 +1803,8 @@ class _SkillInfoState extends State<SkillInfo> {
               borderRadius: BorderRadius.only(
                 bottomLeft: const ui.Radius.circular(8.0),
                 bottomRight: const ui.Radius.circular(8.0),
-                topRight: widget.operator.skills.length < 3 ? const ui.Radius.circular(8.0) : Radius.zero,
+                topRight:
+                    widget.operator.skills.length < 3 ? const ui.Radius.circular(8.0) : Radius.zero,
               ),
             ),
             child: Column(
@@ -1724,7 +1823,12 @@ class _SkillInfoState extends State<SkillInfo> {
                               fontWeight: ui.FontWeight.w800,
                             ),
                             textScaler: TextScaler.linear(
-                              ((18.0 / (selectedSkillDetailLv["name"] as String).length.toDouble()) - 0.2).clamp(1.3, 1.9),
+                              ((18.0 /
+                                          (selectedSkillDetailLv["name"] as String)
+                                              .length
+                                              .toDouble()) -
+                                      0.2)
+                                  .clamp(1.3, 1.9),
                             ),
                           ),
                           const SizedBox(height: 4.0),
@@ -1762,31 +1866,272 @@ class _SkillInfoState extends State<SkillInfo> {
                   children: lilDataWidgets(),
                 ),
                 const SizedBox(height: 6.0),
-                StyledText(
-                  text: (selectedSkillDetailLv["description"] as String).akRichTextParser().varParser(selectedSkillDetailLv["blackboard"]),
-                  tags: context.read<StyleProvider>().tagsAsArknights(context: context),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.ease,
+                  child: StyledText(
+                    text: (selectedSkillDetailLv["description"] as String)
+                        .akRichTextParser()
+                        .varParser(selectedSkillDetailLv["blackboard"]),
+                    tags: context.read<StyleProvider>().tagsAsArknights(context: context),
+                  ),
                 ),
-                (context.watch<SettingsProvider>().prefs[PrefsFlags.menuShowAdvanced])
-                    ? Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: Wrap(
-                          spacing: 6.0,
-                          runSpacing: 3.0,
-                          children: metadata(),
-                        ),
-                      )
-                    : null,
-                extraSlots.isNotEmpty
-                    ? Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: extraSlots,
-                      )
-                    : null,
-              ].nullParser(),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.ease,
+                  child: SizedBox(
+                    child: context.watch<SettingsProvider>().prefs[PrefsFlags.menuShowAdvanced]
+                        ? Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Wrap(
+                              spacing: 6.0,
+                              runSpacing: 3.0,
+                              children: metadata(),
+                            ),
+                          )
+                        : null,
+                  ),
+                ),
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 250),
+                  curve: Curves.ease,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: extraSlots,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget baseSkillBuilder(BuildContext context) {
+    List<int> baseElites = [];
+    List<int> baseLv = [];
+
+    for (Map buff in widget.operator.baseSkills["buffChar"]) {
+      for (Map buffdata in buff["buffData"]) {
+        int thisBuffdataElite = int.parse(
+          (buffdata["cond"]["phase"] as String).replaceFirst('PHASE_', ''),
+        );
+        if (!baseElites.contains(thisBuffdataElite)) baseElites.add(thisBuffdataElite);
+
+        int thisBuffdataLv = buffdata["cond"]["level"];
+        if (!baseLv.contains(thisBuffdataLv)) baseLv.add(thisBuffdataLv);
+      }
+    }
+    baseElites.sort();
+    baseLv.sort();
+
+    int minElite = baseElites.lastWhere(
+      (e) => e <= elite,
+      orElse: () => baseElites.first,
+    );
+    int minLv = baseLv.lastWhere((e) => e <= showLevel.toInt(), orElse: () => baseLv.first);
+
+    return Column(
+      children: List.generate(1 + (widget.operator.baseSkills["buffChar"] as List).length, (index) {
+        if (index == 0) {
+          return Row(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: List.generate(baseElites.length, (index) {
+                  return LilButton(
+                    selected: baseElites[index] == (baseLocalElite ?? minElite),
+                    fun: () {
+                      setState(() {
+                        baseLocalElite = baseElites[index];
+                      });
+                    },
+                    icon: ImageIcon(
+                      AssetImage(
+                        'assets/elite/elite_${baseElites[index]}.png',
+                      ),
+                    ),
+                  );
+                }),
+              ),
+              Row(
+                children: List.generate(baseLv.length, (index) {
+                  return LilButton(
+                    selected: baseLv[index] == (baseLocalLv ?? minLv),
+                    fun: () {
+                      setState(() {
+                        baseLocalLv = baseLv[index];
+                      });
+                    },
+                    icon: Text.rich(
+                      textScaler: const TextScaler.linear(0.8),
+                      TextSpan(
+                        children: [
+                          const TextSpan(text: 'Lv', style: TextStyle(fontSize: 10)),
+                          TextSpan(text: baseLv[index].toString()),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ],
+          );
+        } else {
+          if ((widget.operator.baseSkills["buffChar"][index - 1]["buffData"] as List).isEmpty) {
+            return null;
+          }
+
+          final Map? buffData =
+              (widget.operator.baseSkills["buffChar"][index - 1]["buffData"] as List).lastWhere(
+            (buffdata) {
+              int thisBuffdataElite = int.parse(
+                (buffdata["cond"]["phase"] as String).replaceFirst('PHASE_', ''),
+              );
+              int thisBuffdataLv = buffdata["cond"]["level"];
+              return (baseLocalElite ?? minElite) >= thisBuffdataElite &&
+                  (baseLocalLv ?? minLv) >= thisBuffdataLv;
+            },
+            orElse: () => null,
+          );
+
+          final bool unlocked = (buffData != null);
+          final String buffId =
+              (widget.operator.baseSkills["buffChar"][index - 1]["buffData"] as List).lastWhere(
+            (buffdata) {
+              int thisBuffdataElite = int.parse(
+                (buffdata["cond"]["phase"] as String).replaceFirst('PHASE_', ''),
+              );
+              int thisBuffdataLv = buffdata["cond"]["level"];
+              return (baseLocalElite ?? minElite) >= thisBuffdataElite &&
+                  (baseLocalLv ?? minLv) >= thisBuffdataLv;
+            },
+            orElse: () =>
+                (widget.operator.baseSkills["buffChar"][index - 1]["buffData"] as List).first,
+          )["buffId"];
+
+          final int textelite = int.parse(
+            ((widget.operator.baseSkills["buffChar"][index - 1]["buffData"] as List).first["cond"]
+                    ["phase"] as String)
+                .replaceFirst('PHASE_', ''),
+          );
+          final int textlv = (widget.operator.baseSkills["buffChar"][index - 1]["buffData"] as List)
+              .first["cond"]["level"];
+
+          final cachedTable = context.read<CacheProvider>().cachedBaseSkillTable;
+          final Color? bgColor =
+              unlocked ? (cachedTable![buffId]["buffColor"] as String).parseAsHex() : null;
+          final Color textColor = unlocked
+              ? (cachedTable![buffId]["textColor"] as String).parseAsHex()
+              : Theme.of(context).colorScheme.onSurface;
+
+          return Card.filled(
+            margin: const EdgeInsets.only(top: 12.0),
+            child: Container(
+              width: double.maxFinite,
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Stack(
+                    children: [
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        margin: const EdgeInsets.only(bottom: 8.0, top: 4.0),
+                        decoration: BoxDecoration(
+                          color: bgColor,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                        ),
+                        padding: EdgeInsets.only(
+                          top: 2.0,
+                          bottom: 2.0,
+                          right: 12.0,
+                          left: unlocked ? 35 : 12.0,
+                        ),
+                        child: Text(
+                          (cachedTable![buffId]["buffName"] as String?) ?? '',
+                          style: TextStyle(
+                            color: textColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        left: 0,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: bgColor,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: unlocked
+                                  ? Theme.of(context).colorScheme.outline
+                                  : Colors.transparent,
+                            ),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(2.0),
+                            child: CachedNetworkImage(
+                              colorBlendMode: BlendMode.modulate,
+                              imageUrl: '$kBaseSkillRepo/${cachedTable[buffId]["skillIcon"]}.png'
+                                  .githubEncode(),
+                              scale: 1.3,
+                              color: unlocked ? null : Colors.transparent,
+                              placeholder: (_, __) => Image.asset(
+                                'assets/placeholders/baseskill.png',
+                                colorBlendMode: BlendMode.modulate,
+                                color: Colors.transparent,
+                                scale: 1.3,
+                              ),
+                              errorWidget: (context, url, error) => Stack(
+                                children: [
+                                  Image.asset(
+                                    'assets/placeholders/baseskill.png',
+                                    colorBlendMode: BlendMode.modulate,
+                                    color: Colors.transparent,
+                                    scale: 1.3,
+                                  ),
+                                  Positioned.fill(
+                                    child: Center(
+                                      child: Icon(
+                                        Icons.error_outline,
+                                        color: Theme.of(context).colorScheme.surface,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.ease,
+                    child: SizedBox(
+                      width: double.maxFinite,
+                      child: StyledText(
+                        text: unlocked
+                            ? ((cachedTable[buffId]["description"] ?? '') as String)
+                                .akRichTextParser()
+                            : '<icon src="assets/sortIcon/lock.png"/> Unlocks at Elite ${textelite.toString()} lv${textlv.toString()}',
+                        tags: context.read<StyleProvider>().tagsAsArknights(context: context),
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                  ),
+                ].nullParser(),
+              ),
+            ),
+          );
+        }
+      }).nullParser(),
     );
   }
 }
@@ -1845,7 +2190,9 @@ class _ArchivePageState extends State<ArchivePage> with SingleTickerProviderStat
                     right: 32.0,
                   ),
                 ),
-          backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
+          backgroundColor: context.read<UiProvider>().useTranslucentUi == true
+              ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5)
+              : null,
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context),
@@ -1856,7 +2203,9 @@ class _ArchivePageState extends State<ArchivePage> with SingleTickerProviderStat
                 SwitchListTile(
                   value: context.watch<SettingsProvider>().prefs[PrefsFlags.menuShowAdvanced],
                   onChanged: (bool value) {
-                    context.read<SettingsProvider>().setAndSaveBoolPref(PrefsFlags.menuShowAdvanced, value);
+                    context
+                        .read<SettingsProvider>()
+                        .setAndSaveBoolPref(PrefsFlags.menuShowAdvanced, value);
                   },
                   title: const Text('Show advanced'),
                 ),

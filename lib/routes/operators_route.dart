@@ -12,6 +12,7 @@ import 'package:autoscale_tabbarview/autoscale_tabbarview.dart';
 import 'package:provider/provider.dart';
 import 'package:sagahelper/providers/ui_provider.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
+import 'package:sagahelper/utils/extensions.dart';
 
 const List<String> professionList = [
   'caster',
@@ -45,52 +46,46 @@ const List<String> subProfessionList = [
 
 Future<List<Operator>> fetchOperators() async {
   var cacheProv = NavigationService.navigatorKey.currentContext!.read<CacheProvider>();
-  String server = NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString;
-  String version = NavigationService.navigatorKey.currentContext!.read<ServerProvider>().versionOf(server);
+  String server =
+      NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString;
+  String version =
+      NavigationService.navigatorKey.currentContext!.read<ServerProvider>().versionOf(server);
   if (cacheProv.isCached) {
     return Future<List<Operator>>.value(cacheProv.cachedListOperator);
   }
 
-  List<String> files = [
-    '/excel/character_table.json',
-    '/excel/handbook_info_table.json',
-    '/excel/charword_table.json',
-    '/excel/skin_table.json',
-    '/excel/range_table.json',
-    '/excel/skill_table.json',
-  ];
-  // 0 operators
-  // 1 lore
-  // 2 voice
-  // 3 skin
-  // 4 ranges
-  // 5 skills details
+  final bool checkfiles = await NavigationService.navigatorKey.currentContext!
+      .read<ServerProvider>()
+      .existFiles(
+        NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString,
+        ServerProvider.opFiles,
+      );
 
-  try {
-    await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().existFiles(
-          NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString,
-          files,
-        );
-  } catch (e) {
-    throw const FormatException('Update gamedata');
-  }
+  if (!checkfiles) throw const FormatException('Update gamedata');
 
   List<String> response = [];
 
-  for (String filepath in files) {
+  for (String filepath in ServerProvider.opFiles) {
     response.add(
-      await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().getFile(filepath, server),
+      await NavigationService.navigatorKey.currentContext!
+          .read<ServerProvider>()
+          .getFile(filepath, server),
     );
   }
 
   // Use the compute function to run parsing in a separate isolate.
   List<Operator> completedList = await compute(parseOperators, response);
 
-  cacheProv.cachedListOperatorServer = server;
-  cacheProv.cachedListOperator = completedList;
-  cacheProv.cachedListOperatorVersion = version;
-  cacheProv.cachedRangeTable = jsonDecode(response[4]) as Map<String, dynamic>;
-  cacheProv.cachedSkillTable = jsonDecode(response[5]) as Map<String, dynamic>;
+  cacheProv.cache(
+    listOperator: completedList,
+    listOperatorServer: server,
+    listOperatorVersion: version,
+    rangeTable: jsonDecode(response[4]) as Map<String, dynamic>,
+    skillTable: jsonDecode(response[5]) as Map<String, dynamic>,
+    modTable: jsonDecode(response[6]) as Map<String, dynamic>,
+    baseSkillTable:
+        (jsonDecode(response[7]) as Map<String, dynamic>)["buffs"] as Map<String, dynamic>,
+  );
 
   return completedList;
 }
@@ -100,10 +95,16 @@ List<Operator> parseOperators(List<String> response) {
   final loreInfo = jsonDecode(response[1]) as Map<String, dynamic>;
   final voiceInfo = jsonDecode(response[2]) as Map<String, dynamic>;
   final skinInfo = jsonDecode(response[3]) as Map<String, dynamic>;
+  final modtable = jsonDecode(response[6]) as Map<String, dynamic>;
+  final baseSkillInfo =
+      (jsonDecode(response[7]) as Map<String, dynamic>)["chars"] as Map<String, dynamic>;
 
   List<Operator> opsLists = [];
   operatorsparsed.forEach((key, value) {
-    if ((value['subProfessionId'] as String).startsWith('notchar') || key.startsWith('trap') || key.startsWith('token') || value['isNotObtainable'] == true) {
+    if ((value['subProfessionId'] as String).startsWith('notchar') ||
+        key.startsWith('trap') ||
+        key.startsWith('token') ||
+        value['isNotObtainable'] == true) {
     } else {
       opsLists.add(
         Operator.fromJson(
@@ -112,6 +113,8 @@ List<Operator> parseOperators(List<String> response) {
           loreInfo['handbookDict'],
           voiceInfo,
           skinInfo['charSkins'],
+          baseSkillInfo,
+          modtable["charEquip"],
         ),
       );
     }
@@ -129,6 +132,7 @@ class OperatorsPage extends StatefulWidget {
 
 class _OperatorsPageState extends State<OperatorsPage> {
   final TextEditingController _textController = TextEditingController();
+  final MenuController _menuController = MenuController();
 
   late Future<List<Operator>> futureOperatorList;
   List<Operator> finishedFutureOperatorList = [];
@@ -143,6 +147,14 @@ class _OperatorsPageState extends State<OperatorsPage> {
   void initState() {
     super.initState();
     futureOperatorList = fetchOperators();
+  }
+
+  void reloadgamedata() {
+    context.read<CacheProvider>().unCache();
+    _menuController.close();
+    setState(() {
+      futureOperatorList = fetchOperators();
+    });
   }
 
   @override
@@ -180,22 +192,33 @@ class _OperatorsPageState extends State<OperatorsPage> {
                 child: Container(color: Colors.transparent),
               )
             : null,
-        backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
+        backgroundColor: context.read<UiProvider>().useTranslucentUi == true
+            ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5)
+            : null,
         actions: [
-          isSearching
-              ? Container()
-              : IconButton(
+          !isSearching
+              ? IconButton(
                   onPressed: () => setState(() {
                     isSearching = true;
                   }),
                   icon: const Icon(Icons.search),
-                ),
+                  tooltip: 'search operator',
+                )
+              : null,
           IconButton(
             onPressed: () => showFilters(context),
             icon: const Icon(Icons.filter_list),
+            tooltip: 'Show filters',
           ),
           MenuAnchor(
-            menuChildren: const [],
+            menuChildren: [
+              ListTile(
+                title: const Text('reload gamedata'),
+                onTap: reloadgamedata,
+                enabled: context.watch<SettingsProvider>().opFetched,
+              ),
+            ],
+            controller: _menuController,
             builder: (
               BuildContext context,
               MenuController controller,
@@ -214,14 +237,48 @@ class _OperatorsPageState extends State<OperatorsPage> {
               );
             },
           ),
-        ],
+        ].nullParser(),
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: FutureBuilder<List<Operator>>(
           future: futureOperatorList,
           builder: (context, snapshot) {
-            if (snapshot.hasError) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              context.read<SettingsProvider>().opFetched = false;
+              return SafeArea(
+                // ----------------- loading
+                child: Column(
+                  children: [
+                    const LinearProgressIndicator(),
+                    Expanded(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Image.asset(
+                              'assets/gif/saga_loading.gif',
+                              width: 180,
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Loading Operators',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              textScaler: const TextScaler.linear(1.3),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            } else if (snapshot.hasError) {
+              context.read<SettingsProvider>().opFetched = true;
               // --------------- Error
               if (snapshot.error is FormatException) {
                 return Center(
@@ -261,6 +318,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
                 );
               }
             } else if (snapshot.hasData) {
+              context.read<SettingsProvider>().opFetched = true;
               finishedFutureOperatorList = snapshot.data!;
 
               if (!sorted) {
@@ -302,36 +360,21 @@ class _OperatorsPageState extends State<OperatorsPage> {
                 return OperatorListView(operators: sortedOperatorList);
               }
             } else {
-              return SafeArea(
-                // ----------------- loading
-                child: Column(
-                  children: [
-                    const LinearProgressIndicator(),
-                    Expanded(
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Image.asset(
-                              'assets/gif/saga_loading.gif',
-                              width: 180,
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Loading Operators',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onPrimaryContainer,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              textScaler: const TextScaler.linear(1.3),
-                            ),
-                          ],
-                        ),
-                      ),
+              context.read<SettingsProvider>().opFetched = true;
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset('assets/gif/saga_err.gif', width: 180),
+                  const SizedBox(height: 12),
+                  Text(
+                    'An unknown error has ocurred!',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                      fontWeight: FontWeight.w500,
                     ),
-                  ],
-                ),
+                    textScaler: const TextScaler.linear(1.10),
+                  ),
+                ],
               );
             }
           },
@@ -444,7 +487,8 @@ class _OperatorsPageState extends State<OperatorsPage> {
                                         value: readSearchProvider.operatorSearchDelegate.toDouble(),
                                         label: readSearchProvider.operatorSearchDelegate.toString(),
                                         onChanged: (value) => setModalState(
-                                          () => readSearchProvider.operatorSearchDelegate = value.round().toInt(),
+                                          () => readSearchProvider.operatorSearchDelegate =
+                                              value.round().toInt(),
                                         ),
                                         allowedInteraction: SliderInteraction.tapAndSlide,
                                       ),

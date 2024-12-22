@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:sagahelper/providers/settings_provider.dart';
 import 'package:flowder/flowder.dart';
 import 'package:flutter/material.dart';
@@ -43,23 +44,41 @@ class ServerProvider extends ChangeNotifier {
     required this.twVersion,
   });
 
-  static final List<String> files = [
-    'character_table.json',
-    'charword_table.json',
-    'handbook_info_table.json',
-    'handbook_team_table.json',
-    'skin_table.json',
-    'range_table.json',
-    'skill_table.json',
+  static List<String> get files {
+    var a = <String>[];
+    a.addAll(metadataFiles);
+    a.addAll(opFiles);
+    return a;
+  }
+
+  // TODO ???? why i have this
+  static final List<String> metadataFiles = [
+    '/excel/handbook_team_table.json',
+  ];
+
+  static final List<String> opFiles = [
+    '/excel/character_table.json', // 0 operators
+    '/excel/handbook_info_table.json', // 1 lore
+    '/excel/charword_table.json', // 2 voice
+    '/excel/skin_table.json', // 3 skin
+    '/excel/range_table.json', // 4 ranges
+    '/excel/skill_table.json', // 5 skills details
+    '/excel/uniequip_table.json', // 6 modules
+    '/excel/building_data.json', // 7 base skills
   ];
 
   factory ServerProvider.fromConfig(Map configs) {
     return ServerProvider(
-      enVersion: configs[ServerProviderKeys.enVersion.key] ?? _defaultValues[ServerProviderKeys.enVersion],
-      cnVersion: configs[ServerProviderKeys.cnVersion.key] ?? _defaultValues[ServerProviderKeys.cnVersion],
-      jpVersion: configs[ServerProviderKeys.jpVersion.key] ?? _defaultValues[ServerProviderKeys.jpVersion],
-      krVersion: configs[ServerProviderKeys.krVersion.key] ?? _defaultValues[ServerProviderKeys.krVersion],
-      twVersion: configs[ServerProviderKeys.twVersion.key] ?? _defaultValues[ServerProviderKeys.twVersion],
+      enVersion:
+          configs[ServerProviderKeys.enVersion.key] ?? _defaultValues[ServerProviderKeys.enVersion],
+      cnVersion:
+          configs[ServerProviderKeys.cnVersion.key] ?? _defaultValues[ServerProviderKeys.cnVersion],
+      jpVersion:
+          configs[ServerProviderKeys.jpVersion.key] ?? _defaultValues[ServerProviderKeys.jpVersion],
+      krVersion:
+          configs[ServerProviderKeys.krVersion.key] ?? _defaultValues[ServerProviderKeys.krVersion],
+      twVersion:
+          configs[ServerProviderKeys.twVersion.key] ?? _defaultValues[ServerProviderKeys.twVersion],
     );
   }
 
@@ -69,10 +88,19 @@ class ServerProvider extends ChangeNotifier {
     );
   }
 
-  static String yostarrepo(String server) => 'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData_YoStar/refs/heads/main/$server/gamedata/excel';
-  static final String chServerlink = 'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/refs/heads/master/zh_CN/gamedata/excel';
+  static String yostarrepo(String server) =>
+      'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData_YoStar/refs/heads/main/$server/gamedata';
+  static final String chServerlink =
+      'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/refs/heads/master/zh_CN/gamedata';
 
-  String versionOf(String server) => switch (server) { 'en' => enVersion, 'cn' => cnVersion, 'jp' => jpVersion, 'kr' => krVersion, 'tw' => twVersion, String() => 'not found' };
+  String versionOf(String server) => switch (server) {
+        'en' => enVersion,
+        'cn' => cnVersion,
+        'jp' => jpVersion,
+        'kr' => krVersion,
+        'tw' => twVersion,
+        String() => 'not found'
+      };
 
   setVersion(String server, {String version = 'unknown'}) async {
     switch (server) {
@@ -116,14 +144,14 @@ class ServerProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  existFiles(String server, List<String> filesPaths) async {
+  Future<bool> existFiles(String server, List<String> filesPaths) async {
     String serverLocalPath = await LocalDataManager.localpathServer(server);
 
     for (var file in filesPaths) {
-      bool fileExist = await File('$serverLocalPath/$file').exists();
+      bool fileExist = await File('$serverLocalPath$file').exists();
 
       if (!fileExist) {
-        throw Exception(404);
+        return false;
       }
     }
 
@@ -132,7 +160,7 @@ class ServerProvider extends ChangeNotifier {
 
   Future<String> getFile(String filepath, String server) async {
     String serverLocalPath = await LocalDataManager.localpathServer(server);
-    return File('$serverLocalPath/$filepath').readAsString();
+    return File('$serverLocalPath$filepath').readAsString();
   }
 
   Future<bool> checkUpdateOf(String server) async {
@@ -159,7 +187,7 @@ class ServerProvider extends ChangeNotifier {
       throw Exception('not implemented');
     }
 
-    final response = await http.get(Uri.parse('$serverlink/data_version.txt'));
+    final response = await http.get(Uri.parse('$serverlink/excel/data_version.txt'));
 
     if (response.statusCode == 200) {
       // If the server did return a 200 OK response
@@ -181,12 +209,11 @@ class ServerProvider extends ChangeNotifier {
     }
   }
 
-  Future<bool> checkFiles(String server) async {
+  Future<bool> checkAllFiles(String server) async {
     String serverLocalPath = await LocalDataManager.localpathServer(server);
-    String excelFolder = '$serverLocalPath/excel';
 
     for (var file in files) {
-      bool fileExist = await File('$excelFolder/$file').exists();
+      bool fileExist = await File('$serverLocalPath$file').exists();
       if (fileExist) {
         continue;
       } else {
@@ -198,24 +225,32 @@ class ServerProvider extends ChangeNotifier {
   }
 
   void checkDownloadedLastest(String server, String version) async {
-    bool result = await checkFiles(server);
+    bool result = await checkAllFiles(server);
 
     if (!result) return;
 
     setVersion(server, version: version);
     if (NavigationService.navigatorKey.currentContext!.mounted) {
-      NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setLoadingString('Completed download');
+      NavigationService.navigatorKey.currentContext!
+          .read<SettingsProvider>()
+          .setLoadingString('Completed download');
       await Future.delayed(const Duration(seconds: 2));
       if (NavigationService.navigatorKey.currentContext!.mounted) {
-        NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setIsLoadingAsync(false);
+        NavigationService.navigatorKey.currentContext!
+            .read<SettingsProvider>()
+            .setIsLoadingAsync(false);
       }
     }
   }
 
   downloadLastest(String server) async {
     if (NavigationService.navigatorKey.currentContext!.mounted) {
-      NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setLoadingString('Preparing download...');
-      NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setIsLoadingAsync(true);
+      NavigationService.navigatorKey.currentContext!
+          .read<SettingsProvider>()
+          .setLoadingString('Preparing download...');
+      NavigationService.navigatorKey.currentContext!
+          .read<SettingsProvider>()
+          .setIsLoadingAsync(true);
     }
 
     String serverlink;
@@ -232,38 +267,43 @@ class ServerProvider extends ChangeNotifier {
     }
 
     String serverLocalPath = await LocalDataManager.localpathServer(server);
-    String excelFolder = '$serverLocalPath/excel';
 
-    if (!Directory('$serverLocalPath/excel').existsSync()) {
-      await Directory('$serverLocalPath/excel').create(recursive: true);
+    if (!Directory(serverLocalPath).existsSync()) {
+      await Directory(serverLocalPath).create(recursive: true);
     }
 
     for (var file in files) {
-      bool fileExist = await File('$excelFolder/$file').exists();
+      bool fileExist = await File('$serverLocalPath$file').exists();
       if (fileExist) {
-        await File('$excelFolder/$file').delete();
+        await File('$serverLocalPath$file').delete();
       }
     }
-
     // no version
     setVersion(server);
 
     if (NavigationService.navigatorKey.currentContext!.mounted) {
-      NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setLoadingString('Starting download');
+      NavigationService.navigatorKey.currentContext!
+          .read<SettingsProvider>()
+          .setLoadingString('Starting download');
     }
 
     String version = await fetchLastestVersion(server);
 
     for (var file in files) {
+      final String msgfile = file.substring(max(0, file.lastIndexOf('/') + 1),
+          file.lastIndexOf('.') > 0 ? file.lastIndexOf('.') : file.length - 1);
+
       var downloaderUtils = DownloaderUtils(
         progressCallback: (current, total) {
           // final progress = (current / total) * 100;
         },
-        file: File('$excelFolder/$file'),
+        file: File('$serverLocalPath$file'),
         progress: ProgressImplementation(),
         onDone: () {
           if (NavigationService.navigatorKey.currentContext!.mounted) {
-            NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setLoadingString('completed $file download...');
+            NavigationService.navigatorKey.currentContext!
+                .read<SettingsProvider>()
+                .setLoadingString('completed $msgfile download...');
           }
           checkDownloadedLastest(server, version);
         },
@@ -272,11 +312,13 @@ class ServerProvider extends ChangeNotifier {
       );
 
       if (NavigationService.navigatorKey.currentContext!.mounted) {
-        NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setLoadingString('Starting $file download...');
+        NavigationService.navigatorKey.currentContext!
+            .read<SettingsProvider>()
+            .setLoadingString('Starting $msgfile download...');
       }
 
       List core = [];
-      core.add(await Flowder.download('$serverlink/$file', downloaderUtils));
+      core.add(await Flowder.download('$serverlink$file', downloaderUtils));
     }
   }
 }

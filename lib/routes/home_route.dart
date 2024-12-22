@@ -35,8 +35,11 @@ class _HomePageState extends State<HomePage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       checkServer();
-      FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-      flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.requestNotificationsPermission();
+      FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+          FlutterLocalNotificationsPlugin();
+      flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.requestNotificationsPermission();
     });
   }
 
@@ -60,7 +63,9 @@ class _HomePageState extends State<HomePage> {
                 child: Container(color: Colors.transparent),
               )
             : null,
-        backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
+        backgroundColor: context.read<UiProvider>().useTranslucentUi == true
+            ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5)
+            : null,
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -235,7 +240,9 @@ class _HomePageState extends State<HomePage> {
     }
 
     final DateTime serverResetTime = serverDateTime.copyWith(hour: 4, minute: 0, second: 0);
-    final DateTime orundumResetTime = serverDateTime.copyWith(hour: 4, minute: 0, second: 0).add(Duration(days: 1 - serverDateTime.weekday));
+    final DateTime orundumResetTime = serverDateTime
+        .copyWith(hour: 4, minute: 0, second: 0)
+        .add(Duration(days: 1 - serverDateTime.weekday));
 
     DateTime localResetTime;
     DateTime localOrundumResetTime;
@@ -251,54 +258,86 @@ class _HomePageState extends State<HomePage> {
       localOrundumResetTime = orundumResetTime.add(const Duration(hours: 7));
     }
 
-    final Duration orundumResetTimeDiff = localOrundumResetTime.toLocal().difference(now).isNegative ? localOrundumResetTime.toLocal().add(const Duration(days: 7)).difference(now) : localOrundumResetTime.toLocal().difference(now);
-    final Duration difference = localResetTime.toLocal().difference(now).isNegative ? localResetTime.toLocal().add(const Duration(days: 1)).difference(now) : localResetTime.toLocal().difference(now);
+    final Duration orundumResetTimeDiff = localOrundumResetTime.toLocal().difference(now).isNegative
+        ? localOrundumResetTime.toLocal().add(const Duration(days: 7)).difference(now)
+        : localOrundumResetTime.toLocal().difference(now);
+    final Duration difference = localResetTime.toLocal().difference(now).isNegative
+        ? localResetTime.toLocal().add(const Duration(days: 1)).difference(now)
+        : localResetTime.toLocal().difference(now);
 
     setState(() {
       localTimeString = _formatDateTime(now);
       serverTimeString = _formatDateTime(serverDateTime);
       serverResetString = _formatDateTime(serverResetTime);
-      localResetString = hour12 ? DateFormat('h:mm a').format(localResetTime.toLocal()) : DateFormat('HH:mm').format(localResetTime.toLocal());
+      localResetString = hour12
+          ? DateFormat('h:mm a').format(localResetTime.toLocal())
+          : DateFormat('HH:mm').format(localResetTime.toLocal());
       timeUntilReset = _formatRemainingTime(difference);
       orundumResetString = _formatRemainingTime(orundumResetTimeDiff);
     });
   }
 
-  checkServer() async {
+  Future<void> checkServer() async {
     if (firstTimeCheck) return;
 
     firstTimeCheck = true;
-    NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setLoadingString('checking gamedata...');
+    NavigationService.navigatorKey.currentContext!
+        .read<SettingsProvider>()
+        .setLoadingString('checking gamedata...');
     NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setIsLoadingHome(true);
     await Future.delayed(const Duration(seconds: 1));
-    bool hasAllFiles = await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().checkFiles(
-          NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString,
-        );
+    bool hasAllFiles =
+        await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().checkAllFiles(
+              NavigationService.navigatorKey.currentContext!
+                  .read<SettingsProvider>()
+                  .currentServerString,
+            );
 
     if (NavigationService.navigatorKey.currentContext!.read<ServerProvider>().versionOf(
-                  NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString,
+                  NavigationService.navigatorKey.currentContext!
+                      .read<SettingsProvider>()
+                      .currentServerString,
                 ) ==
             'unknown' ||
         !hasAllFiles) {
-      NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setLoadingString('downloading gamedata...');
+      NavigationService.navigatorKey.currentContext!
+          .read<SettingsProvider>()
+          .setLoadingString('downloading gamedata...');
       NavigationService.navigatorKey.currentContext!.read<ServerProvider>().downloadLastest(
-            NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString,
+            NavigationService.navigatorKey.currentContext!
+                .read<SettingsProvider>()
+                .currentServerString,
           );
-      NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setIsLoadingHome(false);
+      NavigationService.navigatorKey.currentContext!
+          .read<SettingsProvider>()
+          .setIsLoadingHome(false);
     } else {
-      NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setLoadingString('checking gamedata updates...');
-      bool lastAvailable = await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().checkUpdateOf(
-            NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString,
-          );
+      NavigationService.navigatorKey.currentContext!
+          .read<SettingsProvider>()
+          .setLoadingString('checking gamedata updates...');
+      bool lastAvailable =
+          await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().checkUpdateOf(
+                NavigationService.navigatorKey.currentContext!
+                    .read<SettingsProvider>()
+                    .currentServerString,
+              );
       if (lastAvailable) {
         // ask if update
-        NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setLoadingString('there is an update...');
+        NavigationService.navigatorKey.currentContext!
+            .read<SettingsProvider>()
+            .setLoadingString('there is an update...');
         await Future.delayed(const Duration(seconds: 2));
-        NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setIsLoadingHome(false);
+        NavigationService.navigatorKey.currentContext!
+            .read<SettingsProvider>()
+            .setIsLoadingHome(false);
       } else {
-        NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setLoadingString('everything fine');
+        NavigationService.navigatorKey.currentContext!
+            .read<SettingsProvider>()
+            .setLoadingString('everything fine');
         await Future.delayed(const Duration(seconds: 2));
-        NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setIsLoadingHome(false);
+        NavigationService.navigatorKey.currentContext!
+            .read<SettingsProvider>()
+            .setIsLoadingHome(false);
       }
     }
   }

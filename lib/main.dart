@@ -17,6 +17,11 @@ import 'package:sagahelper/routes/settings_route.dart';
 import 'package:sagahelper/routes/tools_route.dart';
 import 'package:system_theme/system_theme.dart';
 
+// TODO context menu
+// TODO dictionary popup
+// TODO entity viewer (card and popup)
+// TODO Deep linking, ie: opening oproute with custom selected tag
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -123,7 +128,10 @@ class _MainWidgetState extends State<MainWidget> {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: context.watch<UiProvider>().currentTheme.colorLight,
-      darkTheme: context.watch<UiProvider>().currentTheme.getDarkMode(context.read<UiProvider>().isUsingPureDark),
+      darkTheme: context
+          .watch<UiProvider>()
+          .currentTheme
+          .getDarkMode(context.read<UiProvider>().isUsingPureDark),
       themeMode: context.watch<UiProvider>().themeMode,
       navigatorKey: NavigationService.navigatorKey,
       home: Scaffold(
@@ -132,7 +140,8 @@ class _MainWidgetState extends State<MainWidget> {
           builder: (context) {
             if (widget.errorDisplay != null) {
               WidgetsBinding.instance.addPostFrameCallback(
-                (_) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: widget.errorDisplay!)),
+                (_) => ScaffoldMessenger.of(context)
+                    .showSnackBar(SnackBar(content: widget.errorDisplay!)),
               );
             }
             return Column(
@@ -141,13 +150,14 @@ class _MainWidgetState extends State<MainWidget> {
                 context.watch<SettingsProvider>().showNotifier
                     ? Container(
                         padding: EdgeInsets.fromLTRB(
-                          0,
+                          20,
                           MediaQuery.of(context).padding.top + 2.0,
-                          0,
+                          20,
                           2.0,
                         ),
                         height: MediaQuery.of(context).padding.top + 24,
                         color: Theme.of(context).colorScheme.primary,
+                        constraints: BoxConstraints.loose(MediaQuery.sizeOf(context)),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -160,10 +170,12 @@ class _MainWidgetState extends State<MainWidget> {
                               ),
                             ),
                             const SizedBox(width: 20),
-                            Text(
-                              context.watch<SettingsProvider>().loadingString,
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.onPrimary,
+                            Flexible(
+                              child: Text(
+                                context.watch<SettingsProvider>().loadingString,
+                                style: TextStyle(
+                                    color: Theme.of(context).colorScheme.onPrimary,
+                                    overflow: TextOverflow.ellipsis),
                               ),
                             ),
                           ],

@@ -44,9 +44,11 @@ class SettingsProvider extends ChangeNotifier {
   bool homeShowDate;
   bool homeShowSeconds;
   bool homeCompactMode;
+
   // Operators Page Flags
   int _operatorSearchDelegate;
   int _operatorDisplay;
+  bool opFetched = false;
   // data
   //TODO add configuration to change nickname
   String? nickname;
@@ -64,13 +66,20 @@ class SettingsProvider extends ChangeNotifier {
 
   factory SettingsProvider.fromConfig(Map configs) {
     final provider = SettingsProvider(
-      configs[SettingsProviderKeys._operatorSearchDelegate.key] ?? _defaultValues[SettingsProviderKeys._operatorSearchDelegate],
-      configs[SettingsProviderKeys._operatorDisplay.key] ?? _defaultValues[SettingsProviderKeys._operatorDisplay],
-      currentServer: configs[SettingsProviderKeys.currentServer.key] ?? _defaultValues[SettingsProviderKeys.currentServer],
-      homeCompactMode: configs[SettingsProviderKeys.homeCompactMode.key] ?? _defaultValues[SettingsProviderKeys.homeCompactMode],
-      homeHour12Format: configs[SettingsProviderKeys.homeHour12Format.key] ?? _defaultValues[SettingsProviderKeys.homeHour12Format],
-      homeShowDate: configs[SettingsProviderKeys.homeShowDate.key] ?? _defaultValues[SettingsProviderKeys.homeShowDate],
-      homeShowSeconds: configs[SettingsProviderKeys.homeShowSeconds.key] ?? _defaultValues[SettingsProviderKeys.homeShowSeconds],
+      configs[SettingsProviderKeys._operatorSearchDelegate.key] ??
+          _defaultValues[SettingsProviderKeys._operatorSearchDelegate],
+      configs[SettingsProviderKeys._operatorDisplay.key] ??
+          _defaultValues[SettingsProviderKeys._operatorDisplay],
+      currentServer: configs[SettingsProviderKeys.currentServer.key] ??
+          _defaultValues[SettingsProviderKeys.currentServer],
+      homeCompactMode: configs[SettingsProviderKeys.homeCompactMode.key] ??
+          _defaultValues[SettingsProviderKeys.homeCompactMode],
+      homeHour12Format: configs[SettingsProviderKeys.homeHour12Format.key] ??
+          _defaultValues[SettingsProviderKeys.homeHour12Format],
+      homeShowDate: configs[SettingsProviderKeys.homeShowDate.key] ??
+          _defaultValues[SettingsProviderKeys.homeShowDate],
+      homeShowSeconds: configs[SettingsProviderKeys.homeShowSeconds.key] ??
+          _defaultValues[SettingsProviderKeys.homeShowSeconds],
     );
     provider.loadSharedPreferences();
     return provider;
