@@ -56,7 +56,9 @@ class _AppearanceSettingsState extends State<AppearanceSettings> {
                 child: Container(color: Colors.transparent),
               )
             : null,
-        backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
+        backgroundColor: context.read<UiProvider>().useTranslucentUi == true
+            ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5)
+            : null,
         title: const Text('Appearance'),
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
@@ -109,7 +111,8 @@ class _AppearanceSettingsState extends State<AppearanceSettings> {
                       allCustomThemesList.length,
                       (index) => ThemePreview(
                         selfIndex: index,
-                        thisSelected: context.watch<UiProvider>().previewThemeIndexSelected == index,
+                        thisSelected:
+                            context.watch<UiProvider>().previewThemeIndexSelected == index,
                         previewedTheme: allCustomThemesList[index],
                         inkWellChild: InkWell(
                           splashColor: Theme.of(context).brightness == Brightness.light
@@ -135,16 +138,20 @@ class _AppearanceSettingsState extends State<AppearanceSettings> {
               ],
             ),
           ),
-          if (Theme.of(context).brightness == Brightness.dark)
+          if (context.watch<UiProvider>().themeMode != ThemeMode.light)
             SwitchListTile(
-              secondary: context.read<UiProvider>().isUsingPureDark ? const Icon(Icons.remove_red_eye) : const Icon(Icons.remove_red_eye_outlined),
+              secondary: context.read<UiProvider>().isUsingPureDark
+                  ? const Icon(Icons.remove_red_eye)
+                  : const Icon(Icons.remove_red_eye_outlined),
               subtitle: const Text('makes everything more darker'),
               title: const Text('Pure dark mode'),
               value: context.read<UiProvider>().isUsingPureDark,
               onChanged: (state) => pureDarkChange(state),
             ),
           SwitchListTile(
-            secondary: context.read<UiProvider>().useTranslucentUi ? const Icon(Icons.blur_on) : const Icon(Icons.blur_off),
+            secondary: context.read<UiProvider>().useTranslucentUi
+                ? const Icon(Icons.blur_on)
+                : const Icon(Icons.blur_off),
             subtitle: const Text(
               'makes UI transparent and blurry (performance cost!)',
             ),

@@ -105,44 +105,28 @@ class StyleProvider extends ChangeNotifier {
 
   Map<String, TextStyle> statsStyles({BuildContext? context}) => {
         'HP': TextStyle(
-          color: StaticColors.fromBrightness(
-            Theme.of(context ?? navContext).brightness,
-          ).sHp,
+          color: StaticColors.fromBrightness(context).sHp,
         ),
         'ATK': TextStyle(
-          color: StaticColors.fromBrightness(
-            Theme.of(context ?? navContext).brightness,
-          ).sAtk,
+          color: StaticColors.fromBrightness(context).sAtk,
         ),
         'DPCost': TextStyle(
-          color: StaticColors.fromBrightness(
-            Theme.of(context ?? navContext).brightness,
-          ).sCost,
+          color: StaticColors.fromBrightness(context).sCost,
         ),
         'Redeploy': TextStyle(
-          color: StaticColors.fromBrightness(
-            Theme.of(context ?? navContext).brightness,
-          ).sRedeploy,
+          color: StaticColors.fromBrightness(context).sRedeploy,
         ),
         'DEF': TextStyle(
-          color: StaticColors.fromBrightness(
-            Theme.of(context ?? navContext).brightness,
-          ).sDef,
+          color: StaticColors.fromBrightness(context).sDef,
         ),
         'RES': TextStyle(
-          color: StaticColors.fromBrightness(
-            Theme.of(context ?? navContext).brightness,
-          ).sRes,
+          color: StaticColors.fromBrightness(context).sRes,
         ),
         'Block': TextStyle(
-          color: StaticColors.fromBrightness(
-            Theme.of(context ?? navContext).brightness,
-          ).sBlock,
+          color: StaticColors.fromBrightness(context).sBlock,
         ),
         'ASPD': TextStyle(
-          color: StaticColors.fromBrightness(
-            Theme.of(context ?? navContext).brightness,
-          ).sAspd,
+          color: StaticColors.fromBrightness(context).sAspd,
         ),
       };
 
@@ -205,6 +189,8 @@ class StyleProvider extends ChangeNotifier {
             color: statsStyles()['ASPD']!.color,
           ),
         ),
+        'bonusCol':
+            StyledTextTag(style: TextStyle(color: StaticColors.fromBrightness(context).green)),
       };
 
   Map<String, StyledTextTagBase> tagsAsArknights({BuildContext? context}) => {
@@ -213,10 +199,13 @@ class StyleProvider extends ChangeNotifier {
         'color': StyledTextCustomTag(
           baseStyle: const TextStyle(fontStyle: FontStyle.normal),
           parse: (baseStyle, attributes) {
-            if (attributes.containsKey('name') && (attributes['name']!.substring(0, 1) == '#') && attributes['name']!.length >= 6) {
+            if (attributes.containsKey('name') &&
+                (attributes['name']!.substring(0, 1) == '#') &&
+                attributes['name']!.length >= 6) {
               final String hexColor = attributes['name']!.substring(1);
               if (hexColor.toLowerCase() != 'ffffff' && hexColor.toLowerCase() != 'ffffffff') {
-                final String alphaChannel = (hexColor.length == 8) ? hexColor.substring(6, 8) : 'FF';
+                final String alphaChannel =
+                    (hexColor.length == 8) ? hexColor.substring(6, 8) : 'FF';
                 final Color color = Color(
                   int.parse('0x$alphaChannel${hexColor.substring(0, 6)}'),
                 );
@@ -261,6 +250,21 @@ class StyleProvider extends ChangeNotifier {
             color: Theme.of(context).textTheme.bodyMedium?.color,
           );
         }),
+        'diffInsert': StyledTextTag(
+          style: TextStyle(
+            color: StaticColors.fromBrightness(context).greenVariant,
+          ),
+        ),
+        'diffDelete': StyledTextTag(
+          style: const TextStyle(
+            backgroundColor: Color.fromARGB(255, 255, 129, 129),
+            decoration: TextDecoration.lineThrough,
+          ),
+        ),
+        'add-icon': StyledTextIconTag(
+          Icons.add,
+          color: StaticColors.fromBrightness(context).greenVariant,
+        ),
       };
   // input example <@ba.vup>{cost}</> where
 }

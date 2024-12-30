@@ -125,6 +125,32 @@ class Operator {
 
   String get subProfessionString => subProfessionTranslate(subProfessionId.toLowerCase());
 
+  static String statTranslate(String stat) => switch (stat) {
+        "maxHp" => 'HP',
+        "max_hp" => 'HP',
+        "atk" => 'ATK',
+        "def" => 'DEF',
+        "magicResistance" => 'RES',
+        "magic_resistance" => 'RES',
+        "cost" => 'DPCost',
+        "blockCnt" => 'Block',
+        "block_cnt" => 'Block',
+        "attackSpeed" => 'ASPD%',
+        "attack_speed" => 'ASPD%',
+        "baseAttackTime" => 'ASPD',
+        "base_attack_time" => 'ASPD',
+        "respawnTime" => 'Redeploy',
+        "respawn_time" => 'Redeploy',
+        "hpRecoveryPerSec" => 'HP/S',
+        "spRecoveryPerSec" => 'SP/S',
+        "tauntLevel" => 'Aggro',
+        "taunt_level" => 'Aggro',
+        "massLevel" => 'Weight',
+        "stunImmune" => '',
+        // was lazy to add all
+        String() => stat.capitalize()
+      };
+
   factory Operator.fromJson(
     String key,
     Map<String, dynamic> dict,

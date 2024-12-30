@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
+import 'package:pretty_diff_text/pretty_diff_text.dart';
 import 'package:provider/provider.dart';
 import 'package:styled_text/styled_text.dart';
 import 'package:sagahelper/components/dialog_box.dart';
@@ -135,7 +136,7 @@ class HeaderInfo extends StatelessWidget {
                             ),
                           ),
                           Transform(
-                            transform: Matrix4.rotationZ(0.034),
+                            transform: Matrix4.rotationZ(0.0),
                             child: Container(
                               padding: const EdgeInsets.all(0.0),
                               margin: const EdgeInsets.all(10.0),
@@ -154,39 +155,43 @@ class HeaderInfo extends StatelessWidget {
                                 ),
                                 color: const Color.fromARGB(255, 241, 241, 241),
                               ),
-                              child: CachedNetworkImage(
-                                fit: BoxFit.fitWidth,
-                                placeholder: (context, url) => Stack(
-                                  children: [
-                                    Image.asset(
-                                      'assets/placeholders/avatar.png',
-                                      colorBlendMode: BlendMode.modulate,
-                                      color: Colors.transparent,
-                                    ),
-                                    const Positioned.fill(
-                                      child: Center(
-                                        child: CircularProgressIndicator(),
+                              child: Hero(
+                                tag: operator.id,
+                                child: CachedNetworkImage(
+                                  cacheKey: operator.id,
+                                  fit: BoxFit.fitWidth,
+                                  placeholder: (context, url) => Stack(
+                                    children: [
+                                      Image.asset(
+                                        'assets/placeholders/avatar.png',
+                                        colorBlendMode: BlendMode.modulate,
+                                        color: Colors.transparent,
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                imageUrl: ghAvatarLink,
-                                errorWidget: (context, url, error) => Stack(
-                                  children: [
-                                    Image.asset(
-                                      'assets/placeholders/avatar.png',
-                                      colorBlendMode: BlendMode.modulate,
-                                      color: Colors.transparent,
-                                    ),
-                                    Positioned.fill(
-                                      child: Center(
-                                        child: Icon(
-                                          Icons.error_outline,
-                                          color: Theme.of(context).colorScheme.primary,
+                                      const Positioned.fill(
+                                        child: Center(
+                                          child: CircularProgressIndicator(),
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
+                                  imageUrl: ghAvatarLink,
+                                  errorWidget: (context, url, error) => Stack(
+                                    children: [
+                                      Image.asset(
+                                        'assets/placeholders/avatar.png',
+                                        colorBlendMode: BlendMode.modulate,
+                                        color: Colors.transparent,
+                                      ),
+                                      Positioned.fill(
+                                        child: Center(
+                                          child: Icon(
+                                            Icons.error_outline,
+                                            color: Theme.of(context).colorScheme.primary,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -227,7 +232,7 @@ class HeaderInfo extends StatelessWidget {
                       label: Text(operator.professionString),
                       avatar: Image.asset(professionStr),
                       backgroundColor: Theme.of(context).brightness == Brightness.light
-                          ? Theme.of(context).colorScheme.primary.withOpacity(0.7)
+                          ? Theme.of(context).colorScheme.primary.withOpacity(0.85)
                           : null,
                       labelStyle: Theme.of(context).brightness == Brightness.light
                           ? const TextStyle(color: Colors.white)
@@ -319,25 +324,6 @@ class LoreInfo extends StatelessWidget {
   }
 }
 
-String statTranslate(String stat) => switch (stat) {
-      "maxHp" => 'HP',
-      "atk" => 'ATK',
-      "def" => 'DEF',
-      "magicResistance" => 'RES',
-      "cost" => 'DPCost',
-      "blockCnt" => 'Block',
-      "attackSpeed" => 'ASPD%',
-      "baseAttackTime" => 'ASPD',
-      "respawnTime" => 'Redeploy',
-      "hpRecoveryPerSec" => 'HP/S',
-      "spRecoveryPerSec" => 'SP/S',
-      "tauntLevel" => 'Aggro',
-      "massLevel" => 'Weight',
-      "stunImmune" => '',
-      // was lazy to add all
-      String() => stat.capitalize()
-    };
-
 class SkillInfo extends StatefulWidget {
   final Operator operator;
   const SkillInfo(this.operator, {super.key});
@@ -347,18 +333,21 @@ class SkillInfo extends StatefulWidget {
 }
 
 class _SkillInfoState extends State<SkillInfo> {
-  final CarouselSliderController carouselController = CarouselSliderController();
+  final CarouselSliderController carouselControllerLv = CarouselSliderController();
+  final CarouselSliderController carouselControllerMod = CarouselSliderController();
   double showLevel = 1.0;
   double maxLevel = 90.0;
   int elite = 0;
-  int pot = -1;
   double sliderTrust = 100.0;
   bool trustMaxFlag = true;
-  int showSkill = 0;
+
+  // trait
+  late String currentTrait;
 
   // talents
   int? talentLocalElite;
   int? talentLocalPot;
+  late List<String?> currentTalentsText;
 
   // base skills
   int? baseLocalElite;
@@ -367,7 +356,18 @@ class _SkillInfoState extends State<SkillInfo> {
   // skills
   int skillLv = 0;
   List<Map<String, dynamic>> skillsDetails = [];
+  int showSkill = 0;
 
+  // mod
+  int showMod = 0;
+  int? modStage;
+  int? modLocalPot;
+  String? traitOverride;
+  List<String?>? talentsTextOverride;
+  Map<String, double> modAttrBuffs = {};
+
+  //pot
+  int pot = -1;
   Map<String, double> potBuffs = {};
 
   void _init() {
@@ -376,6 +376,8 @@ class _SkillInfoState extends State<SkillInfo> {
     maxLevel = (widget.operator.phases[elite]["maxLevel"] as int).toDouble();
     showLevel = maxLevel;
     sliderTrust = (widget.operator.favorKeyframes[1]["level"] as int).toDouble();
+    currentTrait = getTraitText();
+    currentTalentsText = List.generate(3, (_) => null, growable: true);
 
     // get skills
     if (widget.operator.skills.isNotEmpty) {
@@ -388,25 +390,6 @@ class _SkillInfoState extends State<SkillInfo> {
         );
       }
     }
-  }
-
-  String? getTraitText() {
-    String? trait;
-
-    if (widget.operator.trait != null) {
-      for (int phase = elite; phase >= 0; phase--) {
-        for (Map candidate in (widget.operator.trait!["candidates"] as List)) {
-          if (candidate["unlockCondition"]["phase"] == 'PHASE_${phase.toString()}') {
-            trait = candidate["overrideDescripton"];
-            break;
-          }
-        }
-        if (trait != null) {
-          break;
-        }
-      }
-    }
-    return trait ?? widget.operator.description;
   }
 
   List<dynamic>? getTraitsVars() {
@@ -426,6 +409,29 @@ class _SkillInfoState extends State<SkillInfo> {
       }
     }
     return vars;
+  }
+
+  String getTraitText() {
+    String? trait;
+
+    if (widget.operator.trait != null) {
+      for (int phase = elite; phase >= 0; phase--) {
+        for (Map candidate in (widget.operator.trait!["candidates"] as List)) {
+          if (candidate["unlockCondition"]["phase"] == 'PHASE_${phase.toString()}') {
+            trait = candidate["overrideDescripton"];
+            break;
+          }
+        }
+        if (trait != null) {
+          break;
+        }
+      }
+    }
+
+    final String result =
+        (trait ?? widget.operator.description ?? '').varParser(getTraitsVars()).akRichTextParser();
+
+    return result;
   }
 
   String getStat(String stat) {
@@ -509,13 +515,12 @@ class _SkillInfoState extends State<SkillInfo> {
     }
   }
 
-  String getTrustBonus() {
-    List<String> text = [];
+  List<Widget> getTrustBonus() {
+    var result = <Widget>[];
 
     (widget.operator.favorKeyframes[1]["data"] as Map).forEach((key, value) {
       if (value.runtimeType == int || value.runtimeType == double) {
         if (value == 0) return;
-
         var val = value.runtimeType == int ? (value as int).toDouble() : value;
 
         if (!trustMaxFlag) {
@@ -530,20 +535,19 @@ class _SkillInfoState extends State<SkillInfo> {
           )!;
         }
         val = (val as double).round();
-
         if (val == 0) return;
 
-        text.add('${statTranslate(key)} <col>+${val.toString()}</col>');
+        result.add(statTile(Operator.statTranslate(key), val.toString(), context, true));
       } else {
         if (value == false) return;
         if (!trustMaxFlag &&
             sliderTrust < (widget.operator.favorKeyframes[1]["level"] as int).toDouble()) return;
 
-        text.add('<col>${statTranslate(key)}</col>');
+        result.add(statTile(Operator.statTranslate(key), '', context, true));
       }
     });
 
-    return text.isNotEmpty ? text.join(' | ') : ' ';
+    return result;
   }
 
   void calcPotBonuses() {
@@ -592,26 +596,17 @@ class _SkillInfoState extends State<SkillInfo> {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> statTiles = [
-      statTile('HP', getStat('maxHp'), context),
-      statTile('ATK', getStat('atk'), context),
-      statTile('Redeploy', '${getStat('respawnTime')} sec', context),
-      statTile('Block', getStat('blockCnt'), context),
-      statTile('DEF', getStat('def'), context),
-      statTile('RES', '${getStat('magicResistance')}%', context),
-      statTile('DP Cost', getStat('cost'), context),
-      statTile('ASPD', '${getStat('baseAttackTime')} sec', context),
-    ];
     // maybe hold tap on elite, skill and mod to show cost material
     // do a tip show to say this ||
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
       child: Column(
         children: [
-          getTraitText() != null
+          currentTrait != ''
               ? Container(
                   width: double.maxFinite,
                   padding: const EdgeInsets.all(24.0),
+                  margin: const EdgeInsets.only(bottom: 20.0),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surfaceContainer,
                     borderRadius: BorderRadius.circular(12.0),
@@ -620,185 +615,79 @@ class _SkillInfoState extends State<SkillInfo> {
                     children: [
                       const Text('Trait'),
                       StyledText(
-                        text: getTraitText()!.varParser(getTraitsVars()).akRichTextParser(),
+                        text: currentTrait,
                         tags: context.read<StyleProvider>().tagsAsArknights(context: context),
                       ),
                     ],
                   ),
                 )
               : null,
-          const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.all(24.0),
+            margin: const EdgeInsets.only(bottom: 20.0),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surfaceContainer,
               borderRadius: BorderRadius.circular(12.0),
             ),
-            child: Column(
-              children: [
-                Wrap(spacing: 20.0, runSpacing: 20.0, children: statTiles),
-                const SizedBox(height: 20.0),
-                Row(
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        rangeTile(),
-                        Row(
-                          children: [
-                            LilButton(
-                              selected: elite == 0,
-                              fun: () {
-                                selectElite(0);
-                              },
-                              icon: const ImageIcon(
-                                AssetImage('assets/elite/elite_0.png'),
-                              ),
-                            ),
-                            widget.operator.phases.length > 1
-                                ? LilButton(
-                                    selected: elite == 1,
-                                    fun: () {
-                                      selectElite(1);
-                                    },
-                                    icon: const ImageIcon(
-                                      AssetImage('assets/elite/elite_1.png'),
-                                    ),
-                                  )
-                                : null,
-                            widget.operator.phases.length > 2
-                                ? LilButton(
-                                    selected: elite == 2,
-                                    fun: () {
-                                      selectElite(2);
-                                    },
-                                    icon: const ImageIcon(
-                                      AssetImage('assets/elite/elite_2.png'),
-                                    ),
-                                  )
-                                : null,
-                          ].nullParser(),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: 4.0),
-                    Expanded(child: potTile()),
-                  ],
-                ),
-                const SizedBox(height: 24.0),
-                Row(
-                  children: [
-                    const Text('Trust:'),
-                    Expanded(
-                      child: Column(
-                        children: [
-                          !trustMaxFlag
-                              ? Slider(
-                                  value: sliderTrust,
-                                  max: 200,
-                                  min: 0,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      sliderTrust = value.roundToDouble();
-                                    });
-                                  },
-                                )
-                              : null,
-                          StyledText(
-                            text: getTrustBonus(),
-                            tags: {
-                              'col': StyledTextTag(
-                                style: const TextStyle(
-                                  color: Color(0xFF0098DC),
-                                ),
-                              ),
-                            },
-                          ),
-                        ].nullParser(),
-                      ),
-                    ),
-                    LilButton(
-                      icon: Text(
-                        trustMaxFlag ? 'MAX' : sliderTrust.toInt().toString().padLeft(3, '  '),
-                        style: const TextStyle(fontWeight: ui.FontWeight.w800),
-                      ),
-                      fun: () {
-                        setState(() {
-                          trustMaxFlag = !trustMaxFlag;
-                        });
-                      },
-                      selected: trustMaxFlag,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 5.0,
-                        horizontal: 8.0,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    const Text('Lv: '),
-                    Expanded(
-                      child: Slider(
-                        value: showLevel,
-                        max: maxLevel,
-                        min: 1.0,
-                        divisions: maxLevel.toInt(),
-                        onChanged: (value) {
-                          setState(() {
-                            showLevel = value.roundToDouble();
-                          });
-                        },
-                      ),
-                    ),
-                    Text(showLevel.toInt().toString().padLeft(2, '  ')),
-                  ],
-                ),
-              ],
-            ),
+            child: statsBuilder(),
           ),
-          const SizedBox(height: 20),
           Container(
             width: double.maxFinite,
             padding: const EdgeInsets.all(24.0),
+            margin: const EdgeInsets.only(bottom: 20.0),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surfaceContainer,
               borderRadius: BorderRadius.circular(12.0),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [const Text('Talents'), talentsBuilder(context)],
+              children: [const Text('Talents'), talentsBuilder()],
             ),
           ),
-          const SizedBox(height: 20),
-          skillBuilder(context),
+          (widget.operator.skills.isNotEmpty)
+              ? Container(
+                  width: double.maxFinite,
+                  padding: const EdgeInsets.all(24.0),
+                  margin: const EdgeInsets.only(bottom: 20.0),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Text('Skills'),
+                      skillBuilder(),
+                    ],
+                  ),
+                )
+              : null,
+          (widget.operator.modules != null)
+              ? Container(
+                  width: double.maxFinite,
+                  padding: const EdgeInsets.all(24.0),
+                  margin: const EdgeInsets.only(bottom: 20.0),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [const Text('Modules'), modulesBuilder()],
+                  ),
+                )
+              : null,
           Container(
             width: double.maxFinite,
             padding: const EdgeInsets.all(24.0),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainer,
-              borderRadius: BorderRadius.circular(12.0),
-            ),
-            child:
-                // mods needs to have: maybe a lv upgrade diff shower stats (really easy to do), story show
-                const SizedBox(
-              height: 240,
-              child: Placeholder(
-                child: Text('Modules'),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Container(
-            width: double.maxFinite,
-            padding: const EdgeInsets.all(24.0),
+            margin: const EdgeInsets.only(bottom: 20.0),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surfaceContainer,
               borderRadius: BorderRadius.circular(12.0),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [const Text('RIIC Base Skills'), baseSkillBuilder(context)],
+              children: [const Text('RIIC Base Skills'), baseSkillBuilder()],
             ),
           ),
         ].nullParser(),
@@ -806,10 +695,10 @@ class _SkillInfoState extends State<SkillInfo> {
     );
   }
 
-  Widget statTile(String stat, String value, BuildContext context) {
+  Widget statTile(String stat, String value, BuildContext context, [bool isBonus = false]) {
     return StyledText(
       text:
-          '<icon-${stat.replaceAll(r' ', '')}/><color stat="${stat.replaceAll(' ', '')}">$stat</color>\n$value',
+          '<icon-${stat.replaceAll(r' ', '')}/><color stat="${stat.replaceAll(' ', '')}">$stat</color>\n${isBonus ? '<bonusCol>+' : ''}$value${isBonus ? '</bonusCol>' : ''}',
       tags: context.read<StyleProvider>().tagsAsStats(context: context),
       style: const TextStyle(
         shadows: [ui.Shadow(offset: ui.Offset.zero, blurRadius: 1.0)],
@@ -1105,171 +994,314 @@ class _SkillInfoState extends State<SkillInfo> {
     );
   }
 
-  Widget talentsBuilder(BuildContext context) {
-    List<int> talentElites = [];
-    List<int> talentPots = [];
+  Widget statsBuilder() {
+    return Builder(
+      builder: (context) {
+        List<Widget> statTiles = [
+          statTile('HP', getStat('maxHp'), context),
+          statTile('ATK', getStat('atk'), context),
+          statTile('Redeploy', '${getStat('respawnTime')} sec', context),
+          statTile('Block', getStat('blockCnt'), context),
+          statTile('DEF', getStat('def'), context),
+          statTile('RES', '${getStat('magicResistance')}%', context),
+          statTile('DP Cost', getStat('cost'), context),
+          statTile('ASPD', '${getStat('baseAttackTime')} sec', context),
+        ];
 
-    for (Map talent in widget.operator.talents) {
-      for (Map candidate in talent["candidates"]) {
-        int thisTalentCandidateElite = int.parse(
-          (candidate["unlockCondition"]["phase"] as String).replaceFirst('PHASE_', ''),
-        );
-        if (!talentElites.contains(thisTalentCandidateElite)) {
-          talentElites.add(thisTalentCandidateElite);
-        }
-
-        int thisTalentCandidatePot = candidate["requiredPotentialRank"];
-        if (!talentPots.contains(thisTalentCandidatePot)) talentPots.add(thisTalentCandidatePot);
-      }
-    }
-    talentElites.sort();
-    talentPots.sort();
-
-    int minElite = talentElites.lastWhere(
-      (e) => e <= elite,
-      orElse: () => talentElites.first,
-    );
-    int minPot = talentPots.lastWhere((e) => e <= pot, orElse: () => talentPots.first);
-
-    // dev.log('minE: ${minElite.toString()}, minP: ${minPot.toString()}, locE:${talentLocalElite.toString()}, locP:${talentLocalPot.toString()}, E:${elite.toString()}, P:${pot.toString()}');
-
-    return Column(
-      children: List.generate(1 + widget.operator.talents.length, (index) {
-        if (index == 0) {
-          return Row(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: List.generate(talentElites.length, (index) {
-                  return LilButton(
-                    selected: talentElites[index] == (talentLocalElite ?? minElite),
-                    fun: () {
-                      setState(() {
-                        talentLocalElite = talentElites[index];
-                      });
-                    },
-                    icon: ImageIcon(
-                      AssetImage(
-                        'assets/elite/elite_${talentElites[index]}.png',
-                      ),
+        return Column(
+          children: [
+            Wrap(spacing: 20.0, runSpacing: 20.0, children: statTiles),
+            const SizedBox(height: 20.0),
+            Row(
+              children: [
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    rangeTile(),
+                    Row(
+                      children: [
+                        LilButton(
+                          selected: elite == 0,
+                          fun: () {
+                            selectElite(0);
+                          },
+                          icon: const ImageIcon(
+                            AssetImage('assets/elite/elite_0.png'),
+                          ),
+                        ),
+                        widget.operator.phases.length > 1
+                            ? LilButton(
+                                selected: elite == 1,
+                                fun: () {
+                                  selectElite(1);
+                                },
+                                icon: const ImageIcon(
+                                  AssetImage('assets/elite/elite_1.png'),
+                                ),
+                              )
+                            : null,
+                        widget.operator.phases.length > 2
+                            ? LilButton(
+                                selected: elite == 2,
+                                fun: () {
+                                  selectElite(2);
+                                },
+                                icon: const ImageIcon(
+                                  AssetImage('assets/elite/elite_2.png'),
+                                ),
+                              )
+                            : null,
+                      ].nullParser(),
                     ),
-                  );
-                }),
-              ),
-              Row(
-                children: List.generate(talentPots.length, (index) {
-                  return LilButton(
-                    selected: talentPots[index] == (talentLocalPot ?? minPot),
-                    fun: () {
-                      setState(() {
-                        talentLocalPot = talentPots[index];
-                      });
-                    },
-                    icon: Image.asset(
-                      'assets/pot/potential_${talentPots[index]}_small.png',
-                      scale: talentPots.length < 4 ? 1 : 1.5,
-                    ),
-                  );
-                }),
-              ),
-            ],
-          );
-        } else {
-          Map? candidate = (widget.operator.talents[index - 1]["candidates"] as List).lastWhere(
-            (candidate) {
-              int thisTalentCandidateElite = int.parse(
-                (candidate["unlockCondition"]["phase"] as String).replaceFirst('PHASE_', ''),
-              );
-              int thisTalentCandidatePot = candidate["requiredPotentialRank"];
-              return (talentLocalElite ?? minElite) >= thisTalentCandidateElite &&
-                  (talentLocalPot ?? minPot) >= thisTalentCandidatePot;
-            },
-            orElse: () => null,
-          );
-
-          if (candidate != null && candidate["isHideTalent"] == true) return null;
-
-          bool unlocked = (candidate != null);
-
-          List<Widget> extraSlots = [
-            // fck tomimi
-            if (candidate?["rangeId"] != null &&
-                (candidate?["blackboard"] as List).singleWhere(
-                      (e) => e?["key"] == "talent_override_rangeid_flag",
-                      orElse: () => null,
-                    )?["value"] ==
-                    1.0)
-              smolRangeTile(candidate?["rangeId"]),
-            //fck summoners
-            candidate?["tokenKey"] != null ? Text(candidate?["tokenKey"]) : null,
-          ].nullParser();
-
-          return Card.filled(
-            margin: const EdgeInsets.only(top: 12.0),
-            child: Container(
-              width: double.maxFinite,
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
-                    margin: const EdgeInsets.only(bottom: 8.0),
-                    decoration: BoxDecoration(
-                      color: unlocked ? Theme.of(context).colorScheme.primary : null,
-                      borderRadius: BorderRadius.circular(12),
-                      border: unlocked
-                          ? Border.all(
-                              color: Theme.of(context).colorScheme.primary,
+                  ],
+                ),
+                const SizedBox(width: 4.0),
+                Expanded(child: potTile()),
+              ],
+            ),
+            const SizedBox(height: 24.0),
+            Row(
+              children: [
+                const Text('Trust:'),
+                Expanded(
+                  child: Column(
+                    children: [
+                      !trustMaxFlag
+                          ? Slider(
+                              value: sliderTrust,
+                              max: 200,
+                              min: 0,
+                              onChanged: (value) {
+                                setState(() {
+                                  sliderTrust = value.roundToDouble();
+                                });
+                              },
                             )
-                          : Border.all(
-                              color: Theme.of(context).colorScheme.outline,
-                            ),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12.0,
-                      vertical: 2.0,
-                    ),
-                    child: Text(
-                      (widget.operator.talents[index - 1]["candidates"] as List).first["name"] ??
-                          '',
-                      style: TextStyle(
-                        color: unlocked
-                            ? Theme.of(context).colorScheme.onPrimary
-                            : Theme.of(context).colorScheme.onSurface,
-                        fontWeight: FontWeight.w600,
+                          : null,
+                      Wrap(
+                        spacing: 20.0,
+                        runSpacing: 20.0,
+                        children: getTrustBonus(),
                       ),
-                    ),
+                    ].nullParser(),
                   ),
-                  AnimatedSize(
-                    duration: const Duration(milliseconds: 250),
-                    curve: Curves.ease,
-                    child: SizedBox(
-                      width: double.maxFinite,
-                      child: StyledText(
-                        text: unlocked
-                            ? ((candidate["description"] ?? '') as String).akRichTextParser()
-                            : '<icon src="assets/sortIcon/lock.png"/> Unlocks at Elite $index',
-                        tags: context.read<StyleProvider>().tagsAsArknights(context: context),
-                        textAlign: TextAlign.start,
-                      ),
-                    ),
+                ),
+                LilButton(
+                  icon: Text(
+                    trustMaxFlag ? 'MAX' : sliderTrust.toInt().toString().padLeft(3, '  '),
+                    style: const TextStyle(fontWeight: ui.FontWeight.w800),
                   ),
-                  AnimatedSize(
-                    duration: const Duration(milliseconds: 250),
-                    curve: Curves.ease,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: extraSlots,
-                    ),
+                  fun: () {
+                    setState(() {
+                      trustMaxFlag = !trustMaxFlag;
+                    });
+                  },
+                  selected: trustMaxFlag,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 5.0,
+                    horizontal: 8.0,
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                const Text('Lv: '),
+                Expanded(
+                  child: Slider(
+                    value: showLevel,
+                    max: maxLevel,
+                    min: 1.0,
+                    divisions: maxLevel.toInt(),
+                    onChanged: (value) {
+                      setState(() {
+                        showLevel = value.roundToDouble();
+                      });
+                    },
+                  ),
+                ),
+                Text(showLevel.toInt().toString().padLeft(2, '  ')),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget talentsBuilder() {
+    return Builder(
+      builder: (context) {
+        List<int> talentElites = [];
+        List<int> talentPots = [];
+
+        for (Map talent in widget.operator.talents) {
+          for (Map candidate in talent["candidates"]) {
+            int thisTalentCandidateElite = int.parse(
+              (candidate["unlockCondition"]["phase"] as String).replaceFirst('PHASE_', ''),
+            );
+            if (!talentElites.contains(thisTalentCandidateElite)) {
+              talentElites.add(thisTalentCandidateElite);
+            }
+
+            int thisTalentCandidatePot = candidate["requiredPotentialRank"];
+            if (!talentPots.contains(thisTalentCandidatePot)) {
+              talentPots.add(thisTalentCandidatePot);
+            }
+          }
+        }
+        talentElites.sort();
+        talentPots.sort();
+
+        int minElite = talentElites.lastWhere(
+          (e) => e <= elite,
+          orElse: () => talentElites.first,
+        );
+        int minPot = talentPots.lastWhere((e) => e <= pot, orElse: () => talentPots.first);
+
+        return Column(
+          children: List.generate(1 + widget.operator.talents.length, (index) {
+            if (index == 0) {
+              return Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: List.generate(talentElites.length, (index) {
+                      return LilButton(
+                        selected: talentElites[index] == (talentLocalElite ?? minElite),
+                        fun: () {
+                          setState(() {
+                            talentLocalElite = talentElites[index];
+                          });
+                        },
+                        icon: ImageIcon(
+                          AssetImage(
+                            'assets/elite/elite_${talentElites[index]}.png',
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                  Row(
+                    children: List.generate(talentPots.length, (index) {
+                      return LilButton(
+                        selected: talentPots[index] == (talentLocalPot ?? minPot),
+                        fun: () {
+                          setState(() {
+                            talentLocalPot = talentPots[index];
+                          });
+                        },
+                        icon: Image.asset(
+                          'assets/pot/potential_${talentPots[index]}_small.png',
+                          scale: talentPots.length < 4 ? 1 : 1.5,
+                        ),
+                      );
+                    }),
                   ),
                 ],
-              ),
-            ),
-          );
-        }
-      }).nullParser(),
+              );
+            } else {
+              Map? candidate = (widget.operator.talents[index - 1]["candidates"] as List).lastWhere(
+                (candidate) {
+                  int thisTalentCandidateElite = int.parse(
+                    (candidate["unlockCondition"]["phase"] as String).replaceFirst('PHASE_', ''),
+                  );
+                  int thisTalentCandidatePot = candidate["requiredPotentialRank"];
+                  return (talentLocalElite ?? minElite) >= thisTalentCandidateElite &&
+                      (talentLocalPot ?? minPot) >= thisTalentCandidatePot;
+                },
+                orElse: () => null,
+              );
+
+              if (candidate != null && candidate["isHideTalent"] == true) return null;
+
+              bool unlocked = (candidate != null);
+
+              currentTalentsText[index - 1] =
+                  (candidate?["description"] as String?)?.akRichTextParser();
+
+              List<Widget> extraSlots = [
+                // fck tomimi
+                if (candidate?["rangeId"] != null &&
+                    (candidate?["blackboard"] as List).singleWhere(
+                          (e) => e?["key"] == "talent_override_rangeid_flag",
+                          orElse: () => null,
+                        )?["value"] ==
+                        1.0)
+                  smolRangeTile(candidate?["rangeId"]),
+                //fck summoners
+                candidate?["tokenKey"] != null ? Text(candidate?["tokenKey"]) : null,
+              ].nullParser();
+
+              return Card.filled(
+                margin: const EdgeInsets.only(top: 12.0),
+                child: Container(
+                  width: double.maxFinite,
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        margin: const EdgeInsets.only(bottom: 8.0),
+                        decoration: BoxDecoration(
+                          color: unlocked ? Theme.of(context).colorScheme.primary : null,
+                          borderRadius: BorderRadius.circular(12),
+                          border: unlocked
+                              ? Border.all(
+                                  color: Theme.of(context).colorScheme.primary,
+                                )
+                              : Border.all(
+                                  color: Theme.of(context).colorScheme.outline,
+                                ),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 2.0,
+                        ),
+                        child: Text(
+                          (widget.operator.talents[index - 1]["candidates"] as List)
+                                  .first["name"] ??
+                              '',
+                          style: TextStyle(
+                            color: unlocked
+                                ? Theme.of(context).colorScheme.onPrimary
+                                : Theme.of(context).colorScheme.onSurface,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.ease,
+                        child: SizedBox(
+                          width: double.maxFinite,
+                          child: StyledText(
+                            text: unlocked
+                                ? currentTalentsText[index - 1] ?? ''
+                                : '<icon src="assets/sortIcon/lock.png"/> Unlocks at Elite $index',
+                            tags: context.read<StyleProvider>().tagsAsArknights(context: context),
+                            textAlign: TextAlign.start,
+                          ),
+                        ),
+                      ),
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.ease,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: extraSlots,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+          }).nullParser(),
+        );
+      },
     );
   }
 
@@ -1279,7 +1311,7 @@ class _SkillInfoState extends State<SkillInfo> {
       children: [
         Expanded(
           child: CarouselSlider(
-            carouselController: carouselController,
+            carouselController: carouselControllerLv,
             options: CarouselOptions(
               scrollDirection: Axis.vertical,
               onPageChanged: (int index, _) {
@@ -1344,7 +1376,7 @@ class _SkillInfoState extends State<SkillInfo> {
               visible: skillLv != lvLength - 1,
               child: LilButton(
                 icon: const Icon(Icons.arrow_drop_up_rounded),
-                fun: () => carouselController.animateToPage(
+                fun: () => carouselControllerLv.animateToPage(
                   skillLv + 1,
                   curve: Curves.easeOutCubic,
                 ),
@@ -1356,7 +1388,7 @@ class _SkillInfoState extends State<SkillInfo> {
               visible: skillLv != 0,
               child: LilButton(
                 icon: const Icon(Icons.arrow_drop_down_rounded),
-                fun: () => carouselController.animateToPage(
+                fun: () => carouselControllerLv.animateToPage(
                   skillLv - 1,
                   curve: Curves.easeOutCubic,
                 ),
@@ -1370,10 +1402,9 @@ class _SkillInfoState extends State<SkillInfo> {
     );
   }
 
-  Widget? skillBuilder(BuildContext context) {
+  Widget skillBuilder() {
     // skills needs to have: maybe a custom range show,
     // maybe a custom summon show, maybe a lv upgrade diff shower (really easy to do), maybe a item cost to lvel
-    if (widget.operator.skills.isEmpty) return null;
 
     Map selectedSkillDetailLv = skillsDetails[showSkill]["levels"][skillLv];
     Map selectedSkillDetail = skillsDetails[showSkill];
@@ -1478,12 +1509,10 @@ class _SkillInfoState extends State<SkillInfo> {
               width: 72,
               margin: lRightPadding,
               decoration: BoxDecoration(
-                color: StaticColors.fromBrightness(Theme.of(context).brightness).green,
+                color: StaticColors.fromBrightness(context).green,
                 borderRadius: BorderRadius.circular(8.0),
                 border: Border.all(
-                  color: StaticColors.fromBrightness(
-                    Theme.of(context).brightness,
-                  ).green,
+                  color: StaticColors.fromBrightness(context).green,
                   strokeAlign: BorderSide.strokeAlignInside,
                   width: 2.0,
                 ),
@@ -1495,9 +1524,7 @@ class _SkillInfoState extends State<SkillInfo> {
                 textAlign: ui.TextAlign.center,
                 textScaler: TextScaler.linear(textScale),
                 style: TextStyle(
-                  color: StaticColors.fromBrightness(
-                    Theme.of(context).brightness,
-                  ).onGreen,
+                  color: StaticColors.fromBrightness(context).onGreen,
                   fontWeight: ui.FontWeight.w600,
                 ),
               ),
@@ -1507,12 +1534,10 @@ class _SkillInfoState extends State<SkillInfo> {
               width: 72,
               margin: lRightPadding,
               decoration: BoxDecoration(
-                color: StaticColors.fromBrightness(Theme.of(context).brightness).orange,
+                color: StaticColors.fromBrightness(context).orange,
                 borderRadius: BorderRadius.circular(8.0),
                 border: Border.all(
-                  color: StaticColors.fromBrightness(
-                    Theme.of(context).brightness,
-                  ).orange,
+                  color: StaticColors.fromBrightness(context).orange,
                   strokeAlign: BorderSide.strokeAlignInside,
                   width: 2.0,
                 ),
@@ -1524,9 +1549,7 @@ class _SkillInfoState extends State<SkillInfo> {
                 textAlign: ui.TextAlign.center,
                 textScaler: TextScaler.linear(textScale),
                 style: TextStyle(
-                  color: StaticColors.fromBrightness(
-                    Theme.of(context).brightness,
-                  ).onOrange,
+                  color: StaticColors.fromBrightness(context).onOrange,
                   fontWeight: ui.FontWeight.w600,
                 ),
               ),
@@ -1536,12 +1559,10 @@ class _SkillInfoState extends State<SkillInfo> {
               width: 72,
               margin: lRightPadding,
               decoration: BoxDecoration(
-                color: StaticColors.fromBrightness(Theme.of(context).brightness).yellow,
+                color: StaticColors.fromBrightness(context).yellow,
                 borderRadius: BorderRadius.circular(8.0),
                 border: Border.all(
-                  color: StaticColors.fromBrightness(
-                    Theme.of(context).brightness,
-                  ).yellow,
+                  color: StaticColors.fromBrightness(context).yellow,
                   strokeAlign: BorderSide.strokeAlignInside,
                   width: 2.0,
                 ),
@@ -1553,9 +1574,7 @@ class _SkillInfoState extends State<SkillInfo> {
                 textAlign: ui.TextAlign.center,
                 textScaler: TextScaler.linear(textScale),
                 style: TextStyle(
-                  color: StaticColors.fromBrightness(
-                    Theme.of(context).brightness,
-                  ).onYellow,
+                  color: StaticColors.fromBrightness(context).onYellow,
                   fontWeight: ui.FontWeight.w600,
                 ),
               ),
@@ -1780,358 +1799,931 @@ class _SkillInfoState extends State<SkillInfo> {
       return widgets;
     }
 
-    return Container(
-      width: double.maxFinite,
-      padding: const EdgeInsets.all(24.0),
-      margin: const EdgeInsets.only(bottom: 20.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainer,
-        borderRadius: BorderRadius.circular(12.0),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Text('Skills'),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: skillSlots,
-          ),
-          Container(
-            padding: const EdgeInsets.all(8.0),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.only(
-                bottomLeft: const ui.Radius.circular(8.0),
-                bottomRight: const ui.Radius.circular(8.0),
-                topRight:
-                    widget.operator.skills.length < 3 ? const ui.Radius.circular(8.0) : Radius.zero,
-              ),
+    return Builder(
+      builder: (BuildContext context) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: skillSlots,
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            selectedSkillDetailLv["name"],
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: ui.FontWeight.w800,
+            Container(
+              padding: const EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: const ui.Radius.circular(8.0),
+                  bottomRight: const ui.Radius.circular(8.0),
+                  topRight: widget.operator.skills.length < 3
+                      ? const ui.Radius.circular(8.0)
+                      : Radius.zero,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              selectedSkillDetailLv["name"],
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                                fontWeight: ui.FontWeight.w800,
+                              ),
+                              textScaler: TextScaler.linear(
+                                ((18.0 /
+                                            (selectedSkillDetailLv["name"] as String)
+                                                .length
+                                                .toDouble()) -
+                                        0.2)
+                                    .clamp(1.3, 1.9),
+                              ),
                             ),
-                            textScaler: TextScaler.linear(
-                              ((18.0 /
-                                          (selectedSkillDetailLv["name"] as String)
-                                              .length
-                                              .toDouble()) -
-                                      0.2)
-                                  .clamp(1.3, 1.9),
+                            const SizedBox(height: 4.0),
+                            Row(
+                              children: dataWidgets(),
                             ),
-                          ),
-                          const SizedBox(height: 4.0),
-                          Row(
-                            children: dataWidgets(),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6.0),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.outline,
+                          ],
                         ),
                       ),
-                      width: 90,
-                      height: 90,
-                      child: Column(
-                        children: [
-                          lvSelectWidget(
-                            (selectedSkillDetail["levels"] as List).length,
-                            context,
-                          ),
-                          const Text('Skill Level'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6.0),
-                Wrap(
-                  runSpacing: 10.0,
-                  spacing: 6.0,
-                  children: lilDataWidgets(),
-                ),
-                const SizedBox(height: 6.0),
-                AnimatedSize(
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.ease,
-                  child: StyledText(
-                    text: (selectedSkillDetailLv["description"] as String)
-                        .akRichTextParser()
-                        .varParser(selectedSkillDetailLv["blackboard"]),
-                    tags: context.read<StyleProvider>().tagsAsArknights(context: context),
-                  ),
-                ),
-                AnimatedSize(
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.ease,
-                  child: SizedBox(
-                    child: context.watch<SettingsProvider>().prefs[PrefsFlags.menuShowAdvanced]
-                        ? Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Wrap(
-                              spacing: 6.0,
-                              runSpacing: 3.0,
-                              children: metadata(),
-                            ),
-                          )
-                        : null,
-                  ),
-                ),
-                AnimatedSize(
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.ease,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: extraSlots,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget baseSkillBuilder(BuildContext context) {
-    List<int> baseElites = [];
-    List<int> baseLv = [];
-
-    for (Map buff in widget.operator.baseSkills["buffChar"]) {
-      for (Map buffdata in buff["buffData"]) {
-        int thisBuffdataElite = int.parse(
-          (buffdata["cond"]["phase"] as String).replaceFirst('PHASE_', ''),
-        );
-        if (!baseElites.contains(thisBuffdataElite)) baseElites.add(thisBuffdataElite);
-
-        int thisBuffdataLv = buffdata["cond"]["level"];
-        if (!baseLv.contains(thisBuffdataLv)) baseLv.add(thisBuffdataLv);
-      }
-    }
-    baseElites.sort();
-    baseLv.sort();
-
-    int minElite = baseElites.lastWhere(
-      (e) => e <= elite,
-      orElse: () => baseElites.first,
-    );
-    int minLv = baseLv.lastWhere((e) => e <= showLevel.toInt(), orElse: () => baseLv.first);
-
-    return Column(
-      children: List.generate(1 + (widget.operator.baseSkills["buffChar"] as List).length, (index) {
-        if (index == 0) {
-          return Row(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: List.generate(baseElites.length, (index) {
-                  return LilButton(
-                    selected: baseElites[index] == (baseLocalElite ?? minElite),
-                    fun: () {
-                      setState(() {
-                        baseLocalElite = baseElites[index];
-                      });
-                    },
-                    icon: ImageIcon(
-                      AssetImage(
-                        'assets/elite/elite_${baseElites[index]}.png',
-                      ),
-                    ),
-                  );
-                }),
-              ),
-              Row(
-                children: List.generate(baseLv.length, (index) {
-                  return LilButton(
-                    selected: baseLv[index] == (baseLocalLv ?? minLv),
-                    fun: () {
-                      setState(() {
-                        baseLocalLv = baseLv[index];
-                      });
-                    },
-                    icon: Text.rich(
-                      textScaler: const TextScaler.linear(0.8),
-                      TextSpan(
-                        children: [
-                          const TextSpan(text: 'Lv', style: TextStyle(fontSize: 10)),
-                          TextSpan(text: baseLv[index].toString()),
-                        ],
-                      ),
-                    ),
-                  );
-                }),
-              ),
-            ],
-          );
-        } else {
-          if ((widget.operator.baseSkills["buffChar"][index - 1]["buffData"] as List).isEmpty) {
-            return null;
-          }
-
-          final Map? buffData =
-              (widget.operator.baseSkills["buffChar"][index - 1]["buffData"] as List).lastWhere(
-            (buffdata) {
-              int thisBuffdataElite = int.parse(
-                (buffdata["cond"]["phase"] as String).replaceFirst('PHASE_', ''),
-              );
-              int thisBuffdataLv = buffdata["cond"]["level"];
-              return (baseLocalElite ?? minElite) >= thisBuffdataElite &&
-                  (baseLocalLv ?? minLv) >= thisBuffdataLv;
-            },
-            orElse: () => null,
-          );
-
-          final bool unlocked = (buffData != null);
-          final String buffId =
-              (widget.operator.baseSkills["buffChar"][index - 1]["buffData"] as List).lastWhere(
-            (buffdata) {
-              int thisBuffdataElite = int.parse(
-                (buffdata["cond"]["phase"] as String).replaceFirst('PHASE_', ''),
-              );
-              int thisBuffdataLv = buffdata["cond"]["level"];
-              return (baseLocalElite ?? minElite) >= thisBuffdataElite &&
-                  (baseLocalLv ?? minLv) >= thisBuffdataLv;
-            },
-            orElse: () =>
-                (widget.operator.baseSkills["buffChar"][index - 1]["buffData"] as List).first,
-          )["buffId"];
-
-          final int textelite = int.parse(
-            ((widget.operator.baseSkills["buffChar"][index - 1]["buffData"] as List).first["cond"]
-                    ["phase"] as String)
-                .replaceFirst('PHASE_', ''),
-          );
-          final int textlv = (widget.operator.baseSkills["buffChar"][index - 1]["buffData"] as List)
-              .first["cond"]["level"];
-
-          final cachedTable = context.read<CacheProvider>().cachedBaseSkillTable;
-          final Color? bgColor =
-              unlocked ? (cachedTable![buffId]["buffColor"] as String).parseAsHex() : null;
-          final Color textColor = unlocked
-              ? (cachedTable![buffId]["textColor"] as String).parseAsHex()
-              : Theme.of(context).colorScheme.onSurface;
-
-          return Card.filled(
-            margin: const EdgeInsets.only(top: 12.0),
-            child: Container(
-              width: double.maxFinite,
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Stack(
-                    children: [
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 150),
-                        margin: const EdgeInsets.only(bottom: 8.0, top: 4.0),
+                      Container(
                         decoration: BoxDecoration(
-                          color: bgColor,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(6.0),
                           border: Border.all(
                             color: Theme.of(context).colorScheme.outline,
                           ),
                         ),
-                        padding: EdgeInsets.only(
-                          top: 2.0,
-                          bottom: 2.0,
-                          right: 12.0,
-                          left: unlocked ? 35 : 12.0,
-                        ),
-                        child: Text(
-                          (cachedTable![buffId]["buffName"] as String?) ?? '',
-                          style: TextStyle(
-                            color: textColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 0,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: bgColor,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: unlocked
-                                  ? Theme.of(context).colorScheme.outline
-                                  : Colors.transparent,
+                        width: 90,
+                        height: 90,
+                        child: Column(
+                          children: [
+                            lvSelectWidget(
+                              (selectedSkillDetail["levels"] as List).length,
+                              context,
                             ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(2.0),
-                            child: CachedNetworkImage(
-                              colorBlendMode: BlendMode.modulate,
-                              imageUrl: '$kBaseSkillRepo/${cachedTable[buffId]["skillIcon"]}.png'
-                                  .githubEncode(),
-                              scale: 1.3,
-                              color: unlocked ? null : Colors.transparent,
-                              placeholder: (_, __) => Image.asset(
-                                'assets/placeholders/baseskill.png',
-                                colorBlendMode: BlendMode.modulate,
-                                color: Colors.transparent,
-                                scale: 1.3,
-                              ),
-                              errorWidget: (context, url, error) => Stack(
-                                children: [
-                                  Image.asset(
-                                    'assets/placeholders/baseskill.png',
-                                    colorBlendMode: BlendMode.modulate,
-                                    color: Colors.transparent,
-                                    scale: 1.3,
-                                  ),
-                                  Positioned.fill(
-                                    child: Center(
-                                      child: Icon(
-                                        Icons.error_outline,
-                                        color: Theme.of(context).colorScheme.surface,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
+                            const Text('Skill Level'),
+                          ],
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 6.0),
+                  Wrap(
+                    runSpacing: 10.0,
+                    spacing: 6.0,
+                    children: lilDataWidgets(),
+                  ),
+                  const SizedBox(height: 6.0),
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.ease,
+                    child: StyledText(
+                      text: (selectedSkillDetailLv["description"] as String)
+                          .akRichTextParser()
+                          .varParser(selectedSkillDetailLv["blackboard"]),
+                      tags: context.read<StyleProvider>().tagsAsArknights(context: context),
+                    ),
                   ),
                   AnimatedSize(
                     duration: const Duration(milliseconds: 250),
                     curve: Curves.ease,
                     child: SizedBox(
-                      width: double.maxFinite,
-                      child: StyledText(
-                        text: unlocked
-                            ? ((cachedTable[buffId]["description"] ?? '') as String)
-                                .akRichTextParser()
-                            : '<icon src="assets/sortIcon/lock.png"/> Unlocks at Elite ${textelite.toString()} lv${textlv.toString()}',
-                        tags: context.read<StyleProvider>().tagsAsArknights(context: context),
-                        textAlign: TextAlign.start,
-                      ),
+                      child: context.watch<SettingsProvider>().prefs[PrefsFlags.menuShowAdvanced]
+                          ? Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Wrap(
+                                spacing: 6.0,
+                                runSpacing: 3.0,
+                                children: metadata(),
+                              ),
+                            )
+                          : null,
                     ),
                   ),
-                ].nullParser(),
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.ease,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: extraSlots,
+                    ),
+                  ),
+                ],
               ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget modulesBuilder() {
+    return Builder(
+      builder: (context) {
+        if (elite < 2) {
+          return StyledText(
+            text: '<icon src="assets/sortIcon/lock.png"/> Module system unlocked at Elite 2',
+            tags: context.read<StyleProvider>().tagsAsArknights(context: context),
+          );
+        }
+
+        final cachedTable = context.read<CacheProvider>().cachedModTable;
+        final cachedstatsTable = context.read<CacheProvider>().cachedModStatsTable;
+        final List<Map<String, dynamic>> modules =
+            List.generate(widget.operator.modules!.length, (index) {
+          return cachedTable!["equipDict"][widget.operator.modules![index]];
+        });
+
+        final Map selectedMod = modules[showMod];
+        final isAdvanced = (selectedMod["type"] as String).toLowerCase() == 'advanced';
+        final Map? selectedModStats = cachedstatsTable![selectedMod["uniEquipId"]];
+
+        List<int> modStages =
+            List.generate((selectedModStats?['phases'] as List?)?.length ?? 0, (n) => n);
+        List<int> modPots = [];
+
+        if (selectedModStats?['phases'] != null) {
+          for (Map phases in selectedModStats?['phases']) {
+            for (Map part in phases["parts"]) {
+              if (part["addOrOverrideTalentDataBundle"]["candidates"] == null) continue;
+              for (Map candidate in part["addOrOverrideTalentDataBundle"]["candidates"]) {
+                int thisCandidatePot = candidate["requiredPotentialRank"];
+                if (!modPots.contains(thisCandidatePot)) {
+                  modPots.add(thisCandidatePot);
+                }
+              }
+            }
+          }
+        }
+        modStages.sort();
+        modPots.sort();
+
+        int minStage = modStages.firstOrNull ?? 0;
+        int minPot =
+            modPots.lastWhere((e) => e <= pot, orElse: () => modPots.firstOrNull ?? -1) == -1
+                ? 0
+                : modPots.lastWhere((e) => e <= pot, orElse: () => modPots.firstOrNull ?? -1);
+
+        if (modLocalPot != null) {
+          modLocalPot = modPots.lastWhere(
+                    (e) => e <= modLocalPot!,
+                    orElse: () => modPots.firstOrNull ?? -1,
+                  ) ==
+                  -1
+              ? 0
+              : modPots.lastWhere(
+                  (e) => e <= modLocalPot!,
+                  orElse: () => modPots.firstOrNull ?? -1,
+                );
+        }
+
+        String joinModName(Map mod) {
+          return <String?>[mod["typeName1"], mod["typeName2"]].nonNulls.join('-');
+        }
+
+        Widget modIcon(Map mod) {
+          final isAdvanced = (mod["type"] as String).toLowerCase() == 'advanced';
+          final double scale = 1.4;
+
+          return Container(
+            width: 60,
+            height: 56,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(6),
+              color: HSLColor.fromColor(Theme.of(context).colorScheme.primary)
+                  .withLightness(0.10)
+                  .toColor(),
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Image.asset(
+                  'assets/modules_shining/${mod["equipShiningColor"].toLowerCase()}_shining.png',
+                  width: 60,
+                  height: 56,
+                  scale: scale,
+                ),
+                Image(
+                  image: isAdvanced
+                      ? CachedNetworkImageProvider(
+                          '$kModIconRepo/${mod["typeIcon"]}.png'.githubEncode(),
+                        )
+                      : const AssetImage('assets/placeholders/original.png'),
+                  filterQuality: ui.FilterQuality.high,
+                  width: 60 / scale,
+                  height: 56 / scale,
+                ),
+              ],
             ),
           );
         }
-      }).nullParser(),
+
+        void showModStory() async {
+          await showModalBottomSheet<void>(
+            constraints: BoxConstraints.loose(
+              Size(
+                MediaQuery.of(context).size.width,
+                MediaQuery.of(context).size.height * 0.75,
+              ),
+            ),
+            enableDrag: true,
+            showDragHandle: true,
+            isScrollControlled: true,
+            context: context,
+            builder: (BuildContext context) {
+              return SafeArea(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 24.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          selectedMod["uniEquipDesc"],
+                        ),
+                        const SizedBox(height: 20),
+                        CachedNetworkImage(
+                          imageUrl:
+                              '$kModImgRepo/${isAdvanced ? selectedMod["uniEquipIcon"] : 'default'}.png',
+                          placeholder: (_, __) => Image.asset(
+                            'assets/placeholders/module.png',
+                            colorBlendMode: BlendMode.modulate,
+                            color: Colors.transparent,
+                          ),
+                          errorWidget: (context, url, error) => Stack(
+                            children: [
+                              Image.asset(
+                                'assets/placeholders/module.png',
+                                colorBlendMode: BlendMode.modulate,
+                                color: Colors.transparent,
+                              ),
+                              Positioned.fill(
+                                child: Center(
+                                  child: Icon(
+                                    Icons.error_outline,
+                                    color: Theme.of(context).colorScheme.surface,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
+        }
+
+        List<Widget> getModulesList() {
+          return List.generate(modules.length, (index) {
+            final isAdvanced = (modules[index]["type"] as String).toLowerCase() == 'advanced';
+            final double dimension = 46;
+            final bool selected = showMod == index;
+
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.ease,
+              width: dimension,
+              height: dimension,
+              margin: const EdgeInsets.only(left: 6.0),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary,
+                  width: 2.0,
+                ),
+                borderRadius: BorderRadius.circular(6),
+                color: selected
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.surface,
+              ),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: Padding(
+                      padding: const EdgeInsets.all(3.0),
+                      child: Image(
+                        image: isAdvanced
+                            ? CachedNetworkImageProvider(
+                                '$kModIconRepo/${modules[index]["typeIcon"]}.png'.githubEncode(),
+                              )
+                            : const AssetImage('assets/placeholders/original.png'),
+                        colorBlendMode: BlendMode.modulate,
+                        color: selected
+                            ? Theme.of(context).colorScheme.surface
+                            : Theme.of(context).colorScheme.inverseSurface.withOpacity(0.7),
+                      ),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: InkWell(
+                        onTap: () {
+                          setState(() {
+                            showMod = index;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          });
+        }
+
+        List<Widget> statsUpgrades() {
+          var result = <Widget>[];
+
+          for (var attribute in (selectedModStats?["phases"][modStage ?? minStage]
+              ["attributeBlackboard"] as List)) {
+            result.add(
+              statTile(
+                Operator.statTranslate(attribute['key']),
+                (attribute['value'] as double).toStringWithPrecision(),
+                context,
+                true,
+              ),
+            );
+          }
+
+          return result;
+        }
+
+        List<Widget> allOtherUpgrades() {
+          var result = <Widget>[];
+          String currText = '';
+          String changedText = '';
+          String title = '';
+          String subtitle = '';
+          bool isAdding = false;
+          final Map selectedPhase = selectedModStats!["phases"][modStage ?? minStage];
+
+          for (Map part in selectedPhase["parts"]) {
+            if (part["isToken"] == true) continue; // should change this
+
+            // i dont really understand ak's backend so im gonna just do my best
+            switch ((part["target"] as String)) {
+              case 'DISPLAY':
+              // often just adds or overrides trait text
+              case 'TRAIT':
+              // same as display but also contains "resKey" value
+              // dunno wtf does "resKey" tho
+              case 'TRAIT_DATA_ONLY':
+                // same as display but often just overrides
+                if (part["overrideTraitDataBundle"]["candidates"] == null) continue;
+                Map candidate =
+                    (part["overrideTraitDataBundle"]["candidates"] as List).lastWhere((candidate) {
+                  int thisTalentCandidatePot = candidate["requiredPotentialRank"];
+                  return (modLocalPot ?? minPot) >= thisTalentCandidatePot;
+                });
+                currText = currentTrait;
+                changedText = ((candidate["overrideDescripton"] ?? currentTrait) +
+                        (candidate["additionalDescription"] != null
+                            ? '\n<add-icon/>${candidate["additionalDescription"]}'
+                            : '') as String)
+                    .varParser(candidate["blackboard"]);
+                title = widget.operator.subProfessionString;
+                subtitle = 'Trait';
+                isAdding = candidate["additionalDescription"] != null;
+                continue createWidget;
+
+              case 'TALENT':
+              // displays talent changes if attribute ["talentIndex"] is >= 0
+              // i dont know exactly what affects ["talentIndex"] == -1
+              case 'TALENT_DATA_ONLY':
+                // sames as talent
+                if (part["addOrOverrideTalentDataBundle"]["candidates"] == null) continue;
+                Map candidate = (part["addOrOverrideTalentDataBundle"]["candidates"] as List)
+                    .lastWhere((candidate) {
+                  int thisTalentCandidatePot = candidate["requiredPotentialRank"];
+                  return (modLocalPot ?? minPot) >= thisTalentCandidatePot;
+                });
+                if (candidate["talentIndex"] < 0) continue;
+                final int thisCandidateTalentIndex = candidate["talentIndex"];
+
+                currText = currentTalentsText[candidate["talentIndex"]] ?? '';
+                changedText =
+                    ((candidate["description"] ?? candidate["upgradeDescription"] ?? '') as String)
+                        .varParser(candidate["blackboard"]);
+                title = candidate["name"] ??
+                    (widget.operator.talents[thisCandidateTalentIndex]["candidates"] as List)
+                        .first["name"] ??
+                    '';
+                subtitle = 'Talent ${(thisCandidateTalentIndex + 1).toString()}';
+                isAdding = false;
+                continue createWidget;
+
+              createWidget:
+              case 'createWidget':
+                var baseWidget = Card.filled(
+                  margin: const EdgeInsets.only(top: 12.0),
+                  child: Container(
+                    width: double.maxFinite,
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 150),
+                              margin: const EdgeInsets.only(bottom: 8.0),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12.0,
+                                vertical: 2.0,
+                              ),
+                              child: Text(
+                                title,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.onPrimary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 16),
+                              child: Text(
+                                '$subtitle - ${isAdding ? 'added' : 'changed'}',
+                                style: TextStyle(
+                                  color: isAdding
+                                      ? StaticColors.fromBrightness(context).green
+                                      : StaticColors.fromBrightness(context).yellow,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        AnimatedSize(
+                          duration: const Duration(milliseconds: 250),
+                          curve: Curves.ease,
+                          child: SizedBox(
+                            width: double.maxFinite,
+                            child: StyledText(
+                              text: PrettyDiffText.getJustStringAsMarkup(
+                                oldText: currText,
+                                newText: changedText,
+                                showDeletedText: false,
+                                diffCleanupType: DiffCleanupType.EFFICIENCY,
+                              ),
+                              tags: context.read<StyleProvider>().tagsAsArknights(context: context),
+                              textAlign: TextAlign.start,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+
+                result.add(baseWidget);
+              case _:
+                print('${part["target"]} not found');
+            }
+          }
+
+          return result;
+        }
+
+        return Column(
+          children: [
+            const SizedBox(height: 40),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: getModulesList(),
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              height: 75,
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                isThreeLine: true,
+                leading: modIcon(modules[showMod]),
+                title: Text(
+                  selectedMod["uniEquipName"],
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: ui.FontWeight.w800,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  maxLines: 2,
+                ),
+                subtitle: Text(
+                  joinModName(modules[showMod]),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.tertiary,
+                  ),
+                ),
+              ),
+            ),
+            isAdvanced
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: List.generate(modStages.length, (index) {
+                              return LilButton(
+                                selected: modStages[index] == (modStage ?? minStage),
+                                fun: () {
+                                  setState(() {
+                                    modStage = modStages[index];
+                                  });
+                                },
+                                icon: Text.rich(
+                                  textScaler: const TextScaler.linear(0.8),
+                                  TextSpan(
+                                    children: [
+                                      const TextSpan(text: 'S', style: TextStyle(fontSize: 10)),
+                                      TextSpan(text: (modStages[index] + 1).toString()),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }),
+                          ),
+                          Row(
+                            children: List.generate(modPots.length, (index) {
+                              return LilButton(
+                                selected: modPots[index] == (modLocalPot ?? minPot),
+                                fun: () {
+                                  setState(() {
+                                    modLocalPot = modPots[index];
+                                  });
+                                },
+                                icon: Image.asset(
+                                  'assets/pot/potential_${modPots[index]}_small.png',
+                                  scale: modPots.length < 4 ? 1 : 1.5,
+                                ),
+                              );
+                            }),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Stats:',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontSize: 18,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 20.0,
+                        runSpacing: 20.0,
+                        alignment: WrapAlignment.center,
+                        children: statsUpgrades(),
+                      ),
+                      Column(
+                        children: allOtherUpgrades(),
+                      ),
+                    ],
+                  )
+                : null,
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              clipBehavior: Clip.hardEdge,
+              width: double.maxFinite,
+              height: 80,
+              child: Stack(
+                children: [
+                  CachedNetworkImage(
+                    imageUrl:
+                        '$kModImgRepo/${isAdvanced ? selectedMod["uniEquipIcon"] : 'default'}.png',
+                    fit: BoxFit.none,
+                    width: double.maxFinite,
+                    alignment: const Alignment(-0.8, 0),
+                    scale: 3.0,
+                    colorBlendMode: BlendMode.modulate,
+                    color: const ui.Color.fromARGB(129, 255, 255, 255),
+                    placeholder: (_, __) => Image.asset(
+                      'assets/placeholders/module.png',
+                      colorBlendMode: BlendMode.modulate,
+                      color: Colors.transparent,
+                    ),
+                    errorWidget: (context, url, error) => Stack(
+                      children: [
+                        Image.asset(
+                          'assets/placeholders/module.png',
+                          colorBlendMode: BlendMode.modulate,
+                          color: Colors.transparent,
+                          width: 100,
+                          height: 100,
+                        ),
+                        Positioned.fill(
+                          child: Center(
+                            child: Icon(
+                              Icons.error_outline,
+                              color: Theme.of(context).colorScheme.surface,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.center,
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          WidgetSpan(
+                            child: Icon(
+                              Icons.read_more,
+                              color: Theme.of(context).colorScheme.primary,
+                              shadows: [const ui.Shadow(blurRadius: 3.0)],
+                              size: 24,
+                            ),
+                            alignment: ui.PlaceholderAlignment.middle,
+                          ),
+                          const TextSpan(text: ' Story'),
+                        ],
+                      ),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: ui.FontWeight.w700,
+                        shadows: [const ui.Shadow(blurRadius: 3.0)],
+                      ),
+                      textScaler: const TextScaler.linear(1.2),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: Material(
+                      type: MaterialType.transparency,
+                      child: InkWell(
+                        onTap: showModStory,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ].nullParser(),
+        );
+      },
+    );
+  }
+
+  Widget baseSkillBuilder() {
+    return Builder(
+      builder: (context) {
+        List<int> baseElites = [];
+        List<int> baseLv = [];
+
+        for (Map buff in widget.operator.baseSkills["buffChar"]) {
+          for (Map buffdata in buff["buffData"]) {
+            int thisBuffdataElite = int.parse(
+              (buffdata["cond"]["phase"] as String).replaceFirst('PHASE_', ''),
+            );
+            if (!baseElites.contains(thisBuffdataElite)) baseElites.add(thisBuffdataElite);
+
+            int thisBuffdataLv = buffdata["cond"]["level"];
+            if (!baseLv.contains(thisBuffdataLv)) baseLv.add(thisBuffdataLv);
+          }
+        }
+        baseElites.sort();
+        baseLv.sort();
+
+        int minElite = baseElites.lastWhere(
+          (e) => e <= elite,
+          orElse: () => baseElites.first,
+        );
+        int minLv = baseLv.lastWhere((e) => e <= showLevel.toInt(), orElse: () => baseLv.first);
+
+        return Column(
+          children:
+              List.generate(1 + (widget.operator.baseSkills["buffChar"] as List).length, (index) {
+            if (index == 0) {
+              return Row(
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: List.generate(baseElites.length, (index) {
+                      return LilButton(
+                        selected: baseElites[index] == (baseLocalElite ?? minElite),
+                        fun: () {
+                          setState(() {
+                            baseLocalElite = baseElites[index];
+                          });
+                        },
+                        icon: ImageIcon(
+                          AssetImage(
+                            'assets/elite/elite_${baseElites[index]}.png',
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                  Row(
+                    children: List.generate(baseLv.length, (index) {
+                      return LilButton(
+                        selected: baseLv[index] == (baseLocalLv ?? minLv),
+                        fun: () {
+                          setState(() {
+                            baseLocalLv = baseLv[index];
+                          });
+                        },
+                        icon: Text.rich(
+                          textScaler: const TextScaler.linear(0.8),
+                          TextSpan(
+                            children: [
+                              const TextSpan(text: 'Lv', style: TextStyle(fontSize: 10)),
+                              TextSpan(text: baseLv[index].toString()),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
+                ],
+              );
+            } else {
+              if ((widget.operator.baseSkills["buffChar"][index - 1]["buffData"] as List).isEmpty) {
+                return null;
+              }
+
+              final Map? buffData =
+                  (widget.operator.baseSkills["buffChar"][index - 1]["buffData"] as List).lastWhere(
+                (buffdata) {
+                  int thisBuffdataElite = int.parse(
+                    (buffdata["cond"]["phase"] as String).replaceFirst('PHASE_', ''),
+                  );
+                  int thisBuffdataLv = buffdata["cond"]["level"];
+                  return (baseLocalElite ?? minElite) >= thisBuffdataElite &&
+                      (baseLocalLv ?? minLv) >= thisBuffdataLv;
+                },
+                orElse: () => null,
+              );
+
+              final bool unlocked = (buffData != null);
+              final String buffId =
+                  (widget.operator.baseSkills["buffChar"][index - 1]["buffData"] as List).lastWhere(
+                (buffdata) {
+                  int thisBuffdataElite = int.parse(
+                    (buffdata["cond"]["phase"] as String).replaceFirst('PHASE_', ''),
+                  );
+                  int thisBuffdataLv = buffdata["cond"]["level"];
+                  return (baseLocalElite ?? minElite) >= thisBuffdataElite &&
+                      (baseLocalLv ?? minLv) >= thisBuffdataLv;
+                },
+                orElse: () =>
+                    (widget.operator.baseSkills["buffChar"][index - 1]["buffData"] as List).first,
+              )["buffId"];
+
+              final int textelite = int.parse(
+                ((widget.operator.baseSkills["buffChar"][index - 1]["buffData"] as List)
+                        .first["cond"]["phase"] as String)
+                    .replaceFirst('PHASE_', ''),
+              );
+              final int textlv =
+                  (widget.operator.baseSkills["buffChar"][index - 1]["buffData"] as List)
+                      .first["cond"]["level"];
+
+              final cachedTable = context.read<CacheProvider>().cachedBaseSkillTable;
+              final Color? bgColor =
+                  unlocked ? (cachedTable![buffId]["buffColor"] as String).parseAsHex() : null;
+              final Color textColor = unlocked
+                  ? (cachedTable![buffId]["textColor"] as String).parseAsHex()
+                  : Theme.of(context).colorScheme.onSurface;
+
+              return Card.filled(
+                margin: const EdgeInsets.only(top: 12.0),
+                child: Container(
+                  width: double.maxFinite,
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Stack(
+                        children: [
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 150),
+                            margin: const EdgeInsets.only(bottom: 8.0, top: 4.0),
+                            decoration: BoxDecoration(
+                              color: bgColor,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.outline,
+                              ),
+                            ),
+                            padding: EdgeInsets.only(
+                              top: 2.0,
+                              bottom: 2.0,
+                              right: 12.0,
+                              left: unlocked ? 35 : 12.0,
+                            ),
+                            child: Text(
+                              (cachedTable![buffId]["buffName"] as String?) ?? '',
+                              style: TextStyle(
+                                color: textColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            left: 0,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: bgColor,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: unlocked
+                                      ? Theme.of(context).colorScheme.outline
+                                      : Colors.transparent,
+                                ),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(2.0),
+                                child: CachedNetworkImage(
+                                  colorBlendMode: BlendMode.modulate,
+                                  imageUrl:
+                                      '$kBaseSkillRepo/${cachedTable[buffId]["skillIcon"]}.png'
+                                          .githubEncode(),
+                                  scale: 1.3,
+                                  color: unlocked ? null : Colors.transparent,
+                                  placeholder: (_, __) => Image.asset(
+                                    'assets/placeholders/baseskill.png',
+                                    colorBlendMode: BlendMode.modulate,
+                                    color: Colors.transparent,
+                                    scale: 1.3,
+                                  ),
+                                  errorWidget: (context, url, error) => Stack(
+                                    children: [
+                                      Image.asset(
+                                        'assets/placeholders/baseskill.png',
+                                        colorBlendMode: BlendMode.modulate,
+                                        color: Colors.transparent,
+                                        scale: 1.3,
+                                      ),
+                                      Positioned.fill(
+                                        child: Center(
+                                          child: Icon(
+                                            Icons.error_outline,
+                                            color: Theme.of(context).colorScheme.surface,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 250),
+                        curve: Curves.ease,
+                        child: SizedBox(
+                          width: double.maxFinite,
+                          child: StyledText(
+                            text: unlocked
+                                ? ((cachedTable[buffId]["description"] ?? '') as String)
+                                    .akRichTextParser()
+                                : '<icon src="assets/sortIcon/lock.png"/> Unlocks at Elite ${textelite.toString()} lv${textlv.toString()}',
+                            tags: context.read<StyleProvider>().tagsAsArknights(context: context),
+                            textAlign: TextAlign.start,
+                          ),
+                        ),
+                      ),
+                    ].nullParser(),
+                  ),
+                ),
+              );
+            }
+          }).nullParser(),
+        );
+      },
     );
   }
 }

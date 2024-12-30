@@ -13,6 +13,7 @@ class CacheProvider extends ChangeNotifier {
   Map<String, dynamic>? cachedRangeTable;
   Map<String, dynamic>? cachedSkillTable;
   Map<String, dynamic>? cachedModTable;
+  Map<String, dynamic>? cachedModStatsTable;
   Map<String, dynamic>? cachedBaseSkillTable;
 
   bool get isCached {
@@ -27,7 +28,8 @@ class CacheProvider extends ChangeNotifier {
         cachedRangeTable != null &&
         cachedSkillTable != null &&
         cachedModTable != null &&
-        cachedBaseSkillTable != null) {
+        cachedBaseSkillTable != null &&
+        cachedModStatsTable != null) {
       return true;
     } else {
       return false;
@@ -42,6 +44,7 @@ class CacheProvider extends ChangeNotifier {
     required skillTable,
     required modTable,
     required baseSkillTable,
+    required modStatsTable,
   }) {
     cachedListOperator = listOperator;
     cachedListOperatorServer = listOperatorServer;
@@ -50,6 +53,7 @@ class CacheProvider extends ChangeNotifier {
     cachedSkillTable = skillTable;
     cachedModTable = modTable;
     cachedBaseSkillTable = baseSkillTable;
+    cachedModStatsTable = modStatsTable;
   }
 
   void unCache() {
@@ -60,5 +64,6 @@ class CacheProvider extends ChangeNotifier {
     cachedSkillTable = null;
     cachedModTable = null;
     cachedBaseSkillTable = null;
+    cachedModStatsTable = null;
   }
 }

@@ -269,8 +269,8 @@ class DiffChip extends StatelessWidget {
     final lBGColor = backgroundColor ?? Theme.of(context).colorScheme.surfaceContainerHighest;
     final lColor = color ?? Theme.of(context).colorScheme.onSurface;
     final lColorDiff = isPositive
-        ? StaticColors.fromBrightness(Theme.of(context).brightness).greenVariant
-        : StaticColors.fromBrightness(Theme.of(context).brightness).redVariant;
+        ? StaticColors.fromBrightness(context).greenVariant
+        : StaticColors.fromBrightness(context).redVariant;
     final lsize = size ?? Size(MediaQuery.sizeOf(context).width, 24);
     final Widget? lDiffIcon = switch (axis) {
       AxisDirection.up => Icon(

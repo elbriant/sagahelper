@@ -30,7 +30,10 @@ const String kArtRepo =
     'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/characters';
 const String kLogoRepo =
     'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/camplogo';
-
+const String kModImgRepo =
+    'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/refs/heads/cn/assets/torappu/dynamicassets/arts/ui/uniequipimg';
+const String kModIconRepo =
+    'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/refs/heads/cn/assets/torappu/dynamicassets/arts/ui/uniequiptype';
 // Voice Assets from Aceship's repo
 const String kVoiceRepo = 'https://github.com/Aceship/Arknight-voices/raw/refs/heads/main';
 
@@ -263,6 +266,7 @@ class LocalDataManager {
 }
 
 class StaticColors {
+  static BuildContext get navContext => NavigationService.navigatorKey.currentContext!;
   //normal colors
   final Color green;
   final Color onGreen;
@@ -402,7 +406,9 @@ class StaticColors {
     );
   }
 
-  factory StaticColors.fromBrightness(Brightness brightness) {
+  factory StaticColors.fromBrightness(BuildContext? context) {
+    final brightness = Theme.of(context ?? navContext).brightness;
+
     if (brightness == Brightness.light) {
       return StaticColors.light();
     } else {

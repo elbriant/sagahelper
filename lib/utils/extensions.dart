@@ -56,7 +56,7 @@ extension StringExtension on String {
       if (map['valueStr'] == null) {
         parsed = parsed
             .replaceAll(
-              RegExp('{${RegExp.escape(map['key'])}(:0)?(.0)?}', caseSensitive: false),
+              RegExp('(-)?{(-)?${RegExp.escape(map['key'])}(:0)?(.0)?}', caseSensitive: false),
               (map['value'] as double).toStringWithPrecision(),
             )
             .replaceAll(
@@ -68,7 +68,7 @@ extension StringExtension on String {
             )
             .replaceAll(
               RegExp(
-                '{\\-${RegExp.escape(map['key'])}:0(.0)?%}',
+                '{-${RegExp.escape(map['key'])}:0(.0)?%}',
                 caseSensitive: false,
               ),
               '${((map['value'] as double) * 100 * -1).toStringWithPrecision()}%',
@@ -89,9 +89,7 @@ extension StringExtension on String {
     if (nick != null) {
       return replaceAll('{@nickname}', nick);
     } else {
-      return replaceAll('Dr. {@nickname}', 'Doctor')
-          .replaceAll('Dr.{@nickname}', 'Doctor')
-          .replaceAll('{@nickname}', 'Doctor');
+      return replaceAll(RegExp(r'(Dr.)?(\s)?{@nickname}'), 'Doctor');
     }
   }
 

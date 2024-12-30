@@ -39,7 +39,11 @@ class OperatorContainer extends StatelessWidget {
 
     final settings = context.watch<SettingsProvider>();
 
-    String imgLink = switch (settings.getDisplayChipStr()) { 'avatar' => ghAvatarLink, 'portrait' => ghPotraitLink, String() => '' };
+    String imgLink = switch (settings.getDisplayChipStr()) {
+      'avatar' => ghAvatarLink,
+      'portrait' => ghPotraitLink,
+      String() => ''
+    };
 
     return GlassContainer(
       isFrostedGlass: settings.operatorSearchDelegate <= 4 ? true : false,
@@ -73,13 +77,17 @@ class OperatorContainer extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(10.0),
-            child: CachedNetworkImage(
-              imageUrl: imgLink,
-              fit: BoxFit.fitWidth,
-              memCacheHeight: settings.getDisplayChipStr() == 'avatar' ? 180 : 360,
-              memCacheWidth: 180,
-              placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-              errorWidget: (context, url, error) => const Center(child: Icon(Icons.error)),
+            child: Hero(
+              tag: operator.id,
+              child: CachedNetworkImage(
+                cacheKey: operator.id,
+                imageUrl: imgLink,
+                fit: BoxFit.fitWidth,
+                memCacheHeight: settings.getDisplayChipStr() == 'avatar' ? 180 : 360,
+                memCacheWidth: 180,
+                placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                errorWidget: (context, url, error) => const Center(child: Icon(Icons.error)),
+              ),
             ),
           ),
           Positioned.fill(
@@ -110,12 +118,15 @@ class OperatorContainer extends StatelessWidget {
                         // ignore: deprecated_member_use
                         ? TextScaler.linear(
                             // ignore: deprecated_member_use
-                            (MediaQuery.textScalerOf(context).textScaleFactor - (operator.name.length - 7) / 100) * (3 / settings.operatorSearchDelegate),
+                            (MediaQuery.textScalerOf(context).textScaleFactor -
+                                    (operator.name.length - 7) / 100) *
+                                (3 / settings.operatorSearchDelegate),
                           )
                         // ignore: deprecated_member_use
                         : TextScaler.linear(
                             // ignore: deprecated_member_use
-                            MediaQuery.textScalerOf(context).textScaleFactor * (3 / settings.operatorSearchDelegate),
+                            MediaQuery.textScalerOf(context).textScaleFactor *
+                                (3 / settings.operatorSearchDelegate),
                           ),
                     style: const TextStyle(color: Colors.white),
                   ),

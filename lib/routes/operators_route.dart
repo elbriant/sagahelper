@@ -85,6 +85,7 @@ Future<List<Operator>> fetchOperators() async {
     modTable: jsonDecode(response[6]) as Map<String, dynamic>,
     baseSkillTable:
         (jsonDecode(response[7]) as Map<String, dynamic>)["buffs"] as Map<String, dynamic>,
+    modStatsTable: jsonDecode(response[8]) as Map<String, dynamic>,
   );
 
   return completedList;

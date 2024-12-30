@@ -65,6 +65,7 @@ class ServerProvider extends ChangeNotifier {
     '/excel/skill_table.json', // 5 skills details
     '/excel/uniequip_table.json', // 6 modules
     '/excel/building_data.json', // 7 base skills
+    '/excel/battle_equip_table.json', // 8 module stats
   ];
 
   factory ServerProvider.fromConfig(Map configs) {

@@ -10,7 +10,7 @@
 include: package:flutter_lints/flutter.yaml
 analyzer:
   exclude: [build/**, modded_packages/**]
-
+ 
 
 linter:
   # The lint rules applied to this project can be customized in the
