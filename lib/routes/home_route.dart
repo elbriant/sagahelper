@@ -182,37 +182,6 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-              const SizedBox(height: 40),
-              const SizedBox(
-                height: 60,
-                child: Center(
-                  child: Text('planning to add "open today" tab'),
-                ),
-              ),
-              const SizedBox(height: 40),
-              const SizedBox(
-                height: 60,
-                child: Center(
-                  child: Text('planning to add more...'),
-                ),
-              ),
-              const SizedBox(height: 40),
-              const SizedBox(height: 40),
-              SizedBox(
-                height: 60,
-                child: Center(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      showNotification(
-                        title: 'Update Available',
-                        body: 'tap to download!',
-                        payload: 'update',
-                      );
-                    },
-                    child: const Text('action noti test'),
-                  ),
-                ),
-              ),
             ],
           ),
         ),
@@ -279,6 +248,13 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> checkServer() async {
     if (firstTimeCheck) return;
+
+    // add check updates
+    //showNotification(
+    //   title: 'Update Available',
+    //   body: 'tap to download!',
+    //   payload: 'update',
+    // );
 
     firstTimeCheck = true;
     NavigationService.navigatorKey.currentContext!

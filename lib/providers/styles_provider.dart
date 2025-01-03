@@ -255,12 +255,6 @@ class StyleProvider extends ChangeNotifier {
             color: StaticColors.fromBrightness(context).greenVariant,
           ),
         ),
-        'diffDelete': StyledTextTag(
-          style: const TextStyle(
-            backgroundColor: Color.fromARGB(255, 255, 129, 129),
-            decoration: TextDecoration.lineThrough,
-          ),
-        ),
         'add-icon': StyledTextIconTag(
           Icons.add,
           color: StaticColors.fromBrightness(context).greenVariant,

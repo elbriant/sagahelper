@@ -4,8 +4,9 @@ import 'dart:ui' as ui;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
-import 'package:pretty_diff_text/pretty_diff_text.dart';
 import 'package:provider/provider.dart';
+import 'package:sagahelper/components/big_title_text.dart';
+import 'package:sagahelper/components/trait_card.dart';
 import 'package:styled_text/styled_text.dart';
 import 'package:sagahelper/components/dialog_box.dart';
 import 'package:sagahelper/components/styled_buttons.dart';
@@ -17,6 +18,7 @@ import 'package:sagahelper/providers/cache_provider.dart';
 import 'package:sagahelper/providers/styles_provider.dart';
 import 'package:sagahelper/providers/ui_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
+import 'dart:developer' as dev;
 
 class HeaderInfo extends StatelessWidget {
   const HeaderInfo({super.key, required this.operator});
@@ -347,7 +349,7 @@ class _SkillInfoState extends State<SkillInfo> {
   // talents
   int? talentLocalElite;
   int? talentLocalPot;
-  late List<String?> currentTalentsText;
+  Map<int, String?> currentTalentsText = {};
 
   // base skills
   int? baseLocalElite;
@@ -362,8 +364,6 @@ class _SkillInfoState extends State<SkillInfo> {
   int showMod = 0;
   int? modStage;
   int? modLocalPot;
-  String? traitOverride;
-  List<String?>? talentsTextOverride;
   Map<String, double> modAttrBuffs = {};
 
   //pot
@@ -377,7 +377,6 @@ class _SkillInfoState extends State<SkillInfo> {
     showLevel = maxLevel;
     sliderTrust = (widget.operator.favorKeyframes[1]["level"] as int).toDouble();
     currentTrait = getTraitText();
-    currentTalentsText = List.generate(3, (_) => null, growable: true);
 
     // get skills
     if (widget.operator.skills.isNotEmpty) {
@@ -451,11 +450,15 @@ class _SkillInfoState extends State<SkillInfo> {
                   datakeyframe[1]['data']['attackSpeed'],
                   (showLevel - 1.0) / (maxLevel - 1),
                 )! +
-                (potBuffs.containsKey("attackSpeed") ? potBuffs["attackSpeed"]! : 0.0)) /
+                (potBuffs.containsKey("attackSpeed") ? potBuffs["attackSpeed"]! : 0.0) +
+                (modAttrBuffs.containsKey("attackSpeed") ? modAttrBuffs["attackSpeed"]! : 0.0)) /
             100);
       }
       if (stat == 'respawnTime' && potBuffs.containsKey('respawnTime')) {
         value += potBuffs['respawnTime']!;
+      }
+      if (stat == 'respawnTime' && modAttrBuffs.containsKey('respawnTime')) {
+        value += modAttrBuffs['respawnTime']!;
       }
       // prettify
       return value.toStringAsFixed(3).replaceFirst(RegExp(r'\.?0*$'), '');
@@ -467,6 +470,7 @@ class _SkillInfoState extends State<SkillInfo> {
       )!;
       value += getSingleTrustBonus(stat);
       if (potBuffs.containsKey(stat)) value += potBuffs[stat]!;
+      if (modAttrBuffs.containsKey(stat)) value += modAttrBuffs[stat]!;
       return value.round().toString();
     }
   }
@@ -599,29 +603,39 @@ class _SkillInfoState extends State<SkillInfo> {
     // maybe hold tap on elite, skill and mod to show cost material
     // do a tip show to say this ||
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+      padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 16.0),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           currentTrait != ''
-              ? Container(
-                  width: double.maxFinite,
-                  padding: const EdgeInsets.all(24.0),
-                  margin: const EdgeInsets.only(bottom: 20.0),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainer,
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  child: Column(
-                    children: [
-                      const Text('Trait'),
-                      StyledText(
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const BigTitleText(title: 'Trait'),
+                    TraitCard(
+                      label: Text(
+                        widget.operator.subProfessionString,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      avatar: AssetImage(
+                        'assets/subclasses/sub_${widget.operator.subProfessionId.toLowerCase()}_icon.png',
+                      ),
+                      content: StyledText(
                         text: currentTrait,
                         tags: context.read<StyleProvider>().tagsAsArknights(context: context),
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSecondaryContainer,
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                    const Divider(),
+                  ],
                 )
               : null,
+          const BigTitleText(title: 'Stats'),
           Container(
             padding: const EdgeInsets.all(24.0),
             margin: const EdgeInsets.only(bottom: 20.0),
@@ -631,6 +645,8 @@ class _SkillInfoState extends State<SkillInfo> {
             ),
             child: statsBuilder(),
           ),
+          const Divider(),
+          const BigTitleText(title: 'Talents'),
           Container(
             width: double.maxFinite,
             padding: const EdgeInsets.all(24.0),
@@ -639,44 +655,48 @@ class _SkillInfoState extends State<SkillInfo> {
               color: Theme.of(context).colorScheme.surfaceContainer,
               borderRadius: BorderRadius.circular(12.0),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [const Text('Talents'), talentsBuilder()],
-            ),
+            child: talentsBuilder(),
           ),
+          const Divider(),
           (widget.operator.skills.isNotEmpty)
-              ? Container(
-                  width: double.maxFinite,
-                  padding: const EdgeInsets.all(24.0),
-                  margin: const EdgeInsets.only(bottom: 20.0),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainer,
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Text('Skills'),
-                      skillBuilder(),
-                    ],
-                  ),
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const BigTitleText(title: 'Skills'),
+                    Container(
+                      width: double.maxFinite,
+                      padding: const EdgeInsets.all(24.0),
+                      margin: const EdgeInsets.only(bottom: 20.0),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainer,
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      child: skillBuilder(),
+                    ),
+                    const Divider(),
+                  ],
                 )
               : null,
           (widget.operator.modules != null)
-              ? Container(
-                  width: double.maxFinite,
-                  padding: const EdgeInsets.all(24.0),
-                  margin: const EdgeInsets.only(bottom: 20.0),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainer,
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [const Text('Modules'), modulesBuilder()],
-                  ),
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const BigTitleText(title: 'Modules'),
+                    Container(
+                      width: double.maxFinite,
+                      padding: const EdgeInsets.all(24.0),
+                      margin: const EdgeInsets.only(bottom: 20.0),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainer,
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      child: modulesBuilder(),
+                    ),
+                    const Divider(),
+                  ],
                 )
               : null,
+          const BigTitleText(title: 'RIIC Base Skills'),
           Container(
             width: double.maxFinite,
             padding: const EdgeInsets.all(24.0),
@@ -685,10 +705,7 @@ class _SkillInfoState extends State<SkillInfo> {
               color: Theme.of(context).colorScheme.surfaceContainer,
               borderRadius: BorderRadius.circular(12.0),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [const Text('RIIC Base Skills'), baseSkillBuilder()],
-            ),
+            child: baseSkillBuilder(),
           ),
         ].nullParser(),
       ),
@@ -1982,6 +1999,31 @@ class _SkillInfoState extends State<SkillInfo> {
                 );
         }
 
+        void calculateChanges() {
+          modAttrBuffs.clear();
+          final Map? selectedModStats = cachedstatsTable[modules[showMod]["uniEquipId"]];
+
+          if (selectedModStats?["phases"][modStage ?? minStage]["attributeBlackboard"] == null) {
+            return;
+          }
+
+          for (var attribute in (selectedModStats?["phases"][modStage ?? minStage]
+              ["attributeBlackboard"] as List)) {
+            String name = switch (attribute['key']) {
+              "respawn_time" => "respawnTime",
+              "attack_speed" => "attackSpeed",
+              "max_hp" => "maxHp",
+              "magic_resistance" => "magicResistance",
+              _ => attribute['key'],
+            };
+            modAttrBuffs.update(
+              name,
+              (value) => value + attribute['value'],
+              ifAbsent: () => attribute['value'],
+            );
+          }
+        }
+
         String joinModName(Map mod) {
           return <String?>[mod["typeName1"], mod["typeName2"]].nonNulls.join('-');
         }
@@ -2130,6 +2172,7 @@ class _SkillInfoState extends State<SkillInfo> {
                         onTap: () {
                           setState(() {
                             showMod = index;
+                            calculateChanges();
                           });
                         },
                       ),
@@ -2161,7 +2204,6 @@ class _SkillInfoState extends State<SkillInfo> {
 
         List<Widget> allOtherUpgrades() {
           var result = <Widget>[];
-          String currText = '';
           String changedText = '';
           String title = '';
           String subtitle = '';
@@ -2186,10 +2228,9 @@ class _SkillInfoState extends State<SkillInfo> {
                   int thisTalentCandidatePot = candidate["requiredPotentialRank"];
                   return (modLocalPot ?? minPot) >= thisTalentCandidatePot;
                 });
-                currText = currentTrait;
                 changedText = ((candidate["overrideDescripton"] ?? currentTrait) +
                         (candidate["additionalDescription"] != null
-                            ? '\n<add-icon/>${candidate["additionalDescription"]}'
+                            ? '\n<add-icon/><diffInsert>${candidate["additionalDescription"]}</diffInsert>'
                             : '') as String)
                     .varParser(candidate["blackboard"]);
                 title = widget.operator.subProfessionString;
@@ -2210,8 +2251,6 @@ class _SkillInfoState extends State<SkillInfo> {
                 });
                 if (candidate["talentIndex"] < 0) continue;
                 final int thisCandidateTalentIndex = candidate["talentIndex"];
-
-                currText = currentTalentsText[candidate["talentIndex"]] ?? '';
                 changedText =
                     ((candidate["description"] ?? candidate["upgradeDescription"] ?? '') as String)
                         .varParser(candidate["blackboard"]);
@@ -2233,42 +2272,41 @@ class _SkillInfoState extends State<SkillInfo> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          children: [
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 150),
-                              margin: const EdgeInsets.only(bottom: 8.0),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.primary,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12.0,
-                                vertical: 2.0,
-                              ),
-                              child: Text(
-                                title,
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.onPrimary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          margin: const EdgeInsets.only(bottom: 8.0),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.primary,
                             ),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 16),
-                              child: Text(
-                                '$subtitle - ${isAdding ? 'added' : 'changed'}',
-                                style: TextStyle(
-                                  color: isAdding
-                                      ? StaticColors.fromBrightness(context).green
-                                      : StaticColors.fromBrightness(context).yellow,
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12.0,
+                            vertical: 2.0,
+                          ),
+                          child: Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: '$title - ',
                                 ),
-                              ),
+                                TextSpan(
+                                  text: subtitle,
+                                  style: TextStyle(
+                                    color: isAdding
+                                        ? StaticColors.fromBrightness(context).greenVariant
+                                        : StaticColors.fromBrightness(context).yellowVariant,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onPrimary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                         AnimatedSize(
                           duration: const Duration(milliseconds: 250),
@@ -2276,12 +2314,7 @@ class _SkillInfoState extends State<SkillInfo> {
                           child: SizedBox(
                             width: double.maxFinite,
                             child: StyledText(
-                              text: PrettyDiffText.getJustStringAsMarkup(
-                                oldText: currText,
-                                newText: changedText,
-                                showDeletedText: false,
-                                diffCleanupType: DiffCleanupType.EFFICIENCY,
-                              ),
+                              text: changedText,
                               tags: context.read<StyleProvider>().tagsAsArknights(context: context),
                               textAlign: TextAlign.start,
                             ),
@@ -2294,7 +2327,7 @@ class _SkillInfoState extends State<SkillInfo> {
 
                 result.add(baseWidget);
               case _:
-                print('${part["target"]} not found');
+                dev.log('${part["target"]} not found');
             }
           }
 
@@ -2302,8 +2335,16 @@ class _SkillInfoState extends State<SkillInfo> {
         }
 
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 40),
+            Text(
+              'Available modules:',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+                fontSize: 18,
+              ),
+            ),
+            const SizedBox(height: 10),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -2337,9 +2378,8 @@ class _SkillInfoState extends State<SkillInfo> {
             isAdvanced
                 ? Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      const SizedBox(height: 10),
                       Row(
                         mainAxisSize: MainAxisSize.max,
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -2351,13 +2391,14 @@ class _SkillInfoState extends State<SkillInfo> {
                                 fun: () {
                                   setState(() {
                                     modStage = modStages[index];
+                                    calculateChanges();
                                   });
                                 },
                                 icon: Text.rich(
                                   textScaler: const TextScaler.linear(0.8),
                                   TextSpan(
                                     children: [
-                                      const TextSpan(text: 'S', style: TextStyle(fontSize: 10)),
+                                      const TextSpan(text: 'Stage', style: TextStyle(fontSize: 10)),
                                       TextSpan(text: (modStages[index] + 1).toString()),
                                     ],
                                   ),
@@ -2372,6 +2413,7 @@ class _SkillInfoState extends State<SkillInfo> {
                                 fun: () {
                                   setState(() {
                                     modLocalPot = modPots[index];
+                                    calculateChanges();
                                   });
                                 },
                                 icon: Image.asset(
@@ -2385,8 +2427,7 @@ class _SkillInfoState extends State<SkillInfo> {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        'Stats:',
-                        textAlign: TextAlign.center,
+                        'Bonus stats:',
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
                           fontSize: 18,
@@ -2396,8 +2437,16 @@ class _SkillInfoState extends State<SkillInfo> {
                       Wrap(
                         spacing: 20.0,
                         runSpacing: 20.0,
-                        alignment: WrapAlignment.center,
+                        alignment: WrapAlignment.start,
                         children: statsUpgrades(),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Aditional upgrades:',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontSize: 18,
+                        ),
                       ),
                       Column(
                         children: allOtherUpgrades(),
