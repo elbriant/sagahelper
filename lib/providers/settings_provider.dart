@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:sagahelper/routes/operators_route.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sagahelper/global_data.dart';
 
 const List<String> serverList = ['en', 'cn', 'jp', 'kr', 'tw'];
-const List<String> displayList = ['avatar', 'portrait'];
+
+enum DisplayList {
+  avatar,
+  portrait;
+
+  int toJson() => index;
+  static DisplayList? fromJson(int? index) => index != null ? DisplayList.values[index] : null;
+}
 
 enum PrefsFlags {
   menuShowAdvanced('opInfo_menushowadvanced');
@@ -19,7 +27,9 @@ enum SettingsProviderKeys {
   homeHour12Format('homeHour12Format'),
   homeShowDate('homeShowDate'),
   homeShowSeconds('homeShowSeconds'),
-  homeCompactMode('homeCompactMode');
+  homeCompactMode('homeCompactMode'),
+  sortingOrder('operatorSortingOrder'),
+  sortingReversed('operatorSortingReversed');
 
   const SettingsProviderKeys(
     this.key,
@@ -31,11 +41,13 @@ class SettingsProvider extends ChangeNotifier {
   static final Map<SettingsProviderKeys, dynamic> _defaultValues = {
     SettingsProviderKeys.currentServer: 0,
     SettingsProviderKeys._operatorSearchDelegate: 2,
-    SettingsProviderKeys._operatorDisplay: 0,
+    SettingsProviderKeys._operatorDisplay: DisplayList.avatar,
     SettingsProviderKeys.homeHour12Format: false,
     SettingsProviderKeys.homeShowDate: false,
     SettingsProviderKeys.homeShowSeconds: false,
     SettingsProviderKeys.homeCompactMode: false,
+    SettingsProviderKeys.sortingOrder: OrderType.rarity,
+    SettingsProviderKeys.sortingReversed: false,
   };
 
   // ----- saved
@@ -47,8 +59,11 @@ class SettingsProvider extends ChangeNotifier {
 
   // Operators Page Flags
   int _operatorSearchDelegate;
-  int _operatorDisplay;
-  bool opFetched = false;
+  DisplayList _operatorDisplay;
+  bool opFetched;
+  OrderType sortingOrder;
+  bool sortingReversed;
+
   // data
   //TODO add configuration to change nickname
   String? nickname;
@@ -62,13 +77,20 @@ class SettingsProvider extends ChangeNotifier {
     required this.homeShowSeconds,
     required this.homeCompactMode,
     this.nickname,
+    this.opFetched = false,
+    this.isLoadingAsync = false,
+    this.showNotifier = false,
+    this.isLoadingHome = false,
+    required this.sortingOrder,
+    required this.sortingReversed,
+    this.loadingString = '',
   });
 
   factory SettingsProvider.fromConfig(Map configs) {
     final provider = SettingsProvider(
       configs[SettingsProviderKeys._operatorSearchDelegate.key] ??
           _defaultValues[SettingsProviderKeys._operatorSearchDelegate],
-      configs[SettingsProviderKeys._operatorDisplay.key] ??
+      DisplayList.fromJson(configs[SettingsProviderKeys._operatorDisplay.key]) ??
           _defaultValues[SettingsProviderKeys._operatorDisplay],
       currentServer: configs[SettingsProviderKeys.currentServer.key] ??
           _defaultValues[SettingsProviderKeys.currentServer],
@@ -80,6 +102,10 @@ class SettingsProvider extends ChangeNotifier {
           _defaultValues[SettingsProviderKeys.homeShowDate],
       homeShowSeconds: configs[SettingsProviderKeys.homeShowSeconds.key] ??
           _defaultValues[SettingsProviderKeys.homeShowSeconds],
+      sortingOrder: OrderType.fromJson(configs[SettingsProviderKeys.sortingOrder.key]) ??
+          _defaultValues[SettingsProviderKeys.sortingOrder],
+      sortingReversed: configs[SettingsProviderKeys.sortingReversed.key] ??
+          _defaultValues[SettingsProviderKeys.sortingReversed],
     );
     provider.loadSharedPreferences();
     return provider;
@@ -92,19 +118,19 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   // ------ tempo
-  bool isLoadingHome = false;
+  bool isLoadingHome;
   void setIsLoadingHome(bool state) {
     isLoadingHome = state;
     updateNotifier();
   }
 
-  bool isLoadingAsync = false;
+  bool isLoadingAsync;
   void setIsLoadingAsync(bool state) {
     isLoadingAsync = state;
     updateNotifier();
   }
 
-  String loadingString = 'test: test';
+  String loadingString;
   void setLoadingString(String string) {
     loadingString = string;
     notifyListeners();
@@ -169,14 +195,11 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  String getDisplayChipStr() => displayList[_operatorDisplay];
-  bool getDisplayChip(String chip) {
-    return displayList.indexOf(chip) == _operatorDisplay;
-  }
+  DisplayList get operatorDisplay => _operatorDisplay;
 
-  void setDisplayChip(String chip) {
-    if (displayList.indexOf(chip) != _operatorDisplay) {
-      _operatorDisplay = displayList.indexOf(chip);
+  void setDisplayChip(DisplayList chip) {
+    if (_operatorDisplay != chip) {
+      _operatorDisplay = chip;
       notifyListeners();
     }
   }
@@ -184,7 +207,9 @@ class SettingsProvider extends ChangeNotifier {
   void writeOpPageSettings() async {
     await LocalDataManager.writeConfigMap({
       SettingsProviderKeys._operatorSearchDelegate.key: _operatorSearchDelegate,
-      SettingsProviderKeys._operatorDisplay.key: _operatorDisplay,
+      SettingsProviderKeys._operatorDisplay.key: _operatorDisplay.toJson(),
+      SettingsProviderKeys.sortingOrder.key: sortingOrder.toJson(),
+      SettingsProviderKeys.sortingReversed.key: sortingReversed,
     });
   }
 
@@ -230,6 +255,21 @@ class SettingsProvider extends ChangeNotifier {
       SettingsProviderKeys.homeCompactMode.key,
       value,
     );
+    notifyListeners();
+  }
+
+  void setOpFetched(bool newValue) {
+    opFetched = newValue;
+    notifyListeners();
+  }
+
+  void setSortingType(OrderType newOrder) {
+    sortingOrder = newOrder;
+    notifyListeners();
+  }
+
+  void setSortingReverse(bool newValue) {
+    sortingReversed = newValue;
     notifyListeners();
   }
 }

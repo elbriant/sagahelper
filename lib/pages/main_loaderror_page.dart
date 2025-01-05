@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:sagahelper/global_data.dart';
 
 class ErrorScreen extends StatelessWidget {
-  const ErrorScreen({super.key});
+  final Object error;
+  const ErrorScreen({super.key, required this.error});
 
   @override
   Widget build(BuildContext context) {
+    LocalDataManager.resetConfig();
+
     return MaterialApp(
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -21,7 +25,7 @@ class ErrorScreen extends StatelessWidget {
               Image.asset('assets/gif/saga_err.gif', width: 200, height: 200),
               const SizedBox(height: 40),
               Text(
-                'An error has ocurred, restart the app!',
+                'An error has ocurred, restart the app!\n${error.toString()}',
                 style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ],

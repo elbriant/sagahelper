@@ -9,7 +9,6 @@ import 'dart:developer' as dev;
 // ----------------- local data
 
 Map<String, DownloaderCore> downloadsBackgroundCores = {};
-bool loadedConfigs = false;
 bool firstTimeCheck = false;
 bool opThemed = false;
 
@@ -261,7 +260,7 @@ class LocalDataManager {
 
   static Future<void> resetConfig() async {
     final file = await localFile(configPath);
-    await file.writeAsString('');
+    await file.delete();
   }
 }
 

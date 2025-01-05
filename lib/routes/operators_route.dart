@@ -14,6 +14,17 @@ import 'package:sagahelper/providers/ui_provider.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/utils/extensions.dart';
 
+enum OrderType {
+  alphabetical,
+  rarity,
+  creation;
+
+  const OrderType();
+
+  int toJson() => index;
+  static OrderType? fromJson(int? index) => index != null ? OrderType.values[index] : null;
+}
+
 const List<String> professionList = [
   'caster',
   'medic',
@@ -147,19 +158,187 @@ class _OperatorsPageState extends State<OperatorsPage> {
   @override
   void initState() {
     super.initState();
-    futureOperatorList = fetchOperators();
-  }
 
-  void reloadgamedata() {
-    context.read<CacheProvider>().unCache();
-    _menuController.close();
-    setState(() {
-      futureOperatorList = fetchOperators();
+    futureOperatorList = fetchOperators().then((data) {
+      NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setOpFetched(true);
+      return data;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    void showFilters() {
+      showModalBottomSheet<void>(
+        constraints: BoxConstraints.loose(
+          Size(
+            MediaQuery.of(context).size.width,
+            MediaQuery.of(context).size.height * 0.75,
+          ),
+        ),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        showDragHandle: false,
+        clipBehavior: Clip.antiAlias,
+        context: context,
+        builder: (BuildContext context) {
+          final currentSortingType =
+              context.select<SettingsProvider, OrderType>((prov) => prov.sortingOrder);
+          final currentSortingReversed =
+              context.select<SettingsProvider, bool>((prov) => prov.sortingReversed);
+          final currentSearchDelegate =
+              context.select<SettingsProvider, int>((prov) => prov.operatorSearchDelegate);
+          final currentSearchDisplay =
+              context.select<SettingsProvider, DisplayList>((prov) => prov.operatorDisplay);
+
+          final configProv = context.read<SettingsProvider>();
+
+          void changeSortingType(OrderType newOrder) {
+            if (configProv.sortingOrder == newOrder) {
+              configProv.setSortingReverse(!configProv.sortingReversed);
+              return;
+            }
+            configProv.setSortingType(newOrder);
+            configProv.setSortingReverse(false);
+          }
+
+          Widget orderTypeWidgets({required OrderType orderType, required String label}) {
+            return ListTile(
+              leading: currentSortingType == orderType
+                  ? currentSortingReversed
+                      ? const Icon(Icons.arrow_upward)
+                      : const Icon(Icons.arrow_downward)
+                  : const Icon(
+                      Icons.arrow_downward,
+                      color: Colors.transparent,
+                    ),
+              title: Text(label),
+              onTap: () => changeSortingType(orderType),
+            );
+          }
+
+          return DefaultTabController(
+            initialIndex: 0,
+            length: 3,
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const TabBar(
+                    tabs: <Widget>[
+                      Tab(text: 'Show'),
+                      Tab(text: 'Filters'),
+                      Tab(text: 'Order'),
+                    ],
+                  ),
+                  AutoScaleTabBarView(
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 4.0,
+                          horizontal: 12.0,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const ListTile(title: Text('view mode')),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24.0,
+                              ),
+                              child: Wrap(
+                                spacing: 10,
+                                children: [
+                                  ChoiceChip(
+                                    label: const Text('Avatar'),
+                                    selected: currentSearchDisplay == DisplayList.avatar,
+                                    onSelected: (_) =>
+                                        configProv.setDisplayChip(DisplayList.avatar),
+                                  ),
+                                  ChoiceChip(
+                                    label: const Text('Portrait'),
+                                    selected: currentSearchDisplay == DisplayList.portrait,
+                                    onSelected: (_) =>
+                                        configProv.setDisplayChip(DisplayList.portrait),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Row(
+                              mainAxisSize: MainAxisSize.max,
+                              children: [
+                                const Expanded(
+                                  flex: 3,
+                                  child: Center(child: Text('row show')),
+                                ),
+                                Expanded(
+                                  flex: 7,
+                                  child: Center(
+                                    child: Slider(
+                                      min: 2,
+                                      max: 5,
+                                      divisions: 3,
+                                      value: currentSearchDelegate.toDouble(),
+                                      label: currentSearchDelegate.toString(),
+                                      onChanged: (value) {
+                                        configProv.operatorSearchDelegate = value.round().toInt();
+                                      },
+                                      allowedInteraction: SliderInteraction.tapAndSlide,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Center(
+                        child: Text("It's rainy here"),
+                      ),
+                      Wrap(
+                        children: [
+                          orderTypeWidgets(
+                            label: 'Rarity',
+                            orderType: OrderType.rarity,
+                          ),
+                          orderTypeWidgets(
+                            label: 'Alphabetical',
+                            orderType: OrderType.alphabetical,
+                          ),
+                          orderTypeWidgets(
+                            label: 'Creation',
+                            orderType: OrderType.creation,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ).whenComplete(() {
+        NavigationService.navigatorKey.currentContext!
+            .read<SettingsProvider>()
+            .writeOpPageSettings();
+      });
+    }
+
+    void reloadgamedata() {
+      context.read<CacheProvider>().unCache();
+      _menuController.close();
+      NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setOpFetched(false);
+      setState(() {
+        futureOperatorList = fetchOperators().then((data) {
+          NavigationService.navigatorKey.currentContext!
+              .read<SettingsProvider>()
+              .setOpFetched(true);
+          return data;
+        });
+      });
+    }
+
     return Scaffold(
       extendBody: false,
       extendBodyBehindAppBar: true,
@@ -207,7 +386,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
                 )
               : null,
           IconButton(
-            onPressed: () => showFilters(context),
+            onPressed: () => showFilters(),
             icon: const Icon(Icons.filter_list),
             tooltip: 'Show filters',
           ),
@@ -246,7 +425,6 @@ class _OperatorsPageState extends State<OperatorsPage> {
           future: futureOperatorList,
           builder: (context, snapshot) {
             if (snapshot.connectionState != ConnectionState.done) {
-              context.read<SettingsProvider>().opFetched = false;
               return SafeArea(
                 // ----------------- loading
                 child: Column(
@@ -278,8 +456,8 @@ class _OperatorsPageState extends State<OperatorsPage> {
                   ],
                 ),
               );
-            } else if (snapshot.hasError) {
-              context.read<SettingsProvider>().opFetched = true;
+            }
+            if (snapshot.hasError) {
               // --------------- Error
               if (snapshot.error is FormatException) {
                 return Center(
@@ -319,7 +497,6 @@ class _OperatorsPageState extends State<OperatorsPage> {
                 );
               }
             } else if (snapshot.hasData) {
-              context.read<SettingsProvider>().opFetched = true;
               finishedFutureOperatorList = snapshot.data!;
 
               if (!sorted) {
@@ -361,7 +538,6 @@ class _OperatorsPageState extends State<OperatorsPage> {
                 return OperatorListView(operators: sortedOperatorList);
               }
             } else {
-              context.read<SettingsProvider>().opFetched = true;
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -402,141 +578,6 @@ class _OperatorsPageState extends State<OperatorsPage> {
       });
     }
   }
-
-  void showFilters(BuildContext context) {
-    showModalBottomSheet<void>(
-      constraints: BoxConstraints.loose(
-        Size(
-          MediaQuery.of(context).size.width,
-          MediaQuery.of(context).size.height * 0.75,
-        ),
-      ),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(45)),
-      ),
-      showDragHandle: false,
-      clipBehavior: Clip.antiAlias,
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setModalState) {
-            final readSearchProvider = context.read<SettingsProvider>();
-
-            return DefaultTabController(
-              initialIndex: 0,
-              length: 3,
-              child: SafeArea(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const TabBar(
-                      tabs: <Widget>[
-                        Tab(text: 'Show'),
-                        Tab(text: 'Filters'),
-                        Tab(text: 'Order'),
-                      ],
-                    ),
-                    AutoScaleTabBarView(
-                      children: <Widget>[
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 4.0,
-                            horizontal: 12.0,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const ListTile(title: Text('view mode')),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 24.0,
-                                ),
-                                child: Wrap(
-                                  spacing: 10,
-                                  children: [
-                                    ChoiceChip(
-                                      label: const Text('Avatar'),
-                                      selected: readSearchProvider.getDisplayChip('avatar'),
-                                      onSelected: (_) => setModalState(
-                                        () => readSearchProvider.setDisplayChip('avatar'),
-                                      ),
-                                    ),
-                                    ChoiceChip(
-                                      label: const Text('Portrait'),
-                                      selected: readSearchProvider.getDisplayChip('portrait'),
-                                      onSelected: (_) => setModalState(
-                                        () => readSearchProvider.setDisplayChip('portrait'),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Row(
-                                mainAxisSize: MainAxisSize.max,
-                                children: [
-                                  const Expanded(
-                                    flex: 3,
-                                    child: Center(child: Text('row show')),
-                                  ),
-                                  Expanded(
-                                    flex: 7,
-                                    child: Center(
-                                      child: Slider(
-                                        min: 2,
-                                        max: 5,
-                                        divisions: 3,
-                                        value: readSearchProvider.operatorSearchDelegate.toDouble(),
-                                        label: readSearchProvider.operatorSearchDelegate.toString(),
-                                        onChanged: (value) => setModalState(
-                                          () => readSearchProvider.operatorSearchDelegate =
-                                              value.round().toInt(),
-                                        ),
-                                        allowedInteraction: SliderInteraction.tapAndSlide,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Center(
-                          child: Text("It's rainy here"),
-                        ),
-                        Wrap(
-                          children: [
-                            ListTile(
-                              leading: const Icon(Icons.text_snippet_outlined),
-                              title: const Text('test'),
-                              onTap: () {},
-                            ),
-                            ListTile(
-                              leading: const Icon(Icons.text_snippet_outlined),
-                              title: const Text('test'),
-                              onTap: () {},
-                            ),
-                            ListTile(
-                              leading: const Icon(Icons.text_snippet_outlined),
-                              title: const Text('test'),
-                              onTap: () {},
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    ).whenComplete(() {
-      if (context.mounted) {
-        context.read<SettingsProvider>().writeOpPageSettings();
-      }
-    });
-  }
 }
 
 class OperatorListView extends StatelessWidget {
@@ -565,7 +606,7 @@ class OperatorListView extends StatelessWidget {
         itemCount: operators.length,
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: settings.operatorSearchDelegate,
-          childAspectRatio: settings.getDisplayChip('portrait') ? 0.55 : 1.0,
+          childAspectRatio: settings.operatorDisplay == DisplayList.portrait ? 0.55 : 1.0,
         ),
         itemBuilder: (context, index) {
           return OperatorContainer(index: index, operator: operators[index]);

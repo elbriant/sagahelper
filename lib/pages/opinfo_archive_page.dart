@@ -160,7 +160,8 @@ class HeaderInfo extends StatelessWidget {
                               child: Hero(
                                 tag: operator.id,
                                 child: CachedNetworkImage(
-                                  cacheKey: operator.id,
+                                  cacheKey:
+                                      '${operator.id}_dl${DisplayList.avatar.index.toString()}',
                                   fit: BoxFit.fitWidth,
                                   placeholder: (context, url) => Stack(
                                     children: [

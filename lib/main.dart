@@ -1,26 +1,39 @@
+import 'dart:ui';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/global_data.dart';
 import 'package:sagahelper/notification_services.dart';
 import 'package:sagahelper/pages/main_loaderror_page.dart';
+import 'package:sagahelper/pages/main_skeleton_page.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
 import 'package:sagahelper/providers/server_provider.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
 import 'package:sagahelper/providers/styles_provider.dart';
 import 'package:sagahelper/providers/ui_provider.dart';
-import 'package:sagahelper/routes/home_route.dart';
-import 'package:sagahelper/routes/info_route.dart';
-import 'package:sagahelper/routes/operators_route.dart';
-import 'package:sagahelper/routes/settings_route.dart';
-import 'package:sagahelper/routes/tools_route.dart';
 import 'package:system_theme/system_theme.dart';
+import 'package:flutter_logs/flutter_logs.dart';
 
 // TODO context menu
 // TODO dictionary popup
 // TODO entity viewer (card and popup)
 // TODO Deep linking, ie: opening oproute with custom selected tag
+
+Future<Map<String, dynamic>> loadConfigs() async {
+  var firstcheck = await LocalDataManager.existConfig();
+
+  Map<String, dynamic> loadedConfigs = {};
+
+  if (firstcheck) {
+    loadedConfigs.addAll(await UiProvider.loadValues());
+    loadedConfigs.addAll(await SettingsProvider.loadValues());
+    loadedConfigs.addAll(await ServerProvider.loadValues());
+  }
+
+  return loadedConfigs;
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,23 +51,67 @@ void main() async {
 
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
-  bool hasError = false;
+  //Initialize Logging
+  await FlutterLogs.initLogs(
+    logLevelsEnabled: [LogLevel.INFO, LogLevel.WARNING, LogLevel.ERROR, LogLevel.SEVERE],
+    timeStampFormat: TimeStampFormat.TIME_FORMAT_READABLE,
+    directoryStructure: DirectoryStructure.FOR_DATE,
+    logTypesEnabled: ["device", "network", "errors"],
+    logFileExtension: LogFileExtension.LOG,
+    logsWriteDirectoryName: "MyLogs",
+    logsExportDirectoryName: "MyLogs/Exported",
+    debugFileOperations: true,
+    isDebuggable: true,
+    logsRetentionPeriodInDays: 14,
+    zipsRetentionPeriodInDays: 3,
+    autoDeleteZipOnExport: false,
+    autoClearLogs: true,
+    enabled: true,
+  );
+
+  FlutterError.onError = (FlutterErrorDetails details) {
+    if (kDebugMode) {
+      // In development mode, simply print to console.
+      FlutterError.dumpErrorToConsole(details);
+    } else {
+      FlutterError.presentError(details);
+      FlutterLogs.logThis(
+        tag: 'MyApp',
+        subTag: 'Caught an exception.',
+        logMessage: details.exceptionAsString(),
+        level: LogLevel.ERROR,
+      );
+    }
+  };
+  PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+    if (kReleaseMode) {
+      FlutterLogs.logThis(
+        tag: 'MyApp',
+        subTag: 'Caught an exception.',
+        logMessage: '${error.toString()}\nStacktrace: ${stack.toString()} ',
+        level: LogLevel.ERROR,
+      );
+    }
+    return true;
+  };
+
+  await initNotifications();
+  await SettingsProvider.sharedPreferencesInit();
+
+  Object? hasError;
   Map configs = {};
   try {
     configs = await loadConfigs();
   } catch (e) {
-    hasError = true;
+    hasError = e;
   }
-
-  await initNotifications();
-  await SettingsProvider.sharedPreferencesInit();
 
   runApp(MyApp(configs: configs, hasError: hasError));
 }
 
 class MyApp extends StatefulWidget {
   final Map configs;
-  final bool hasError;
+  final Object? hasError;
   const MyApp({super.key, required this.configs, required this.hasError});
 
   @override
@@ -79,173 +136,11 @@ class _MyAppState extends State<MyApp> {
         ChangeNotifierProvider(create: (context) => StyleProvider()),
       ],
       builder: (context, child) {
-        if (loadedConfigs == true) {
-          return const MainWidget();
+        if (widget.hasError != null) {
+          return ErrorScreen(error: widget.hasError!);
         }
-        if (widget.hasError) {
-          LocalDataManager.resetConfig();
-          return const ErrorScreen();
-        }
-        loadedConfigs = true;
-        return const MainWidget();
+        return const Skeleton();
       },
-    );
-  }
-}
-
-Future<Map<String, dynamic>> loadConfigs() async {
-  var firstcheck = await LocalDataManager.existConfig();
-
-  Map<String, dynamic> loadedConfigs = {};
-
-  if (firstcheck) {
-    loadedConfigs.addAll(await UiProvider.loadValues());
-    loadedConfigs.addAll(await SettingsProvider.loadValues());
-    loadedConfigs.addAll(await ServerProvider.loadValues());
-  }
-
-  return loadedConfigs;
-}
-
-class MainWidget extends StatefulWidget {
-  final Widget? errorDisplay;
-  const MainWidget({super.key, this.errorDisplay});
-
-  @override
-  State<MainWidget> createState() => _MainWidgetState();
-}
-
-class _MainWidgetState extends State<MainWidget> {
-  final List _pages = const [
-    HomePage(),
-    OperatorsPage(),
-    InfoPage(),
-    ToolsPage(),
-    SettingsPage(),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      theme: context.watch<UiProvider>().currentTheme.colorLight,
-      darkTheme: context
-          .watch<UiProvider>()
-          .currentTheme
-          .getDarkMode(context.read<UiProvider>().isUsingPureDark),
-      themeMode: context.watch<UiProvider>().themeMode,
-      navigatorKey: NavigationService.navigatorKey,
-      home: Scaffold(
-        extendBody: true,
-        body: Builder(
-          builder: (context) {
-            if (widget.errorDisplay != null) {
-              WidgetsBinding.instance.addPostFrameCallback(
-                (_) => ScaffoldMessenger.of(context)
-                    .showSnackBar(SnackBar(content: widget.errorDisplay!)),
-              );
-            }
-            return Column(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                context.watch<SettingsProvider>().showNotifier
-                    ? Container(
-                        padding: EdgeInsets.fromLTRB(
-                          20,
-                          MediaQuery.of(context).padding.top + 2.0,
-                          20,
-                          2.0,
-                        ),
-                        height: MediaQuery.of(context).padding.top + 24,
-                        color: Theme.of(context).colorScheme.primary,
-                        constraints: BoxConstraints.loose(MediaQuery.sizeOf(context)),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              height: 12,
-                              width: 12,
-                              child: CircularProgressIndicator(
-                                color: Theme.of(context).colorScheme.onPrimary,
-                                strokeWidth: 3.0,
-                              ),
-                            ),
-                            const SizedBox(width: 20),
-                            Flexible(
-                              child: Text(
-                                context.watch<SettingsProvider>().loadingString,
-                                style: TextStyle(
-                                    color: Theme.of(context).colorScheme.onPrimary,
-                                    overflow: TextOverflow.ellipsis),
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : Container(),
-                Expanded(
-                  child: _pages[context.watch<UiProvider>().currentHomePageIndx],
-                ),
-              ],
-            );
-          },
-        ),
-        bottomNavigationBar: context.watch<UiProvider>().useTranslucentUi == true
-            ? const TranslucentWidget(
-                sigma: 3,
-                child: BottomNavBar(opacity: 0.5),
-              )
-            : const BottomNavBar(),
-      ),
-    );
-  }
-}
-
-class BottomNavBar extends StatelessWidget {
-  final double opacity;
-
-  const BottomNavBar({
-    super.key,
-    this.opacity = 1.0,
-  });
-
-  void setNavBB(int index) {
-    NavigationService.navigatorKey.currentContext!.read<UiProvider>().currentHomePageIndx = index;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return NavigationBar(
-      backgroundColor: Theme.of(context).colorScheme.surfaceContainer.withOpacity(opacity),
-      labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-      onDestinationSelected: setNavBB,
-      selectedIndex: context.watch<UiProvider>().currentHomePageIndx,
-      destinations: const [
-        NavigationDestination(
-          icon: Icon(Icons.home_outlined),
-          label: 'Home',
-          selectedIcon: Icon(Icons.home),
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.person_search_outlined),
-          label: 'Operators',
-          selectedIcon: Icon(Icons.person_search),
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.library_books_outlined),
-          label: 'Extra',
-          selectedIcon: Icon(Icons.library_books),
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.app_shortcut_outlined),
-          label: 'Tools',
-          selectedIcon: Icon(Icons.app_shortcut),
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.settings_outlined),
-          label: 'More',
-          selectedIcon: Icon(Icons.settings),
-        ),
-      ],
     );
   }
 }
