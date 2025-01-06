@@ -73,7 +73,7 @@ class Operator {
     required this.modules,
   });
 
-  String professionTranslate(String prof) => switch (prof) {
+  static String professionTranslate(String prof) => switch (prof) {
         'pioneer' => 'Vanguard',
         'special' => 'Specialist',
         'support' => 'Supporter',
@@ -84,7 +84,7 @@ class Operator {
 
   String get professionString => professionTranslate(profession.toLowerCase());
 
-  String subProfessionTranslate(String subprof) => switch (subprof) {
+  static String subProfessionTranslate(String subprof) => switch (subprof) {
         'corecaster' => 'Core',
         'splashcaster' => 'Splash',
         'blastcaster' => 'Blast',

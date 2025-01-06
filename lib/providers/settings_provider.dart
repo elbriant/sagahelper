@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sagahelper/routes/operators_route.dart';
+import 'package:sagahelper/models/filters.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sagahelper/global_data.dart';
 
@@ -63,6 +63,9 @@ class SettingsProvider extends ChangeNotifier {
   bool opFetched;
   OrderType sortingOrder;
   bool sortingReversed;
+  bool operatorIsSearching = false;
+  String operatorFilterString = '';
+  Map<String, FilterDetail> operatorFilters = {};
 
   // data
   //TODO add configuration to change nickname
@@ -264,12 +267,51 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   void setSortingType(OrderType newOrder) {
+    if (sortingOrder == newOrder) return;
+
     sortingOrder = newOrder;
     notifyListeners();
   }
 
   void setSortingReverse(bool newValue) {
+    if (sortingReversed == newValue) return;
+
     sortingReversed = newValue;
+    notifyListeners();
+  }
+
+  void setOperatorIsSearching(bool newValue) {
+    if (operatorIsSearching == newValue) return;
+
+    operatorIsSearching = newValue;
+    notifyListeners();
+  }
+
+  void setOperatorFilterString(String newString) {
+    if (operatorFilterString == newString) return;
+
+    operatorFilterString = newString;
+    notifyListeners();
+  }
+
+  void toggleOperatorFilter(String id, String key, FilterType filterType) {
+    Map<String, FilterDetail> result = Map.of(operatorFilters);
+    if (result.containsKey(id)) {
+      if (result[id]!.mode != FilterMode.blacklist) {
+        result[id] =
+            FilterDetail(key: result[id]!.key, mode: FilterMode.blacklist, type: result[id]!.type);
+      } else {
+        result.remove(id);
+      }
+    } else {
+      result[id] = FilterDetail(key: key, mode: FilterMode.whitelist, type: filterType);
+    }
+    operatorFilters = result;
+    notifyListeners();
+  }
+
+  void clearOperatorFilters() {
+    operatorFilters = {};
     notifyListeners();
   }
 }

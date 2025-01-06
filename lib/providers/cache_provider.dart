@@ -65,5 +65,8 @@ class CacheProvider extends ChangeNotifier {
     cachedModTable = null;
     cachedBaseSkillTable = null;
     cachedModStatsTable = null;
+    if (NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().opFetched == true) {
+      NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setOpFetched(false);
+    }
   }
 }
