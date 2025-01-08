@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:sagahelper/models/filters.dart';
+import 'package:sagahelper/providers/server_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sagahelper/global_data.dart';
-
-const List<String> serverList = ['en', 'cn', 'jp', 'kr', 'tw'];
 
 enum DisplayList {
   avatar,
@@ -39,7 +38,7 @@ enum SettingsProviderKeys {
 
 class SettingsProvider extends ChangeNotifier {
   static final Map<SettingsProviderKeys, dynamic> _defaultValues = {
-    SettingsProviderKeys.currentServer: 0,
+    SettingsProviderKeys.currentServer: Servers.en,
     SettingsProviderKeys._operatorSearchDelegate: 2,
     SettingsProviderKeys._operatorDisplay: DisplayList.avatar,
     SettingsProviderKeys.homeHour12Format: false,
@@ -51,7 +50,7 @@ class SettingsProvider extends ChangeNotifier {
   };
 
   // ----- saved
-  int currentServer;
+  Servers currentServer;
   bool homeHour12Format;
   bool homeShowDate;
   bool homeShowSeconds;
@@ -95,7 +94,7 @@ class SettingsProvider extends ChangeNotifier {
           _defaultValues[SettingsProviderKeys._operatorSearchDelegate],
       DisplayList.fromJson(configs[SettingsProviderKeys._operatorDisplay.key]) ??
           _defaultValues[SettingsProviderKeys._operatorDisplay],
-      currentServer: configs[SettingsProviderKeys.currentServer.key] ??
+      currentServer: Servers.fromJson(configs[SettingsProviderKeys.currentServer.key]) ??
           _defaultValues[SettingsProviderKeys.currentServer],
       homeCompactMode: configs[SettingsProviderKeys.homeCompactMode.key] ??
           _defaultValues[SettingsProviderKeys.homeCompactMode],
@@ -191,7 +190,8 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  String get currentServerString => serverList[currentServer];
+  String get currentServerString => currentServer.folderLabel; // should be localized
+
   int get operatorSearchDelegate => _operatorSearchDelegate;
   set operatorSearchDelegate(value) {
     _operatorSearchDelegate = value;
@@ -216,11 +216,11 @@ class SettingsProvider extends ChangeNotifier {
     });
   }
 
-  void changeServer(int server) async {
+  void changeServer(Servers server) async {
     currentServer = server;
     await LocalDataManager.writeConfigKey(
       SettingsProviderKeys.currentServer.key,
-      server,
+      server.toJson(),
     );
     notifyListeners();
   }

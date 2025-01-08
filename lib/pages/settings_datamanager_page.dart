@@ -1,28 +1,30 @@
 // ---------------------- Data Management Page ----------------------------------
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/global_data.dart';
 import 'package:sagahelper/providers/server_provider.dart';
+import 'package:sagahelper/providers/settings_provider.dart';
 import 'package:sagahelper/providers/ui_provider.dart';
 
-class DataSettings extends StatefulWidget {
+class DataSettings extends StatelessWidget {
   const DataSettings({super.key});
 
-  @override
-  State<DataSettings> createState() => _DataSettingsState();
-}
+  void checkupdate() async {
+    var servprov = NavigationService.navigatorKey.currentContext!.read<ServerProvider>();
 
-class _DataSettingsState extends State<DataSettings> {
-  bool updateChecked = false;
-
-  String enHasUpdate = 'get';
-  String cnHasUpdate = 'get';
-  String jpHasUpdate = 'get';
+    for (Servers server in Servers.values) {
+      servprov.setSingleServerState(server, await servprov.getServerStatus(server));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (!updateChecked) checkupdate();
+    if (!serverFetchFlag) {
+      serverFetchFlag = true;
+      checkupdate();
+    }
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -38,7 +40,7 @@ class _DataSettingsState extends State<DataSettings> {
         backgroundColor: context.read<UiProvider>().useTranslucentUi == true
             ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5)
             : null,
-        title: const Text('Data Management'),
+        title: const Text('Server & Data'),
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.arrow_back),
@@ -48,99 +50,153 @@ class _DataSettingsState extends State<DataSettings> {
         padding: const EdgeInsets.all(8.0),
         child: ListView(
           children: [
-            ListTile(
-              title: const Text('EN'),
-              subtitle: Text(context.watch<ServerProvider>().enVersion),
-              trailing: enHasUpdate == 'get'
-                  ? null
-                  : enHasUpdate == 'has'
-                      ? const Icon(Icons.update)
-                      : enHasUpdate == 'err'
-                          ? const Icon(Icons.error)
-                          : const Icon(Icons.done),
-              onTap: () {
-                getUpdate('en', enHasUpdate);
-              },
-            ),
-            ListTile(
-              title: const Text('CN'),
-              subtitle: Text(context.watch<ServerProvider>().cnVersion),
-              trailing: cnHasUpdate == 'get'
-                  ? null
-                  : cnHasUpdate == 'has'
-                      ? const Icon(Icons.update)
-                      : cnHasUpdate == 'err'
-                          ? const Icon(Icons.error)
-                          : const Icon(Icons.done),
-              onTap: () {
-                getUpdate('cn', cnHasUpdate);
-              },
-            ),
-            ListTile(
-              title: const Text('JP'),
-              subtitle: Text(context.watch<ServerProvider>().jpVersion),
-              trailing: jpHasUpdate == 'get'
-                  ? null
-                  : jpHasUpdate == 'has'
-                      ? const Icon(Icons.update)
-                      : jpHasUpdate == 'err'
-                          ? const Icon(Icons.error)
-                          : const Icon(Icons.done),
-              onTap: () {
-                getUpdate('jp', jpHasUpdate);
-              },
+            const ServerTile(server: Servers.en),
+            const Divider(),
+            const ServerTile(server: Servers.cn),
+            const Divider(),
+            const ServerTile(server: Servers.jp),
+            const Divider(),
+            const ServerTile(server: Servers.kr),
+            const SizedBox(height: 20),
+            Text(
+              'Drag to left to delete server data, drag to right to force fetch last data',
+              style: TextStyle(color: Theme.of(context).colorScheme.outline, fontSize: 12),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  void checkupdate() async {
-    updateChecked = true;
-    var servprov = NavigationService.navigatorKey.currentContext!.read<ServerProvider>();
-    List<String> servers = ['en', 'cn', 'jp'];
+class ServerTile extends StatelessWidget {
+  const ServerTile({super.key, required this.server});
+  final Servers server;
 
-    for (String server in servers) {
-      String status;
+  @override
+  Widget build(BuildContext context) {
+    final String version = switch (server) {
+      Servers.en => context.select<ServerProvider, String>(
+          (prov) => prov.enVersion == '' ? 'No version' : prov.enVersion,
+        ),
+      Servers.cn => context.select<ServerProvider, String>(
+          (prov) => prov.cnVersion == '' ? 'No version' : prov.cnVersion,
+        ),
+      Servers.jp => context.select<ServerProvider, String>(
+          (prov) => prov.jpVersion == '' ? 'No version' : prov.jpVersion,
+        ),
+      Servers.kr => context.select<ServerProvider, String>(
+          (prov) => prov.krVersion == '' ? 'No version' : prov.krVersion,
+        ),
+    };
 
-      try {
-        bool result = await servprov.checkUpdateOf(server);
-        bool fileIntegrity = await servprov.checkAllFiles(server);
+    final DataState state = switch (server) {
+      Servers.en => context.select<ServerProvider, DataState>((prov) => prov.enState),
+      Servers.cn => context.select<ServerProvider, DataState>((prov) => prov.cnState),
+      Servers.jp => context.select<ServerProvider, DataState>((prov) => prov.jpState),
+      Servers.kr => context.select<ServerProvider, DataState>((prov) => prov.krState),
+    };
 
-        if (result || !fileIntegrity) {
-          status = 'has';
-        } else {
-          status = 'up';
-        }
-      } catch (e) {
-        status = 'err';
-      }
+    final settingsServer = context.select<SettingsProvider, Servers>((prov) => prov.currentServer);
 
-      if (context.mounted) {
-        setState(() {
-          if (server == 'en') enHasUpdate = status;
-          if (server == 'cn') cnHasUpdate = status;
-          if (server == 'jp') jpHasUpdate = status;
-        });
-      }
-    }
-  }
-
-  void getUpdate(String server, String status) {
-    if (status == 'get') {
-      ShowSnackBar.showSnackBar('checking last version');
-    } else if (status == 'up') {
-      ShowSnackBar.showSnackBar('already has the last version');
-    } else if (status == 'has') {
+    void changeServer(Servers server) {
+      context.read<SettingsProvider>().changeServer(server);
       Navigator.pop(context);
-      ShowSnackBar.showSnackBar('starting to download last version');
-      NavigationService.navigatorKey.currentContext!.read<ServerProvider>().downloadLastest(server);
-    } else if (status == 'err') {
-      ShowSnackBar.showSnackBar(
-        'something went wrong, try later',
-        type: SnackBarType.failure,
-      );
     }
+
+    void getUpdate(Servers server, DataState state) {
+      switch (state) {
+        case DataState.fetching:
+          ShowSnackBar.showSnackBar('checking last version');
+        case DataState.hasUpdate:
+          NavigationService.navigatorKey.currentContext!
+              .read<ServerProvider>()
+              .setSingleServerState(server, DataState.downloading);
+          Navigator.pop(context);
+          ShowSnackBar.showSnackBar('starting to download last version');
+          NavigationService.navigatorKey.currentContext!
+              .read<ServerProvider>()
+              .downloadLastest(server);
+        case DataState.upToDate:
+          ShowSnackBar.showSnackBar('already has the last version');
+        case DataState.error:
+          ShowSnackBar.showSnackBar(
+            'something went wrong, try later',
+            type: SnackBarType.failure,
+          );
+        case DataState.downloading:
+          ShowSnackBar.showSnackBar('downloading last version');
+      }
+    }
+
+    void deleteServer() {
+      //TODO hay que hacer esta monda
+      // TODO arovecho para acordar de mostrar el tamalo de carpeta en bytes
+    }
+
+    void forceFetch() async {
+      var servprov = NavigationService.navigatorKey.currentContext!.read<ServerProvider>();
+
+      servprov.setSingleServerState(server, DataState.fetching);
+      switch (server) {
+        case Servers.en:
+          servprov.setSingleServerState(server, await servprov.getServerStatus(Servers.en));
+        case Servers.cn:
+          servprov.setSingleServerState(server, await servprov.getServerStatus(Servers.cn));
+        case Servers.jp:
+          servprov.setSingleServerState(server, await servprov.getServerStatus(Servers.jp));
+        case Servers.kr:
+          servprov.setSingleServerState(server, await servprov.getServerStatus(Servers.kr));
+      }
+    }
+
+    return Slidable(
+      startActionPane: ActionPane(
+        motion: const StretchMotion(),
+        children: [
+          SlidableAction(
+            onPressed: (_) => forceFetch(),
+            backgroundColor: StaticColors.fromBrightness(context).blue,
+            foregroundColor: Colors.white,
+            icon: Icons.restart_alt,
+            label: 'Fetch',
+          ),
+        ],
+      ),
+      endActionPane: ActionPane(
+        motion: const StretchMotion(),
+        children: [
+          SlidableAction(
+            onPressed: (_) => deleteServer(),
+            backgroundColor: StaticColors.fromBrightness(context).red,
+            foregroundColor: Colors.white,
+            icon: Icons.delete_forever,
+            label: 'Delete',
+          ),
+        ],
+      ),
+      child: ListTile(
+        title: Text('${server.folderLabel.toUpperCase()} · $version'),
+        subtitle: settingsServer == server
+            ? Text(
+                'Selected',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              )
+            : null,
+        trailing: switch (state) {
+          DataState.hasUpdate => const Icon(Icons.update),
+          DataState.upToDate => const Icon(Icons.done),
+          DataState.error => const Icon(Icons.error),
+          DataState.downloading => const Icon(Icons.downloading),
+          _ => null
+        },
+        onTap: () {
+          state == DataState.upToDate ? changeServer(server) : getUpdate(server, state);
+        },
+      ),
+    );
   }
 }

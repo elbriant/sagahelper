@@ -28,20 +28,19 @@ const List<String> professionList = [
 
 Future<List<Operator>> fetchOperators() async {
   var cacheProv = NavigationService.navigatorKey.currentContext!.read<CacheProvider>();
-  String server =
-      NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString;
+  Servers server =
+      NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer;
   String version =
       NavigationService.navigatorKey.currentContext!.read<ServerProvider>().versionOf(server);
   if (cacheProv.isCached) {
     return Future<List<Operator>>.value(cacheProv.cachedListOperator);
   }
 
-  final bool checkfiles = await NavigationService.navigatorKey.currentContext!
-      .read<ServerProvider>()
-      .existFiles(
-        NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString,
-        ServerProvider.opFiles,
-      );
+  final bool checkfiles =
+      await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().existFiles(
+            NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer,
+            ServerProvider.opFiles,
+          );
 
   if (!checkfiles) throw const FormatException('Update gamedata');
 

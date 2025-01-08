@@ -1,8 +1,8 @@
 import 'package:sagahelper/pages/settings_about_page.dart';
 import 'package:sagahelper/pages/settings_appearance_page.dart';
 import 'package:sagahelper/pages/settings_datamanager_page.dart';
-import 'package:sagahelper/pages/settings_server_page.dart';
 import 'package:flutter/material.dart';
+import 'package:sagahelper/pages/settings_settings_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -54,8 +54,8 @@ class _SettingsPageState extends State<SettingsPage> {
             },
           ),
           ListTile(
-            title: const Text('Data'),
-            leading: const Icon(Icons.data_usage),
+            title: const Text('Server & Data'),
+            leading: const Icon(Icons.settings_ethernet),
             onTap: () {
               Navigator.push(
                 context,
@@ -72,20 +72,20 @@ class _SettingsPageState extends State<SettingsPage> {
             leading: const Icon(Icons.language),
             onTap: () {},
           ),
+          const Divider(),
           ListTile(
-            title: const Text('Server'),
-            leading: const Icon(Icons.settings_ethernet),
+            title: const Text('Settings'),
+            leading: const Icon(Icons.settings),
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   allowSnapshotting: false,
-                  builder: (context) => const ServerSettings(),
+                  builder: (context) => const SettingsSettings(),
                 ),
               );
             },
           ),
-          const Divider(), // bot about and data
           ListTile(
             title: const Text('About'),
             leading: const Icon(Icons.info_outline),

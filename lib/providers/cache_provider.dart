@@ -8,7 +8,7 @@ import 'package:sagahelper/providers/settings_provider.dart';
 
 class CacheProvider extends ChangeNotifier {
   List<Operator>? cachedListOperator;
-  String? cachedListOperatorServer;
+  Servers? cachedListOperatorServer;
   String? cachedListOperatorVersion;
   Map<String, dynamic>? cachedRangeTable;
   Map<String, dynamic>? cachedSkillTable;
@@ -17,8 +17,8 @@ class CacheProvider extends ChangeNotifier {
   Map<String, dynamic>? cachedBaseSkillTable;
 
   bool get isCached {
-    String server =
-        NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServerString;
+    Servers server =
+        NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer;
     String version =
         NavigationService.navigatorKey.currentContext!.read<ServerProvider>().versionOf(server);
 
@@ -37,14 +37,14 @@ class CacheProvider extends ChangeNotifier {
   }
 
   void cache({
-    required listOperator,
-    required listOperatorServer,
-    required listOperatorVersion,
-    required rangeTable,
-    required skillTable,
-    required modTable,
-    required baseSkillTable,
-    required modStatsTable,
+    required List<Operator> listOperator,
+    required Servers listOperatorServer,
+    required String listOperatorVersion,
+    required Map<String, dynamic> rangeTable,
+    required Map<String, dynamic> skillTable,
+    required Map<String, dynamic> modTable,
+    required Map<String, dynamic> baseSkillTable,
+    required Map<String, dynamic> modStatsTable,
   }) {
     cachedListOperator = listOperator;
     cachedListOperatorServer = listOperatorServer;

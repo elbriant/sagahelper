@@ -69,6 +69,10 @@ dependencies:
   shared_preferences: ^2.3.3
   marquee: ^2.3.0
   flutter_logs: ^2.2.1
+  flutter_slidable: ^3.1.2
+  expandable: ^5.0.1
+  package_info_plus: ^8.1.2
+  filesize: ^2.0.1
 
 dev_dependencies:
   flutter_test:

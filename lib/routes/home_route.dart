@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sagahelper/notification_services.dart';
 import 'package:sagahelper/providers/server_provider.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
@@ -9,7 +11,10 @@ import 'package:provider/provider.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/providers/ui_provider.dart';
 import 'package:intl/intl.dart';
-import 'package:sagahelper/global_data.dart' show NavigationService, firstTimeCheck;
+import 'package:sagahelper/global_data.dart'
+    show NavigationService, firstTimeCheck, checkForUpdatesFlag;
+import 'package:http/http.dart' as http;
+import 'package:sagahelper/utils/misc.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -35,6 +40,7 @@ class _HomePageState extends State<HomePage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       checkServer();
+      checkForUpdates();
       FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
           FlutterLocalNotificationsPlugin();
       flutterLocalNotificationsPlugin
@@ -249,40 +255,33 @@ class _HomePageState extends State<HomePage> {
   Future<void> checkServer() async {
     if (firstTimeCheck) return;
 
-    // add check updates
-    //showNotification(
-    //   title: 'Update Available',
-    //   body: 'tap to download!',
-    //   payload: 'update',
-    // );
-
     firstTimeCheck = true;
+
     NavigationService.navigatorKey.currentContext!
         .read<SettingsProvider>()
         .setLoadingString('checking gamedata...');
+
     NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setIsLoadingHome(true);
+
     await Future.delayed(const Duration(seconds: 1));
+
     bool hasAllFiles =
         await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().checkAllFiles(
-              NavigationService.navigatorKey.currentContext!
-                  .read<SettingsProvider>()
-                  .currentServerString,
+              NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer,
             );
 
     if (NavigationService.navigatorKey.currentContext!.read<ServerProvider>().versionOf(
                   NavigationService.navigatorKey.currentContext!
                       .read<SettingsProvider>()
-                      .currentServerString,
+                      .currentServer,
                 ) ==
-            'unknown' ||
+            '' ||
         !hasAllFiles) {
       NavigationService.navigatorKey.currentContext!
           .read<SettingsProvider>()
           .setLoadingString('downloading gamedata...');
       NavigationService.navigatorKey.currentContext!.read<ServerProvider>().downloadLastest(
-            NavigationService.navigatorKey.currentContext!
-                .read<SettingsProvider>()
-                .currentServerString,
+            NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer,
           );
       NavigationService.navigatorKey.currentContext!
           .read<SettingsProvider>()
@@ -291,17 +290,16 @@ class _HomePageState extends State<HomePage> {
       NavigationService.navigatorKey.currentContext!
           .read<SettingsProvider>()
           .setLoadingString('checking gamedata updates...');
-      bool lastAvailable =
-          await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().checkUpdateOf(
-                NavigationService.navigatorKey.currentContext!
-                    .read<SettingsProvider>()
-                    .currentServerString,
-              );
+      bool lastAvailable = await NavigationService.navigatorKey.currentContext!
+          .read<ServerProvider>()
+          .checkUpdateOf(
+            NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer,
+          );
       if (lastAvailable) {
         // ask if update
         NavigationService.navigatorKey.currentContext!
             .read<SettingsProvider>()
-            .setLoadingString('there is an update...');
+            .setLoadingString('there is a gamedata update...');
         await Future.delayed(const Duration(seconds: 2));
         NavigationService.navigatorKey.currentContext!
             .read<SettingsProvider>()
@@ -309,7 +307,7 @@ class _HomePageState extends State<HomePage> {
       } else {
         NavigationService.navigatorKey.currentContext!
             .read<SettingsProvider>()
-            .setLoadingString('everything fine');
+            .setLoadingString('All good!');
         await Future.delayed(const Duration(seconds: 2));
         NavigationService.navigatorKey.currentContext!
             .read<SettingsProvider>()
@@ -386,5 +384,31 @@ class _HomePageState extends State<HomePage> {
       return result.join(' ');
     }
     return '';
+  }
+
+  Future<void> checkForUpdates() async {
+    if (checkForUpdatesFlag) return;
+    checkForUpdatesFlag = true;
+
+    final response = await http
+        .get(Uri.parse('https://api.github.com/repos/elbriant/sagahelper/releases/latest'));
+
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
+      PackageInfo packageInfo = await PackageInfo.fromPlatform();
+      String version = packageInfo.version;
+      String githubVersion = (json['tag_name'] as String).substring(1);
+
+      if (isVersionGreaterThan(githubVersion, version)) {
+        showNotification(
+          title: 'Update Available',
+          body: 'New version ${json['tag_name']}, tap to open',
+          payload: 'update-${json['html_url']}',
+          channel: Channels.news,
+        );
+      }
+    } else {
+      // some error xd
+    }
   }
 }

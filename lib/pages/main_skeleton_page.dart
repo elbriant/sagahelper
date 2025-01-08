@@ -150,7 +150,7 @@ class BottomNavBar extends StatelessWidget {
         NavigationDestination(
           icon: Icon(Icons.settings_outlined),
           label: 'More',
-          selectedIcon: Icon(Icons.settings),
+          selectedIcon: Icon(Icons.more_horiz),
         ),
       ],
     );

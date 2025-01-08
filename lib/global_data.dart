@@ -10,6 +10,8 @@ import 'dart:developer' as dev;
 
 Map<String, DownloaderCore> downloadsBackgroundCores = {};
 bool firstTimeCheck = false;
+bool serverFetchFlag = false;
+bool checkForUpdatesFlag = false;
 bool opThemed = false;
 
 // ------------- constants

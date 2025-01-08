@@ -83,17 +83,17 @@ void main() async {
       );
     }
   };
-  PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
-    if (kReleaseMode) {
+  if (kReleaseMode) {
+    PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
       FlutterLogs.logThis(
         tag: 'MyApp',
         subTag: 'Caught an exception.',
         logMessage: '${error.toString()}\nStacktrace: ${stack.toString()} ',
         level: LogLevel.ERROR,
       );
-    }
-    return true;
-  };
+      return true;
+    };
+  }
 
   await initNotifications();
   await SettingsProvider.sharedPreferencesInit();

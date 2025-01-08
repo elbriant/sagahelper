@@ -13,8 +13,8 @@ void notificationResponse(NotificationResponse notificationResponse) async {
   // handling notifications may need to enable showsUserInterface (app must be open)
 
   if (notificationResponse.payload != null) {
-    if (notificationResponse.payload == 'update') {
-      openUrl('https://github.com/elbriant/sagahelper');
+    if (notificationResponse.payload?.startsWith('update') ?? false) {
+      openUrl(notificationResponse.payload!.split('-')[1]);
     }
   }
 
@@ -47,7 +47,8 @@ int generateId() {
 
 Future<void> initNotifications() async {
   // initialise the plugin. app_icon needs to be a added as a drawable resource to the Android head project
-  const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('ic_saga');
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('ic_saga');
 
   final InitializationSettings initializationSettings = const InitializationSettings(
     android: initializationSettingsAndroid,
@@ -60,11 +61,15 @@ Future<void> initNotifications() async {
   );
 
   for (var notiGroup in notiChannelGroups) {
-    await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannelGroup(notiGroup);
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannelGroup(notiGroup);
   }
 
   for (var notiDetail in notiChannels.values) {
-    await flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()?.createNotificationChannel(notiDetail);
+    await flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(notiDetail);
   }
 }
 
