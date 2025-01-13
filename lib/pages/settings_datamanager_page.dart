@@ -16,6 +16,7 @@ class DataSettings extends StatelessWidget {
 
     for (Servers server in Servers.values) {
       servprov.setSingleServerState(server, await servprov.getServerStatus(server));
+      servprov.getFolderSize(server);
     }
   }
 
@@ -98,6 +99,13 @@ class ServerTile extends StatelessWidget {
       Servers.kr => context.select<ServerProvider, DataState>((prov) => prov.krState),
     };
 
+    final Map<Servers, String> provFolderSize =
+        context.select<ServerProvider, Map<Servers, String>>(
+      (prov) => prov.folderSize,
+    );
+
+    final String? folderSize = provFolderSize.containsKey(server) ? provFolderSize[server] : null;
+
     final settingsServer = context.select<SettingsProvider, Servers>((prov) => prov.currentServer);
 
     void changeServer(Servers server) {
@@ -109,46 +117,44 @@ class ServerTile extends StatelessWidget {
       switch (state) {
         case DataState.fetching:
           ShowSnackBar.showSnackBar('checking last version');
+
         case DataState.hasUpdate:
           NavigationService.navigatorKey.currentContext!
               .read<ServerProvider>()
               .setSingleServerState(server, DataState.downloading);
-          Navigator.pop(context);
           ShowSnackBar.showSnackBar('starting to download last version');
           NavigationService.navigatorKey.currentContext!
               .read<ServerProvider>()
               .downloadLastest(server);
+
         case DataState.upToDate:
           ShowSnackBar.showSnackBar('already has the last version');
+
         case DataState.error:
           ShowSnackBar.showSnackBar(
             'something went wrong, try later',
             type: SnackBarType.failure,
           );
+
         case DataState.downloading:
           ShowSnackBar.showSnackBar('downloading last version');
       }
     }
 
-    void deleteServer() {
-      //TODO hay que hacer esta monda
-      // TODO arovecho para acordar de mostrar el tamalo de carpeta en bytes
+    void deleteServer() async {
+      if (state == DataState.downloading) return;
+      var servprov = NavigationService.navigatorKey.currentContext!.read<ServerProvider>();
+
+      servprov.deleteServer(server).then((_) async {
+        servprov.setSingleServerState(server, await servprov.getServerStatus(server));
+      });
     }
 
     void forceFetch() async {
       var servprov = NavigationService.navigatorKey.currentContext!.read<ServerProvider>();
 
       servprov.setSingleServerState(server, DataState.fetching);
-      switch (server) {
-        case Servers.en:
-          servprov.setSingleServerState(server, await servprov.getServerStatus(Servers.en));
-        case Servers.cn:
-          servprov.setSingleServerState(server, await servprov.getServerStatus(Servers.cn));
-        case Servers.jp:
-          servprov.setSingleServerState(server, await servprov.getServerStatus(Servers.jp));
-        case Servers.kr:
-          servprov.setSingleServerState(server, await servprov.getServerStatus(Servers.kr));
-      }
+      servprov.setSingleServerState(server, await servprov.getServerStatus(server));
     }
 
     return Slidable(
@@ -177,7 +183,9 @@ class ServerTile extends StatelessWidget {
         ],
       ),
       child: ListTile(
-        title: Text('${server.folderLabel.toUpperCase()} · $version'),
+        title: Text(
+          '${server.folderLabel.toUpperCase()} · $version ${folderSize != null ? '· $folderSize' : ''}',
+        ),
         subtitle: settingsServer == server
             ? Text(
                 'Selected',

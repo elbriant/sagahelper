@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:sagahelper/components/stored_image.dart';
 import 'package:sagahelper/utils/extensions.dart';
 import 'package:sagahelper/global_data.dart';
 import 'package:sagahelper/models/operator.dart';
@@ -18,6 +18,15 @@ const List<Color?> rarityColors = [
   Color.fromARGB(255, 255, 93, 12),
 ];
 
+const List<String> opIdMustHaveE2avatar = [
+  'char_1037_amiya3',
+];
+
+const List<String> opIdMustHaveE2Portrait = [
+  'char_1001_amiya2',
+  'char_1037_amiya3',
+];
+
 class OperatorContainer extends StatelessWidget {
   final Operator operator;
   final int index;
@@ -30,12 +39,10 @@ class OperatorContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    void openOperatorInfo(Operator currOp) {
-      Navigator.of(context).push(MaterialPageRoute(builder: (context) => OperatorInfo(currOp)));
-    }
-
-    final String ghAvatarLink = '$kAvatarRepo/${operator.id}.png';
-    final String ghPotraitLink = '$kPortraitRepo/${operator.id}_1.png';
+    final String ghAvatarLink =
+        '$kAvatarRepo/${operator.id}${opIdMustHaveE2avatar.contains(operator.id) ? '_2' : ''}.png';
+    final String ghPotraitLink =
+        '$kPortraitRepo/${operator.id}${opIdMustHaveE2Portrait.contains(operator.id) ? '_2' : '_1'}.png';
 
     final opDisplay = context.select<SettingsProvider, DisplayList>((prov) => prov.operatorDisplay);
     final searchDelegate =
@@ -45,6 +52,10 @@ class OperatorContainer extends StatelessWidget {
       DisplayList.avatar => ghAvatarLink,
       DisplayList.portrait => ghPotraitLink,
     };
+
+    void openOperatorInfo(Operator currOp) {
+      Navigator.of(context).push(MaterialPageRoute(builder: (context) => OperatorInfo(currOp)));
+    }
 
     return GlassContainer(
       isFrostedGlass: searchDelegate <= 4 ? true : false,
@@ -73,72 +84,72 @@ class OperatorContainer extends StatelessWidget {
           : null,
       padding: const EdgeInsets.all(1.0),
       borderRadius: BorderRadius.circular(10.0),
-      child: Stack(
-        alignment: AlignmentDirectional.bottomCenter,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10.0),
-            child: Hero(
-              tag: operator.id,
-              child: CachedNetworkImage(
-                cacheKey: '${operator.id}_dl${opDisplay.index.toString()}',
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10.0),
+        clipBehavior: Clip.hardEdge,
+        child: Stack(
+          alignment: AlignmentDirectional.bottomCenter,
+          children: [
+            Positioned.fill(
+              child: StoredImage(
+                filePath: 'images/${operator.id}_dl${opDisplay.index.toString()}.png',
                 imageUrl: imgLink,
-                fit: BoxFit.fitWidth,
-                memCacheHeight: opDisplay == DisplayList.avatar ? 180 : 360,
-                memCacheWidth: 180,
-                placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                errorWidget: (context, url, error) => const Center(child: Icon(Icons.error)),
+                boxFit: BoxFit.fitWidth,
+                heroTag: operator.id,
               ),
             ),
-          ),
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10.0),
-                gradient: searchDelegate <= 4
-                    ? const LinearGradient(
-                        colors: [
-                          Color.fromARGB(0, 0, 0, 0),
-                          Color.fromARGB(255, 0, 0, 0),
-                        ],
-                        stops: [0.65, 1],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      )
-                    : null,
+            Positioned.fill(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10.0),
+                  gradient: searchDelegate <= 4
+                      ? const LinearGradient(
+                          colors: [
+                            Color.fromARGB(0, 0, 0, 0),
+                            Color.fromARGB(255, 0, 0, 0),
+                          ],
+                          stops: [0.65, 1],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        )
+                      : null,
+                ),
               ),
             ),
-          ),
-          searchDelegate <= 4
-              ? Padding(
-                  padding: const EdgeInsets.only(bottom: 2.5),
-                  child: Text(
-                    operator.name,
-                    textAlign: TextAlign.center,
-                    textScaler: operator.name.length > 7
-                        // ignore: deprecated_member_use
-                        ? TextScaler.linear(
-                            // ignore: deprecated_member_use
-                            (MediaQuery.textScalerOf(context).textScaleFactor -
-                                    (operator.name.length - 7) / 100) *
-                                (3 / searchDelegate),
-                          )
-                        // ignore: deprecated_member_use
-                        : TextScaler.linear(
-                            // ignore: deprecated_member_use
-                            MediaQuery.textScalerOf(context).textScaleFactor * (3 / searchDelegate),
-                          ),
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                )
-              : null,
-          Material(
-            type: MaterialType.transparency,
-            child: InkWell(
-              onTap: () => openOperatorInfo(operator),
+            searchDelegate <= 4
+                ? Padding(
+                    padding: const EdgeInsets.only(bottom: 2.5, left: 4, right: 4),
+                    child: Text(
+                      operator.name,
+                      textAlign: TextAlign.center,
+                      textScaler: operator.name.length > 7
+                          // ignore: deprecated_member_use
+                          ? TextScaler.linear(
+                              // ignore: deprecated_member_use
+                              (MediaQuery.textScalerOf(context).textScaleFactor -
+                                      (operator.name.length - 7) / 100) *
+                                  (3 / searchDelegate),
+                            )
+                          // ignore: deprecated_member_use
+                          : TextScaler.linear(
+                              // ignore: deprecated_member_use
+                              MediaQuery.textScalerOf(context).textScaleFactor *
+                                  (3 / searchDelegate),
+                            ),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  )
+                : null,
+            Material(
+              type: MaterialType.transparency,
+              child: InkWell(
+                splashColor: rarityColors[operator.rarity]!.withAlpha(45),
+                highlightColor: rarityColors[operator.rarity]!.withAlpha(35),
+                onTap: () => openOperatorInfo(operator),
+              ),
             ),
-          ),
-        ].nullParser(),
+          ].nullParser(),
+        ),
       ),
     );
   }

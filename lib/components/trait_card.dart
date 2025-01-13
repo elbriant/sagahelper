@@ -8,72 +8,63 @@ class TraitCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.secondaryContainer,
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline,
-          width: 2.0,
-          strokeAlign: BorderSide.strokeAlignOutside,
-        ),
-        borderRadius: BorderRadius.circular(6.0),
-      ),
-      margin: const EdgeInsets.only(bottom: 12.0),
-      padding: const EdgeInsets.only(top: 8.0, bottom: 8.0, right: 2.0),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 2,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: Colors.black87,
-                borderRadius: BorderRadius.circular(6.0),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(6.0),
-                  child: Image(
-                    image: avatar,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12.0),
-          Expanded(
-            flex: 8,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return Card.filled(
+      margin: const EdgeInsets.only(top: 6.0, bottom: 18.0),
+      elevation: 1.0,
+      child: Container(
+        width: double.maxFinite,
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
               children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
-                  margin: const EdgeInsets.only(bottom: 4.0),
+                Container(
+                  margin: const EdgeInsets.only(bottom: 12.0, top: 8.0),
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.primary,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: Theme.of(context).colorScheme.primary,
+                      color: Theme.of(context).colorScheme.outline,
                     ),
                   ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12.0,
-                    vertical: 2.0,
+                  padding: const EdgeInsets.only(
+                    top: 2.0,
+                    bottom: 2.0,
+                    right: 12.0,
+                    left: 42,
                   ),
                   child: label,
                 ),
-                AnimatedSize(
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.ease,
-                  child: SizedBox(
-                    width: double.maxFinite,
-                    child: content,
+                Positioned(
+                  left: 0,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: HSLColor.fromColor(Theme.of(context).colorScheme.primary)
+                          .withLightness(0.10)
+                          .toColor(),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                    ),
+                    child: SizedBox.square(
+                      dimension: 40,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Image(
+                          image: avatar,
+                          fit: BoxFit.scaleDown,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+            content,
+          ],
+        ),
       ),
     );
   }

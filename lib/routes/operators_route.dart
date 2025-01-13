@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:contentsize_tabbarview/contentsize_tabbarview.dart';
+import 'package:expandable/expandable.dart';
 import 'package:sagahelper/components/operator_container.dart';
 import 'package:sagahelper/global_data.dart';
 import 'package:sagahelper/models/filters.dart';
@@ -9,7 +11,6 @@ import 'package:sagahelper/providers/server_provider.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:autoscale_tabbarview/autoscale_tabbarview.dart';
 import 'package:provider/provider.dart';
 import 'package:sagahelper/providers/ui_provider.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
@@ -26,7 +27,7 @@ const List<String> professionList = [
   'warrior',
 ];
 
-Future<List<Operator>> fetchOperators() async {
+Future<List<Operator>> getOperators() async {
   var cacheProv = NavigationService.navigatorKey.currentContext!.read<CacheProvider>();
   Servers server =
       NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer;
@@ -54,8 +55,20 @@ Future<List<Operator>> fetchOperators() async {
     );
   }
 
+  List<String> misc = [];
+
+  for (String filepath in ServerProvider.metadataFiles) {
+    misc.add(
+      await NavigationService.navigatorKey.currentContext!
+          .read<ServerProvider>()
+          .getFile(filepath, server),
+    );
+  }
+
+  List<List<String>> input = [response, misc];
+
   // Use the compute function to run parsing in a separate isolate.
-  List<Operator> completedList = await compute(parseOperators, response);
+  List<Operator> completedList = await compute(parseOperators, input);
 
   cacheProv.cache(
     listOperator: completedList,
@@ -67,19 +80,28 @@ Future<List<Operator>> fetchOperators() async {
     baseSkillTable:
         (jsonDecode(response[7]) as Map<String, dynamic>)["buffs"] as Map<String, dynamic>,
     modStatsTable: jsonDecode(response[8]) as Map<String, dynamic>,
+    teamTable: jsonDecode(misc[0]) as Map<String, dynamic>,
+    charPatch: jsonDecode(misc[1]) as Map<String, dynamic>,
+    charMeta: jsonDecode(misc[2]) as Map<String, dynamic>,
+    gamedataConst: jsonDecode(misc[3]) as Map<String, dynamic>,
   );
 
   return completedList;
 }
 
-List<Operator> parseOperators(List<String> response) {
-  final operatorsparsed = jsonDecode(response[0]) as Map<String, dynamic>;
-  final loreInfo = jsonDecode(response[1]) as Map<String, dynamic>;
-  final voiceInfo = jsonDecode(response[2]) as Map<String, dynamic>;
-  final skinInfo = jsonDecode(response[3]) as Map<String, dynamic>;
-  final modtable = jsonDecode(response[6]) as Map<String, dynamic>;
+List<Operator> parseOperators(List<List<String>> input) {
+  var operatorsparsed = (jsonDecode(input[0][0]) as Map<String, dynamic>);
+  operatorsparsed.addEntries(
+    ((jsonDecode(input[1][1]) as Map<String, dynamic>)["patchChars"] as Map<String, dynamic>)
+        .entries,
+  );
+  final loreInfo = jsonDecode(input[0][1]) as Map<String, dynamic>;
+  final voiceInfo = jsonDecode(input[0][2]) as Map<String, dynamic>;
+  final skinInfo = jsonDecode(input[0][3]) as Map<String, dynamic>;
+  final modtable = jsonDecode(input[0][6]) as Map<String, dynamic>;
   final baseSkillInfo =
-      (jsonDecode(response[7]) as Map<String, dynamic>)["chars"] as Map<String, dynamic>;
+      (jsonDecode(input[0][7]) as Map<String, dynamic>)["chars"] as Map<String, dynamic>;
+  final charPatch = jsonDecode(input[1][1]) as Map<String, dynamic>;
 
   List<Operator> opsLists = [];
   operatorsparsed.forEach((key, value) {
@@ -97,12 +119,26 @@ List<Operator> parseOperators(List<String> response) {
           skinInfo['charSkins'],
           baseSkillInfo,
           modtable["charEquip"],
+          charPatch,
         ),
       );
     }
   });
 
   return opsLists;
+}
+
+Future<List<Operator>> fetchSafeOperators() {
+  return getOperators().then(
+    (data) {
+      NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setOpFetched(true);
+      return data;
+    },
+    onError: (e) {
+      NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setOpFetched(true);
+      throw e;
+    },
+  );
 }
 
 class OperatorsPage extends StatefulWidget {
@@ -122,10 +158,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
   void initState() {
     super.initState();
 
-    futureOperatorList = fetchOperators().then((data) {
-      NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setOpFetched(true);
-      return data;
-    });
+    futureOperatorList = fetchSafeOperators();
   }
 
   @override
@@ -138,6 +171,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
     final opFetched = context.select<SettingsProvider, bool>((prov) => prov.opFetched);
     final currentFilters =
         context.select<SettingsProvider, Map<String, FilterDetail>>((prov) => prov.operatorFilters);
+    final isCached = context.read<CacheProvider>().isCached;
 
     return Scaffold(
       extendBody: false,
@@ -184,7 +218,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
                 )
               : null,
           IconButton(
-            onPressed: opFetched ? showFilters : null,
+            onPressed: opFetched && isCached ? showFilters : null,
             icon: Icon(
               Icons.filter_list,
               color: currentFilters.isNotEmpty ? Colors.amberAccent[400] : null,
@@ -466,6 +500,82 @@ class _OperatorsPageState extends State<OperatorsPage> {
           });
         }
 
+        List<Widget> factionFilters() {
+          List<Widget> result = [];
+
+          for (var faction in (cacheProv.cachedTeamTable as Map).entries) {
+            if ((faction.key as String).startsWith('none')) continue;
+
+            final id = 'faction_${faction.key}';
+
+            result.add(
+              FilterChip(
+                label: Text(faction.value["powerName"]),
+                selected: currentFilters.containsKey(id),
+                avatar: currentFilters.containsKey(id)
+                    ? Icon(
+                        currentFilters[id]!.mode == FilterMode.whitelist
+                            ? Icons.check
+                            : Icons.block,
+                      )
+                    : null,
+                onSelected: (_) => context.read<SettingsProvider>().toggleOperatorFilter(
+                      id,
+                      (faction.value["powerId"] as String).toLowerCase(),
+                      FilterType.faction,
+                    ),
+                showCheckmark: false,
+              ),
+            );
+          }
+          return result;
+        }
+
+        List<Widget> extraFilters() {
+          List<Widget> result = [
+            FilterChip(
+              label: const Text('Has module'),
+              selected: currentFilters.containsKey('has_module'),
+              avatar: currentFilters.containsKey('has_module')
+                  ? Icon(
+                      currentFilters['has_module']!.mode == FilterMode.whitelist
+                          ? Icons.check
+                          : Icons.block,
+                    )
+                  : null,
+              onSelected: (_) => context.read<SettingsProvider>().toggleOperatorFilter(
+                    'has_module',
+                    'has_module',
+                    FilterType.extra,
+                  ),
+              showCheckmark: false,
+            ),
+          ];
+
+          return result;
+        }
+
+        Widget filterTile({required String title, required Widget child}) {
+          return ExpandableNotifier(
+            child: ScrollOnExpand(
+              child: ExpandablePanel(
+                theme: ExpandableThemeData(
+                  headerAlignment: ExpandablePanelHeaderAlignment.center,
+                  iconColor: Theme.of(context).colorScheme.onSurface,
+                ),
+                header: ListTile(title: Text(title)),
+                collapsed: const SizedBox(
+                  height: 0,
+                ),
+                expanded: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  child: child,
+                ),
+              ),
+            ),
+          );
+        }
+
         return DefaultTabController(
           initialIndex: 0,
           length: 3,
@@ -490,7 +600,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
                   child: SingleChildScrollView(
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: AutoScaleTabBarView(
+                      child: ContentSizeTabBarView(
                         children: <Widget>[
                           // ----------- filtering
                           Column(
@@ -505,34 +615,39 @@ class _OperatorsPageState extends State<OperatorsPage> {
                                   child: const Text('Clear filters'),
                                 ),
                               ),
-                              const ListTile(
-                                title: Text('Rarity'),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                              filterTile(
+                                title: 'Rarity',
                                 child: Wrap(
                                   spacing: 6.0,
                                   children: rarityFilters(),
                                 ),
                               ),
-                              const ListTile(
-                                title: Text('Classes'),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                              filterTile(
+                                title: 'Classes',
                                 child: Wrap(
                                   spacing: 6.0,
                                   children: professionFilters(),
                                 ),
                               ),
-                              const ListTile(
-                                title: Text('Subclasses'),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                              filterTile(
+                                title: 'Subclasses',
                                 child: Wrap(
                                   spacing: 6.0,
                                   children: subProfessionFilters(),
+                                ),
+                              ),
+                              filterTile(
+                                title: 'Faction',
+                                child: Wrap(
+                                  spacing: 6.0,
+                                  children: factionFilters(),
+                                ),
+                              ),
+                              filterTile(
+                                title: 'Extras',
+                                child: Wrap(
+                                  spacing: 6.0,
+                                  children: extraFilters(),
                                 ),
                               ),
                             ],
@@ -634,10 +749,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
     _menuController.close();
     NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setOpFetched(false);
     setState(() {
-      futureOperatorList = fetchOperators().then((data) {
-        NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setOpFetched(true);
-        return data;
-      });
+      futureOperatorList = fetchSafeOperators();
     });
   }
 
@@ -705,6 +817,18 @@ class _OperatorsPageState extends State<OperatorsPage> {
 
             case FilterType.subprofession:
               test = rule.value.contains(op.subProfessionId.toLowerCase());
+
+            case FilterType.faction:
+              if (op.factionIds == null) {
+                test = false;
+              } else {
+                test = op.factionIds!.any((element) => rule.value.contains(element.toLowerCase()));
+              }
+            case FilterType.extra:
+              List<String> values = [];
+              if (op.modules != null) values.add('has_module');
+
+              test = values.any((e) => rule.value.contains(e.toLowerCase()));
           }
           if (test == false) break;
         }
@@ -720,6 +844,21 @@ class _OperatorsPageState extends State<OperatorsPage> {
 
             case FilterType.subprofession:
               if (rule.value.contains(op.subProfessionId.toLowerCase())) test = false;
+
+            case FilterType.faction:
+              if (op.factionIds == null) {
+                test = false;
+              } else {
+                if (op.factionIds!.any((element) => rule.value.contains(element.toLowerCase()))) {
+                  test = false;
+                }
+              }
+
+            case FilterType.extra:
+              List<String> values = [];
+              if (op.modules != null) values.add('has_module');
+
+              if (values.any((e) => rule.value.contains(e.toLowerCase()))) test = false;
           }
         }
 
@@ -768,7 +907,7 @@ class OperatorListView extends StatelessWidget {
       minThumbLength: 48,
       mainAxisMargin: 4,
       thumbColor: Theme.of(context).colorScheme.secondary.withOpacity(0.8),
-      child: GridView.builder(
+      child: GridView(
         cacheExtent: 1500,
         padding: EdgeInsets.fromLTRB(
           4.0,
@@ -776,14 +915,14 @@ class OperatorListView extends StatelessWidget {
           4.0,
           MediaQuery.paddingOf(context).bottom + 4.0,
         ),
-        itemCount: operators.length,
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: settings.operatorSearchDelegate,
           childAspectRatio: settings.operatorDisplay == DisplayList.portrait ? 0.55 : 1.0,
         ),
-        itemBuilder: (context, index) {
-          return OperatorContainer(index: index, operator: operators[index]);
-        },
+        children: List.generate(
+          operators.length,
+          (int index) => OperatorContainer(index: index, operator: operators[index]),
+        ),
       ),
     );
   }

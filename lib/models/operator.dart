@@ -40,6 +40,8 @@ class Operator {
   final List<dynamic> skillLvlMats;
   final Map<String, dynamic> baseSkills;
   final List<String>? modules;
+  final bool opPatched;
+  final String? altkey;
 
   Operator({
     required this.operatorDict,
@@ -71,6 +73,8 @@ class Operator {
     required this.skillLvlMats,
     required this.baseSkills,
     required this.modules,
+    required this.opPatched,
+    required this.altkey,
   });
 
   static String professionTranslate(String prof) => switch (prof) {
@@ -151,6 +155,11 @@ class Operator {
         String() => stat.capitalize()
       };
 
+  List<String>? get factionIds {
+    List<String> list = [teamId, groupId, nationId].nonNulls.toList();
+    return list.isNotEmpty ? list : null;
+  }
+
   factory Operator.fromJson(
     String key,
     Map<String, dynamic> dict,
@@ -159,7 +168,20 @@ class Operator {
     Map<String, dynamic> charSkins,
     Map<String, dynamic> baseSkills,
     Map<String, dynamic> modTable,
+    Map<String, dynamic> patchChars,
   ) {
+    // have to do this just bc amiya
+    bool patched = false;
+    // ignore: no_leading_underscores_for_local_identifiers
+    String? _altkey;
+    for (MapEntry<String, dynamic> patch in (patchChars["infos"] as Map<String, dynamic>).entries) {
+      if ((patch.value["tmplIds"] as List).contains(key)) {
+        _altkey = patch.value["default"];
+        patched = true;
+        break;
+      }
+    }
+
     //custom names
     String name = dict['name'];
     var names = <String>[name];
@@ -198,6 +220,7 @@ class Operator {
     return Operator(
       operatorDict: dict,
       id: key,
+      altkey: _altkey,
       name: dict['name'],
       rarity: int.parse((dict['rarity'] as String).replaceAll('TIER_', '')),
       description: dict['description'],
@@ -212,8 +235,9 @@ class Operator {
       itemUsage: dict['itemUsage'],
       itemDesc: dict['itemDesc'],
       names: names,
-      loreInfo: loreDict[key],
-      voiceLangDict: voiceDict['voiceLangDict'][key],
+      loreInfo: loreDict[key] ?? ((patched) ? loreDict[_altkey] : {}),
+      voiceLangDict: voiceDict['voiceLangDict'][key] ??
+          ((patched) ? voiceDict['voiceLangDict'][_altkey] : null),
       charWordsList: getVoices(voiceDict['charWords'], key),
       skinsList: getSkins(charSkins, key),
       trait: dict['trait'],
@@ -223,8 +247,9 @@ class Operator {
       potentials: dict['potentialRanks'],
       favorKeyframes: dict['favorKeyFrames'],
       skillLvlMats: dict['allSkillLvlup'],
-      baseSkills: baseSkills[key],
+      baseSkills: baseSkills[key] ?? ((patched) ? baseSkills[_altkey] : null),
       modules: (modTable[key] as List<dynamic>?)?.map((e) => e as String).toList(),
+      opPatched: patched,
     );
   }
 }

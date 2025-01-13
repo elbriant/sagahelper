@@ -28,7 +28,8 @@ enum SettingsProviderKeys {
   homeShowSeconds('homeShowSeconds'),
   homeCompactMode('homeCompactMode'),
   sortingOrder('operatorSortingOrder'),
-  sortingReversed('operatorSortingReversed');
+  sortingReversed('operatorSortingReversed'),
+  nickname('nickname');
 
   const SettingsProviderKeys(
     this.key,
@@ -47,6 +48,7 @@ class SettingsProvider extends ChangeNotifier {
     SettingsProviderKeys.homeCompactMode: false,
     SettingsProviderKeys.sortingOrder: OrderType.rarity,
     SettingsProviderKeys.sortingReversed: false,
+    SettingsProviderKeys.nickname: null,
   };
 
   // ----- saved
@@ -67,7 +69,6 @@ class SettingsProvider extends ChangeNotifier {
   Map<String, FilterDetail> operatorFilters = {};
 
   // data
-  //TODO add configuration to change nickname
   String? nickname;
 
   SettingsProvider(
@@ -108,6 +109,8 @@ class SettingsProvider extends ChangeNotifier {
           _defaultValues[SettingsProviderKeys.sortingOrder],
       sortingReversed: configs[SettingsProviderKeys.sortingReversed.key] ??
           _defaultValues[SettingsProviderKeys.sortingReversed],
+      nickname: configs[SettingsProviderKeys.nickname.key] ??
+          _defaultValues[SettingsProviderKeys.nickname],
     );
     provider.loadSharedPreferences();
     return provider;
@@ -312,6 +315,15 @@ class SettingsProvider extends ChangeNotifier {
 
   void clearOperatorFilters() {
     operatorFilters = {};
+    notifyListeners();
+  }
+
+  void changeNickname(String? value) async {
+    nickname = value;
+    await LocalDataManager.writeConfigKey(
+      SettingsProviderKeys.nickname.key,
+      value,
+    );
     notifyListeners();
   }
 }

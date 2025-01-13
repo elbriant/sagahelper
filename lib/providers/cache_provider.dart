@@ -15,25 +15,20 @@ class CacheProvider extends ChangeNotifier {
   Map<String, dynamic>? cachedModTable;
   Map<String, dynamic>? cachedModStatsTable;
   Map<String, dynamic>? cachedBaseSkillTable;
+  Map<String, dynamic>? cachedTeamTable;
+  Map<String, dynamic>? cachedCharPatch;
+  Map<String, dynamic>? cachedCharMeta;
+  Map<String, dynamic>? cachedGamedataConst;
+  bool cached = false;
 
   bool get isCached {
     Servers server =
         NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer;
     String version =
         NavigationService.navigatorKey.currentContext!.read<ServerProvider>().versionOf(server);
+    bool cached = NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cached;
 
-    if (cachedListOperator != null &&
-        cachedListOperatorServer == server &&
-        cachedListOperatorVersion == version &&
-        cachedRangeTable != null &&
-        cachedSkillTable != null &&
-        cachedModTable != null &&
-        cachedBaseSkillTable != null &&
-        cachedModStatsTable != null) {
-      return true;
-    } else {
-      return false;
-    }
+    return cached && cachedListOperatorServer == server && cachedListOperatorVersion == version;
   }
 
   void cache({
@@ -45,6 +40,10 @@ class CacheProvider extends ChangeNotifier {
     required Map<String, dynamic> modTable,
     required Map<String, dynamic> baseSkillTable,
     required Map<String, dynamic> modStatsTable,
+    required Map<String, dynamic> teamTable,
+    required Map<String, dynamic> charPatch,
+    required Map<String, dynamic> charMeta,
+    required Map<String, dynamic> gamedataConst,
   }) {
     cachedListOperator = listOperator;
     cachedListOperatorServer = listOperatorServer;
@@ -54,6 +53,13 @@ class CacheProvider extends ChangeNotifier {
     cachedModTable = modTable;
     cachedBaseSkillTable = baseSkillTable;
     cachedModStatsTable = modStatsTable;
+    cachedTeamTable = teamTable;
+    cachedCharPatch = charPatch;
+    cachedCharMeta = charMeta;
+    cachedGamedataConst = gamedataConst;
+
+    cached = true;
+    notifyListeners();
   }
 
   void unCache() {
@@ -65,8 +71,15 @@ class CacheProvider extends ChangeNotifier {
     cachedModTable = null;
     cachedBaseSkillTable = null;
     cachedModStatsTable = null;
+    cachedTeamTable = null;
+    cachedCharPatch = null;
+    cachedCharMeta = null;
+    cachedGamedataConst = null;
     if (NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().opFetched == true) {
       NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setOpFetched(false);
     }
+
+    cached = false;
+    notifyListeners();
   }
 }

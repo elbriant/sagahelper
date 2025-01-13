@@ -1,6 +1,7 @@
 // -------------------- Appearance Settings Page ------------------------------
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sagahelper/components/dialog_box.dart';
 import 'package:sagahelper/components/theme_preview.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
@@ -43,7 +44,7 @@ class _AppearanceSettingsState extends State<AppearanceSettings> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = context.read<SettingsProvider>();
+    final settings = context.watch<SettingsProvider>();
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -168,7 +169,7 @@ class _AppearanceSettingsState extends State<AppearanceSettings> {
             title: const Text('12-hour format'),
             value: settings.homeHour12Format,
             onChanged: (state) => setState(() {
-              settings.setHourFormat(state);
+              context.read<SettingsProvider>().setHourFormat(state);
             }),
           ),
           SwitchListTile(
@@ -176,22 +177,40 @@ class _AppearanceSettingsState extends State<AppearanceSettings> {
             title: const Text('Show server date'),
             value: settings.homeShowDate,
             onChanged: (state) => setState(() {
-              settings.sethomeShowDate(state);
+              context.read<SettingsProvider>().sethomeShowDate(state);
             }),
           ),
           SwitchListTile(
             title: const Text('Show seconds'),
             value: settings.homeShowSeconds,
             onChanged: (state) => setState(() {
-              settings.sethomeShowSeconds(state);
+              context.read<SettingsProvider>().sethomeShowSeconds(state);
             }),
           ),
           SwitchListTile(
             title: const Text('Compact mode'),
             value: settings.homeCompactMode,
             onChanged: (state) => setState(() {
-              settings.sethomeCompactMode(state);
+              context.read<SettingsProvider>().sethomeCompactMode(state);
             }),
+          ),
+          ListTile(
+            title: const Text('Display'),
+            textColor: Theme.of(context).colorScheme.primary,
+          ),
+          SwitchListTile(
+            title: const Text('Classic dialog box color'),
+            value: !context.select<UiProvider, bool>((p) => p.combineWithTheme),
+            onChanged: (state) => context.read<UiProvider>().setCombineWithTheme(!state),
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16.0),
+            child: Center(
+              child: DialogBox(
+                title: 'Dialog box',
+                body: 'This is a dialog box example',
+              ),
+            ),
           ),
         ],
       ),

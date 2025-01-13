@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'package:sagahelper/models/dir_stat.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
 import 'package:flowder/flowder.dart';
 import 'package:flutter/material.dart';
@@ -53,6 +54,8 @@ class ServerProvider extends ChangeNotifier {
   DataState jpState = DataState.fetching;
   DataState krState = DataState.fetching;
 
+  Map<Servers, String> folderSize = {};
+
   ServerProvider({
     required this.enVersion,
     required this.cnVersion,
@@ -68,7 +71,10 @@ class ServerProvider extends ChangeNotifier {
   }
 
   static final List<String> metadataFiles = [
-    '/excel/handbook_team_table.json',
+    '/excel/handbook_team_table.json', // 0 factions
+    '/excel/char_patch_table.json', // 1 amiyi changes
+    '/excel/char_meta_table.json', // 2 related ops alters
+    '/excel/gamedata_const.json', // 3 for now only for game terminology dictionary
   ];
 
   static final List<String> opFiles = [
@@ -195,6 +201,7 @@ class ServerProvider extends ChangeNotifier {
     if (!result) return;
 
     setVersion(server, version: version);
+    getFolderSize(server);
     if (NavigationService.navigatorKey.currentContext!.mounted) {
       NavigationService.navigatorKey.currentContext!
           .read<SettingsProvider>()
@@ -226,7 +233,7 @@ class ServerProvider extends ChangeNotifier {
 
     String serverLocalPath = await LocalDataManager.localpathServer(server.folderLabel);
 
-    if (!Directory(serverLocalPath).existsSync()) {
+    if (!(await Directory(serverLocalPath).exists())) {
       await Directory(serverLocalPath).create(recursive: true);
     }
 
@@ -311,6 +318,35 @@ class ServerProvider extends ChangeNotifier {
       case Servers.kr:
         krState = state;
     }
+    notifyListeners();
+  }
+
+  Future<void> deleteServer(Servers server) async {
+    String serverLocalPath = await LocalDataManager.localpathServer(server.folderLabel);
+
+    if (await Directory(serverLocalPath).exists()) {
+      await Directory(serverLocalPath).delete(recursive: true);
+    }
+    getFolderSize(server);
+    // no version
+    setVersion(server);
+  }
+
+  Future<void> getFolderSize(Servers server) async {
+    Map<Servers, String> newSize = Map.of(folderSize);
+    String serverLocalPath = await LocalDataManager.localpathServer(server.folderLabel);
+
+    String serverSize = await DirStat.getDirStat(serverLocalPath).then((dirStat) {
+      return dirStat.totalSizeString;
+    });
+
+    if (serverSize != '0 B') {
+      newSize[server] = serverSize;
+    } else {
+      newSize.remove(server);
+    }
+
+    folderSize = newSize;
     notifyListeners();
   }
 }

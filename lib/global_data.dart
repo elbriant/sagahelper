@@ -35,6 +35,7 @@ const String kModImgRepo =
     'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/refs/heads/cn/assets/torappu/dynamicassets/arts/ui/uniequipimg';
 const String kModIconRepo =
     'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/refs/heads/cn/assets/torappu/dynamicassets/arts/ui/uniequiptype';
+
 // Voice Assets from Aceship's repo
 const String kVoiceRepo = 'https://github.com/Aceship/Arknight-voices/raw/refs/heads/main';
 
@@ -125,10 +126,12 @@ class NavigationService {
 
 class LocalDataManager {
   static final String configPath = 'configs.txt';
+  static late final String _localPath;
+  static late final String _cachePath;
 
-  static Future<String> get _localPath async {
-    final directory = await getApplicationDocumentsDirectory();
-    return directory.path;
+  static Future<void> initDirectories() async {
+    _localPath = (await getApplicationDocumentsDirectory()).path;
+    _cachePath = (await getApplicationCacheDirectory()).path;
   }
 
   static Future<String> get downloadPath async {
@@ -153,21 +156,39 @@ class LocalDataManager {
     }
   }
 
-  /* cache path
-  Future<String> get _cachePath async {
-    final directory = await getApplicationCacheDirectory();
-    return directory.path;
+  static Future<File> localCacheFile(String filePath, [bool justDirectory = false]) async {
+    final path = _cachePath;
+
+    if (justDirectory) {
+      final completePath = '$path/$filePath';
+      var folderPath = completePath.split(r'/');
+      folderPath.removeLast();
+
+      final dirExists = await Directory(folderPath.join('/')).exists();
+
+      if (!dirExists) {
+        await Directory(folderPath.join('/')).create(recursive: true);
+      }
+
+      return File('$path/$filePath');
+    }
+
+    var dirExists = await File('$path/$filePath').exists();
+    if (dirExists == true) {
+      return File('$path/$filePath');
+    } else {
+      return await File('$path/$filePath').create(recursive: true);
+    }
   }
-  */
 
   static Future<File> localFile(String filePath) async {
-    final path = await _localPath;
+    final path = _localPath;
     var dirExists = await File('$path/$filePath').exists();
 
     if (dirExists == true) {
       return File('$path/$filePath');
     } else {
-      return File('$path/$filePath').create(recursive: true);
+      return await File('$path/$filePath').create(recursive: true);
     }
   }
 

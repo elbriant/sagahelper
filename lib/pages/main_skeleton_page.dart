@@ -50,42 +50,42 @@ class _SkeletonState extends State<Skeleton> {
             return Column(
               mainAxisSize: MainAxisSize.max,
               children: [
-                settingsProv.showNotifier
-                    ? Container(
-                        padding: EdgeInsets.fromLTRB(
-                          20,
-                          MediaQuery.of(context).padding.top + 2.0,
-                          20,
-                          2.0,
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 600),
+                  curve: Curves.ease,
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    MediaQuery.of(context).padding.top + 2.0,
+                    20,
+                    2.0,
+                  ),
+                  height: settingsProv.showNotifier ? (MediaQuery.of(context).padding.top + 24) : 0,
+                  color: Theme.of(context).colorScheme.primary,
+                  constraints: BoxConstraints.loose(MediaQuery.sizeOf(context)),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: 12,
+                        width: 12,
+                        child: CircularProgressIndicator(
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          strokeWidth: 3.0,
                         ),
-                        height: MediaQuery.of(context).padding.top + 24,
-                        color: Theme.of(context).colorScheme.primary,
-                        constraints: BoxConstraints.loose(MediaQuery.sizeOf(context)),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              height: 12,
-                              width: 12,
-                              child: CircularProgressIndicator(
-                                color: Theme.of(context).colorScheme.onPrimary,
-                                strokeWidth: 3.0,
-                              ),
-                            ),
-                            const SizedBox(width: 20),
-                            Flexible(
-                              child: Text(
-                                settingsProv.loadingString,
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.onPrimary,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ),
-                          ],
+                      ),
+                      const SizedBox(width: 20),
+                      Flexible(
+                        child: Text(
+                          settingsProv.loadingString,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onPrimary,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      )
-                    : Container(),
+                      ),
+                    ],
+                  ),
+                ),
                 Expanded(
                   child: _pages[uiProv.currentHomePageIndx],
                 ),
@@ -148,7 +148,7 @@ class BottomNavBar extends StatelessWidget {
           selectedIcon: Icon(Icons.app_shortcut),
         ),
         NavigationDestination(
-          icon: Icon(Icons.settings_outlined),
+          icon: Icon(Icons.more_horiz_outlined),
           label: 'More',
           selectedIcon: Icon(Icons.more_horiz),
         ),

@@ -97,6 +97,7 @@ void main() async {
 
   await initNotifications();
   await SettingsProvider.sharedPreferencesInit();
+  await LocalDataManager.initDirectories();
 
   Object? hasError;
   Map configs = {};

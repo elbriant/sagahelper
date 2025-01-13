@@ -3,9 +3,12 @@ import 'dart:ui' as ui;
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sagahelper/components/big_title_text.dart';
+import 'package:sagahelper/components/operator_lil_card.dart';
+import 'package:sagahelper/components/stored_image.dart';
 import 'package:sagahelper/components/trait_card.dart';
 import 'package:styled_text/styled_text.dart';
 import 'package:sagahelper/components/dialog_box.dart';
@@ -21,8 +24,9 @@ import 'package:sagahelper/utils/extensions.dart';
 import 'dart:developer' as dev;
 
 class HeaderInfo extends StatelessWidget {
-  const HeaderInfo({super.key, required this.operator});
+  const HeaderInfo({super.key, required this.operator, required this.relatedOps});
   final Operator operator;
+  final Widget relatedOps;
 
   @override
   Widget build(BuildContext context) {
@@ -118,22 +122,19 @@ class HeaderInfo extends StatelessWidget {
                                   style: BorderStyle.solid,
                                 ),
                               ),
-                              child: CachedNetworkImage(
+                              child: StoredImage(
                                 colorBlendMode: BlendMode.modulate,
                                 color: const Color.fromARGB(99, 255, 255, 255),
                                 scale: 0.9,
                                 fit: BoxFit.fitWidth,
-                                placeholder: (context, url) => Image.asset(
+                                placeholder: Image.asset(
                                   'assets/placeholders/avatar.png',
                                   colorBlendMode: BlendMode.modulate,
                                   color: Colors.transparent,
                                 ),
                                 imageUrl: ghAvatarLink,
-                                errorWidget: (context, url, error) => Image.asset(
-                                  'assets/placeholders/avatar.png',
-                                  colorBlendMode: BlendMode.modulate,
-                                  color: Colors.transparent,
-                                ),
+                                filePath:
+                                    'images/${operator.id}_dl${DisplayList.avatar.index.toString()}.png',
                               ),
                             ),
                           ),
@@ -157,45 +158,17 @@ class HeaderInfo extends StatelessWidget {
                                 ),
                                 color: const Color.fromARGB(255, 241, 241, 241),
                               ),
-                              child: Hero(
-                                tag: operator.id,
-                                child: CachedNetworkImage(
-                                  cacheKey:
-                                      '${operator.id}_dl${DisplayList.avatar.index.toString()}',
-                                  fit: BoxFit.fitWidth,
-                                  placeholder: (context, url) => Stack(
-                                    children: [
-                                      Image.asset(
-                                        'assets/placeholders/avatar.png',
-                                        colorBlendMode: BlendMode.modulate,
-                                        color: Colors.transparent,
-                                      ),
-                                      const Positioned.fill(
-                                        child: Center(
-                                          child: CircularProgressIndicator(),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  imageUrl: ghAvatarLink,
-                                  errorWidget: (context, url, error) => Stack(
-                                    children: [
-                                      Image.asset(
-                                        'assets/placeholders/avatar.png',
-                                        colorBlendMode: BlendMode.modulate,
-                                        color: Colors.transparent,
-                                      ),
-                                      Positioned.fill(
-                                        child: Center(
-                                          child: Icon(
-                                            Icons.error_outline,
-                                            color: Theme.of(context).colorScheme.primary,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                              child: StoredImage(
+                                heroTag: operator.id,
+                                filePath:
+                                    'images/${operator.id}_dl${DisplayList.avatar.index.toString()}.png',
+                                fit: BoxFit.fitWidth,
+                                placeholder: Image.asset(
+                                  'assets/placeholders/avatar.png',
+                                  colorBlendMode: BlendMode.modulate,
+                                  color: Colors.transparent,
                                 ),
+                                imageUrl: ghAvatarLink,
                               ),
                             ),
                           ),
@@ -274,6 +247,11 @@ class HeaderInfo extends StatelessWidget {
                   );
                 }),
               ),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.ease,
+                child: relatedOps,
+              ),
             ],
           ),
         ],
@@ -315,6 +293,12 @@ class LoreInfo extends StatelessWidget {
             ),
           );
         }
+        if (operator.opPatched &&
+            !(((storyTextList[index]['stories'] as List).first as Map)["patchIdList"] as List)
+                .contains(operator.id)) {
+          return null;
+        }
+
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 24.0),
           child: DialogBox(
@@ -322,7 +306,7 @@ class LoreInfo extends StatelessWidget {
             body: ((storyTextList[index]['stories'] as List).first as Map)['storyText'],
           ),
         );
-      }),
+      }).nullParser(),
     );
   }
 }
@@ -615,7 +599,7 @@ class _SkillInfoState extends State<SkillInfo> {
                     const BigTitleText(title: 'Trait'),
                     TraitCard(
                       label: Text(
-                        widget.operator.subProfessionString,
+                        '${widget.operator.professionString} - ${widget.operator.subProfessionString}',
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.onPrimary,
                           fontWeight: FontWeight.w600,
@@ -674,7 +658,6 @@ class _SkillInfoState extends State<SkillInfo> {
                       ),
                       child: skillBuilder(),
                     ),
-                    const Divider(),
                   ],
                 )
               : null,
@@ -682,6 +665,7 @@ class _SkillInfoState extends State<SkillInfo> {
               ? Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    const Divider(),
                     const BigTitleText(title: 'Modules'),
                     Container(
                       width: double.maxFinite,
@@ -693,21 +677,28 @@ class _SkillInfoState extends State<SkillInfo> {
                       ),
                       child: modulesBuilder(),
                     ),
-                    const Divider(),
                   ],
                 )
               : null,
-          const BigTitleText(title: 'RIIC Base Skills'),
-          Container(
-            width: double.maxFinite,
-            padding: const EdgeInsets.all(24.0),
-            margin: const EdgeInsets.only(bottom: 20.0),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainer,
-              borderRadius: BorderRadius.circular(12.0),
-            ),
-            child: baseSkillBuilder(),
-          ),
+          (widget.operator.baseSkills.isNotEmpty)
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Divider(),
+                    const BigTitleText(title: 'RIIC Base Skills'),
+                    Container(
+                      width: double.maxFinite,
+                      padding: const EdgeInsets.all(24.0),
+                      margin: const EdgeInsets.only(bottom: 20.0),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainer,
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      child: baseSkillBuilder(),
+                    ),
+                  ],
+                )
+              : null,
         ].nullParser(),
       ),
     );
@@ -1705,7 +1696,6 @@ class _SkillInfoState extends State<SkillInfo> {
                   skillsDetails[showSkill]["levels"][skillLv]["spData"]["spCost"],
                   skillsDetails[showSkill]["levels"][skillLv - 1]["spData"]["spCost"],
                 ),
-          // TODO should do a method to detect if its a good or bad diff
         ),
       );
 
@@ -1724,7 +1714,6 @@ class _SkillInfoState extends State<SkillInfo> {
                   skillsDetails[showSkill]["levels"][skillLv]["spData"]["initSp"],
                   skillsDetails[showSkill]["levels"][skillLv - 1]["spData"]["initSp"],
                 ),
-          // TODO should do a method to detect if its a good or bad diff
         ),
       );
 
@@ -1746,7 +1735,6 @@ class _SkillInfoState extends State<SkillInfo> {
                           skillsDetails[showSkill]["levels"][skillLv]["duration"],
                           skillsDetails[showSkill]["levels"][skillLv - 1]["duration"],
                         ),
-                  // TODO should do a method to detect if its a good or bad diff
                 )
               : null,
           "AMMO" => ((skillsDetails[showSkill]["levels"][skillLv]["blackboard"] as List).lastWhere(
@@ -1777,7 +1765,6 @@ class _SkillInfoState extends State<SkillInfo> {
                             (i) => ((i as Map)["key"] as String).endsWith("trigger_time"),
                           ) as Map)["value"],
                         ),
-                  // TODO should do a method to detect if its a good or bad diff
                 )
               : null,
           _ => null,
@@ -2786,6 +2773,40 @@ class ArchivePage extends StatefulWidget {
   State<ArchivePage> createState() => _ArchivePageState();
 }
 
+List<Operator>? computingRelatedOps(List input) {
+  List<Operator>? result;
+  List<dynamic>? opGroup; // List<String>
+
+  if (input[4]) {
+    for (Map group in (input[3]["infos"] as Map<String, dynamic>).values) {
+      if ((group["tmplIds"] as List).contains(input[0])) {
+        opGroup = group["tmplIds"];
+        break;
+      }
+    }
+  } else {
+    for (List group in (input[1]["spCharGroups"] as Map<String, dynamic>).values) {
+      if (group.contains(input[0])) {
+        opGroup = group;
+        break;
+      }
+    }
+  }
+  if (opGroup == null || opGroup.length <= 1) return result;
+
+  result = [];
+
+  for (final opId in opGroup) {
+    if (opId == input[0]) continue;
+
+    final relOp = (input[2] as List<Operator>).singleWhere((element) => element.id == opId);
+
+    result.add(relOp);
+  }
+
+  return result;
+}
+
 class _ArchivePageState extends State<ArchivePage> with SingleTickerProviderStateMixin {
   late TabController _secondaryTabController;
   late final List<Widget> _secChildren;
@@ -2795,9 +2816,14 @@ class _ArchivePageState extends State<ArchivePage> with SingleTickerProviderStat
     const Tab(text: 'File'),
   ];
 
+  late Future<List<Operator>?> relatedOperatorList;
+
   @override
   void initState() {
     super.initState();
+
+    relatedOperatorList = getRelatedOps();
+
     _secondaryTabController = TabController(vsync: this, length: _secTabs.length);
     _secondaryTabController.addListener(() {
       setState(() {
@@ -2808,96 +2834,158 @@ class _ArchivePageState extends State<ArchivePage> with SingleTickerProviderStat
     _secChildren = [SkillInfo(widget.operator), LoreInfo(widget.operator)];
   }
 
+  Future<List<Operator>?> getRelatedOps() async {
+    final charMeta =
+        NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedCharMeta;
+    final charPatch =
+        NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedCharPatch;
+    final opList =
+        NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperator;
+    final bool opHasPatch = widget.operator.opPatched;
+
+    final List input = [widget.operator.id, charMeta, opList, charPatch, opHasPatch];
+
+    return await compute(computingRelatedOps, input);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      slivers: [
-        SliverAppBar.medium(
-          flexibleSpace: context.read<UiProvider>().useTranslucentUi == true
-              ? TranslucentWidget(
-                  child: FlexibleSpaceBar(
-                    title: Text(widget.operator.name),
-                    titlePadding: const EdgeInsets.only(
-                      left: 72.0,
-                      bottom: 16.0,
-                      right: 32.0,
-                    ),
-                  ),
-                )
-              : FlexibleSpaceBar(
-                  title: Text(widget.operator.name),
-                  titlePadding: const EdgeInsets.only(
-                    left: 72.0,
-                    bottom: 16.0,
-                    right: 32.0,
+    return FutureBuilder(
+      future: relatedOperatorList,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) throw snapshot.error!; //  Error
+
+        Widget relatedOperatorHeader = (snapshot.hasData &&
+                snapshot.connectionState == ConnectionState.done &&
+                snapshot.data != null)
+            ? SizedBox(
+                width: double.maxFinite,
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Related Operators: ',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontSize: 18,
+                          fontWeight: ui.FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8.0),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: List.generate(
+                            snapshot.data!.length,
+                            (index) {
+                              return OperatorLilCard(operator: snapshot.data![index]);
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-          backgroundColor: context.read<UiProvider>().useTranslucentUi == true
-              ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5)
-              : null,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.pop(context),
-          ),
-          actions: [
-            MenuAnchor(
-              menuChildren: [
-                SwitchListTile(
-                  value: context.watch<SettingsProvider>().prefs[PrefsFlags.menuShowAdvanced],
-                  onChanged: (bool value) {
-                    context
-                        .read<SettingsProvider>()
-                        .setAndSaveBoolPref(PrefsFlags.menuShowAdvanced, value);
+              )
+            : const SizedBox(
+                height: 0,
+                width: double.maxFinite,
+              );
+
+        return CustomScrollView(
+          slivers: [
+            SliverAppBar.medium(
+              flexibleSpace: context.read<UiProvider>().useTranslucentUi == true
+                  ? TranslucentWidget(
+                      child: FlexibleSpaceBar(
+                        title: Text(widget.operator.name),
+                        titlePadding: const EdgeInsets.only(
+                          left: 72.0,
+                          bottom: 16.0,
+                          right: 32.0,
+                        ),
+                      ),
+                    )
+                  : FlexibleSpaceBar(
+                      title: Text(widget.operator.name),
+                      titlePadding: const EdgeInsets.only(
+                        left: 72.0,
+                        bottom: 16.0,
+                        right: 32.0,
+                      ),
+                    ),
+              backgroundColor: context.read<UiProvider>().useTranslucentUi == true
+                  ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5)
+                  : null,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context),
+              ),
+              actions: [
+                MenuAnchor(
+                  menuChildren: [
+                    SwitchListTile(
+                      value: context.watch<SettingsProvider>().prefs[PrefsFlags.menuShowAdvanced],
+                      onChanged: (bool value) {
+                        context
+                            .read<SettingsProvider>()
+                            .setAndSaveBoolPref(PrefsFlags.menuShowAdvanced, value);
+                      },
+                      title: const Text('Show advanced'),
+                    ),
+                  ],
+                  builder: (
+                    BuildContext context,
+                    MenuController controller,
+                    Widget? child,
+                  ) {
+                    return IconButton(
+                      onPressed: () {
+                        if (controller.isOpen) {
+                          controller.close();
+                        } else {
+                          controller.open();
+                        }
+                      },
+                      icon: const Icon(Icons.more_horiz),
+                    );
                   },
-                  title: const Text('Show advanced'),
                 ),
               ],
-              builder: (
-                BuildContext context,
-                MenuController controller,
-                Widget? child,
-              ) {
-                return IconButton(
-                  onPressed: () {
-                    if (controller.isOpen) {
-                      controller.close();
-                    } else {
-                      controller.open();
-                    }
-                  },
-                  icon: const Icon(Icons.more_horiz),
-                );
-              },
+            ),
+            SliverList.list(
+              children: [
+                HeaderInfo(
+                  operator: widget.operator,
+                  relatedOps: relatedOperatorHeader,
+                ),
+                TabBar.secondary(
+                  controller: _secondaryTabController,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  tabs: _secTabs,
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+            SliverToBoxAdapter(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 350),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return AnimatedSwitcher.defaultTransitionBuilder(
+                    child,
+                    animation,
+                  );
+                },
+                child: _secChildren[_activeIndex],
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: SizedBox(height: MediaQuery.of(context).padding.bottom),
             ),
           ],
-        ),
-        SliverList.list(
-          children: [
-            HeaderInfo(operator: widget.operator),
-            TabBar.secondary(
-              controller: _secondaryTabController,
-              indicatorSize: TabBarIndicatorSize.tab,
-              tabs: _secTabs,
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
-        SliverToBoxAdapter(
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 350),
-            transitionBuilder: (Widget child, Animation<double> animation) {
-              return AnimatedSwitcher.defaultTransitionBuilder(
-                child,
-                animation,
-              );
-            },
-            child: _secChildren[_activeIndex],
-          ),
-        ),
-        SliverToBoxAdapter(
-          child: SizedBox(height: MediaQuery.of(context).padding.bottom),
-        ),
-      ],
+        );
+      },
     );
   }
 }

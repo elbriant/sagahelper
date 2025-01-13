@@ -1,0 +1,129 @@
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:network_to_file_image/network_to_file_image.dart';
+import 'package:sagahelper/global_data.dart';
+
+class StoredImage extends StatelessWidget {
+  const StoredImage({
+    super.key,
+    this.filePath,
+    this.imageUrl,
+    this.boxFit = BoxFit.contain,
+    this.heroTag,
+    this.color,
+    this.colorBlendMode,
+    this.fit,
+    this.scale = 1.0,
+    this.alignment = Alignment.center,
+    this.filterQuality = FilterQuality.medium,
+    this.placeholder,
+    this.showProgressOnPlaceholder = true,
+  });
+
+  final String? filePath;
+  final String? imageUrl;
+  final BoxFit boxFit;
+  final String? heroTag;
+  final Color? color;
+  final BlendMode? colorBlendMode;
+  final BoxFit? fit;
+  final double scale;
+  final AlignmentGeometry alignment;
+  final FilterQuality filterQuality;
+  final Widget? placeholder;
+  final bool showProgressOnPlaceholder;
+
+  @override
+  Widget build(BuildContext context) {
+    assert(filePath != null || imageUrl != null);
+    Future<File?> imgFile;
+
+    if (filePath != null) {
+      imgFile = LocalDataManager.localCacheFile(
+        filePath!,
+        true,
+      );
+    } else {
+      imgFile = Future.value(null);
+    }
+
+    return FutureBuilder(
+      future: imgFile,
+      builder: (context, snapshot) {
+        final Widget imgChild =
+            (snapshot.hasData && snapshot.connectionState == ConnectionState.done)
+                ? Image(
+                    image: NetworkToFileImage(
+                      url: imageUrl,
+                      file: snapshot.data!,
+                      scale: scale,
+                    ),
+                    fit: boxFit,
+                    color: color,
+                    alignment: alignment,
+                    colorBlendMode: colorBlendMode,
+                    filterQuality: filterQuality,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Center(child: Icon(Icons.error));
+                    },
+                    loadingBuilder: (
+                      BuildContext context,
+                      Widget child,
+                      ImageChunkEvent? loadingProgress,
+                    ) {
+                      if (loadingProgress == null) {
+                        return child;
+                      }
+
+                      if (placeholder == null) {
+                        return Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                : null,
+                          ),
+                        );
+                      }
+
+                      return Stack(
+                        children: [
+                          placeholder!,
+                          showProgressOnPlaceholder
+                              ? Center(
+                                  child: CircularProgressIndicator(
+                                    value: loadingProgress.expectedTotalBytes != null
+                                        ? loadingProgress.cumulativeBytesLoaded /
+                                            loadingProgress.expectedTotalBytes!
+                                        : null,
+                                  ),
+                                )
+                              : null,
+                        ].nonNulls.toList(),
+                      );
+                    },
+                  )
+                : placeholder == null
+                    ? const Center(child: CircularProgressIndicator())
+                    : Stack(
+                        children: [
+                          placeholder!,
+                          showProgressOnPlaceholder
+                              ? const Center(child: CircularProgressIndicator())
+                              : null,
+                        ].nonNulls.toList(),
+                      );
+
+        if (heroTag != null) {
+          return Hero(
+            tag: heroTag!,
+            child: imgChild,
+          );
+        } else {
+          return imgChild;
+        }
+      },
+    );
+  }
+}

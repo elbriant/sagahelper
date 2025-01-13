@@ -108,11 +108,22 @@ class _VoicePageState extends State<VoicePage> with WidgetsBindingObserver {
     }
 
     List<Widget> langsButtons = List.generate(langs.length, (index) {
-      String label = switch (langs[index]) { 'cn_mandarin' => 'CN', 'cn_topolect' => 'CN', 'linkage' => 'CUSTOM', String() => langs[index].toUpperCase() };
+      String label = switch (langs[index]) {
+        'cn_mandarin' => 'CN',
+        'cn_topolect' => 'CN',
+        'linkage' => 'CUSTOM',
+        String() => langs[index].toUpperCase()
+      };
 
-      String? sublabel = switch (langs[index]) { 'cn_mandarin' => 'Mandarin', 'cn_topolect' => 'Topolect', String() => null };
+      String? sublabel = switch (langs[index]) {
+        'cn_mandarin' => 'Mandarin',
+        'cn_topolect' => 'Topolect',
+        String() => null
+      };
 
-      String va = ((widget.operator.voiceLangDict['dict'] as Map<String, dynamic>)[langs[index].toUpperCase()]["cvName"] as List).join(', ');
+      String va = ((widget.operator.voiceLangDict['dict']
+              as Map<String, dynamic>)[langs[index].toUpperCase()]["cvName"] as List)
+          .join(', ');
 
       return StyledLangButton(
         label: label,
@@ -151,7 +162,9 @@ class _VoicePageState extends State<VoicePage> with WidgetsBindingObserver {
                   right: 32.0,
                 ),
               ),
-        backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
+        backgroundColor: context.read<UiProvider>().useTranslucentUi == true
+            ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5)
+            : null,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -255,12 +268,23 @@ class _VoicePageState extends State<VoicePage> with WidgetsBindingObserver {
       });
     }
     // get link using Aceship's repo
-    String voicelang = switch (langs[selectedLang]) { 'jp' => 'voice', 'en' => 'voice_en', 'kr' => 'voice_kr', 'cn_mandarin' => 'voice_cn', 'linkage' => 'voice', String() => 'voice_custom' };
+    String voicelang = switch (langs[selectedLang]) {
+      'jp' => 'voice',
+      'en' => 'voice_en',
+      'kr' => 'voice_kr',
+      'cn_mandarin' => 'voice_cn',
+      'linkage' => 'voice',
+      String() => 'voice_custom'
+    };
 
     String opId = selectedVoicelines;
 
     if (voicelang == 'voice_custom') {
-      opId += switch (langs[selectedLang]) { 'cn_topolect' => '_cn_topolect', 'ita' => '_ita', String() => '' };
+      opId += switch (langs[selectedLang]) {
+        'cn_topolect' => '_cn_topolect',
+        'ita' => '_ita',
+        String() => ''
+      };
     }
 
     String link = '$kVoiceRepo/$voicelang/$opId/$voiceId.mp3'.githubEncode();
@@ -274,7 +298,8 @@ class _VoicePageState extends State<VoicePage> with WidgetsBindingObserver {
     final playing = playerState?.playing;
 
     if (playing == true) {
-      if (processingState == ProcessingState.loading || processingState == ProcessingState.buffering) {
+      if (processingState == ProcessingState.loading ||
+          processingState == ProcessingState.buffering) {
         // is loading something
         if (index != playingIndex) {
           manager.stop();

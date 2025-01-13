@@ -21,6 +21,8 @@ enum FilterType {
   profession,
   subprofession,
   rarity,
+  faction,
+  extra,
 }
 
 enum FilterMode {

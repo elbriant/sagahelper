@@ -9,7 +9,8 @@ enum UiProviderKeys {
   themeMode('themeMode'),
   isUsingPureDark('isUsingPureDark'),
   useTranslucentUi('useTranslucentUi'),
-  previewThemeIndexSelected('previewThemeIndexSelected');
+  previewThemeIndexSelected('previewThemeIndexSelected'),
+  combineWithTheme('combineWithTheme');
 
   const UiProviderKeys(
     this.key,
@@ -24,6 +25,7 @@ class UiProvider extends ChangeNotifier {
     UiProviderKeys.isUsingPureDark: false,
     UiProviderKeys.useTranslucentUi: false,
     UiProviderKeys.previewThemeIndexSelected: 0,
+    UiProviderKeys.combineWithTheme: true,
   };
 
   // saved configs
@@ -34,8 +36,7 @@ class UiProvider extends ChangeNotifier {
   int previewThemeIndexSelected;
 
   // dialog Box
-  // TODO add to configs
-  bool combineWithTheme = true;
+  bool combineWithTheme;
 
   //not save
   int _currentHomePageIndx = 0;
@@ -51,15 +52,23 @@ class UiProvider extends ChangeNotifier {
     required this.isUsingPureDark,
     required this.useTranslucentUi,
     required this.previewThemeIndexSelected,
+    required this.combineWithTheme,
   });
 
   factory UiProvider.fromConfig(Map configs) {
     return UiProvider(
-      currentTheme: allCustomThemesList[configs[UiProviderKeys.currentTheme.key] ?? _defaultValues[UiProviderKeys.currentTheme]],
-      themeMode: listAllThemeModes[configs[UiProviderKeys.themeMode.key] ?? _defaultValues[UiProviderKeys.themeMode]],
-      isUsingPureDark: configs[UiProviderKeys.isUsingPureDark.key] ?? _defaultValues[UiProviderKeys.isUsingPureDark],
-      previewThemeIndexSelected: configs[UiProviderKeys.previewThemeIndexSelected.key] ?? _defaultValues[UiProviderKeys.previewThemeIndexSelected],
-      useTranslucentUi: configs[UiProviderKeys.useTranslucentUi.key] ?? _defaultValues[UiProviderKeys.useTranslucentUi],
+      currentTheme: allCustomThemesList[
+          configs[UiProviderKeys.currentTheme.key] ?? _defaultValues[UiProviderKeys.currentTheme]],
+      themeMode: listAllThemeModes[
+          configs[UiProviderKeys.themeMode.key] ?? _defaultValues[UiProviderKeys.themeMode]],
+      isUsingPureDark: configs[UiProviderKeys.isUsingPureDark.key] ??
+          _defaultValues[UiProviderKeys.isUsingPureDark],
+      previewThemeIndexSelected: configs[UiProviderKeys.previewThemeIndexSelected.key] ??
+          _defaultValues[UiProviderKeys.previewThemeIndexSelected],
+      useTranslucentUi: configs[UiProviderKeys.useTranslucentUi.key] ??
+          _defaultValues[UiProviderKeys.useTranslucentUi],
+      combineWithTheme: configs[UiProviderKeys.combineWithTheme] ??
+          _defaultValues[UiProviderKeys.combineWithTheme],
     );
   }
 
@@ -111,6 +120,15 @@ class UiProvider extends ChangeNotifier {
       UiProviderKeys.currentTheme.key: index,
       UiProviderKeys.previewThemeIndexSelected.key: index,
     });
+    notifyListeners();
+  }
+
+  void setCombineWithTheme(bool newValue) async {
+    combineWithTheme = newValue;
+    await LocalDataManager.writeConfigKey(
+      UiProviderKeys.combineWithTheme.key,
+      newValue,
+    );
     notifyListeners();
   }
 }

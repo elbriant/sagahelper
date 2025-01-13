@@ -73,7 +73,7 @@ class DialogBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    bool combineWithTheme = context.read<UiProvider>().combineWithTheme;
+    bool combineWithTheme = context.select<UiProvider, bool>((p) => p.combineWithTheme);
     return Stack(
       children: [
         Container(
@@ -89,7 +89,9 @@ class DialogBox extends StatelessWidget {
             ],
             color: combineWithTheme
                 ? Color.lerp(
-                    Theme.of(context).brightness == Brightness.light ? const Color.fromARGB(166, 85, 85, 85) : const Color.fromARGB(166, 0, 0, 0),
+                    Theme.of(context).brightness == Brightness.light
+                        ? const Color.fromARGB(166, 85, 85, 85)
+                        : const Color.fromARGB(166, 0, 0, 0),
                     Theme.of(context).colorScheme.primaryContainer,
                     0.35,
                   )
@@ -154,7 +156,7 @@ class InkWellDialogBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    bool combineWithTheme = context.read<UiProvider>().combineWithTheme;
+    bool combineWithTheme = context.select<UiProvider, bool>((p) => p.combineWithTheme);
     return Stack(
       children: [
         Stack(
@@ -173,7 +175,9 @@ class InkWellDialogBox extends StatelessWidget {
                 ],
                 color: combineWithTheme
                     ? Color.lerp(
-                        Theme.of(context).brightness == Brightness.light ? const Color.fromARGB(166, 85, 85, 85) : const Color.fromARGB(166, 0, 0, 0),
+                        Theme.of(context).brightness == Brightness.light
+                            ? const Color.fromARGB(166, 85, 85, 85)
+                            : const Color.fromARGB(166, 0, 0, 0),
                         Theme.of(context).colorScheme.primaryContainer,
                         0.65,
                       )
@@ -233,7 +237,8 @@ class InkWellDialogBox extends StatelessWidget {
                         textScaler: title!.length > 42
                             ? TextScaler.linear(
                                 // ignore: deprecated_member_use
-                                MediaQuery.textScalerOf(context).textScaleFactor - ((title!.length - 42) / 100),
+                                MediaQuery.textScalerOf(context).textScaleFactor -
+                                    ((title!.length - 42) / 100),
                               )
                             : null,
                       ),
@@ -299,7 +304,7 @@ class AudioDialogBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    bool combineWithTheme = context.read<UiProvider>().combineWithTheme;
+    bool combineWithTheme = context.select<UiProvider, bool>((p) => p.combineWithTheme);
 
     return Stack(
       children: [
@@ -316,7 +321,9 @@ class AudioDialogBox extends StatelessWidget {
             ],
             color: combineWithTheme
                 ? Color.lerp(
-                    Theme.of(context).brightness == Brightness.light ? const Color.fromARGB(166, 85, 85, 85) : const Color.fromARGB(166, 0, 0, 0),
+                    Theme.of(context).brightness == Brightness.light
+                        ? const Color.fromARGB(166, 85, 85, 85)
+                        : const Color.fromARGB(166, 0, 0, 0),
                     Theme.of(context).colorScheme.primaryContainer,
                     0.35,
                   )
@@ -331,7 +338,9 @@ class AudioDialogBox extends StatelessWidget {
                   Expanded(
                     flex: 7,
                     child: Padding(
-                      padding: isPlaying ? const EdgeInsets.fromLTRB(16.0, 16.0, 0, 16.0) : const EdgeInsets.all(16.0),
+                      padding: isPlaying
+                          ? const EdgeInsets.fromLTRB(16.0, 16.0, 0, 16.0)
+                          : const EdgeInsets.all(16.0),
                       child: StyledText(
                         text: body,
                         style: const TextStyle(
@@ -353,7 +362,8 @@ class AudioDialogBox extends StatelessWidget {
                                 final playerState = snapshot.data;
                                 final processingState = playerState?.processingState;
                                 final playing = playerState?.playing;
-                                if (processingState == ProcessingState.loading || processingState == ProcessingState.buffering) {
+                                if (processingState == ProcessingState.loading ||
+                                    processingState == ProcessingState.buffering) {
                                   return SizedBox.square(
                                     dimension: 24,
                                     child: CircularProgressIndicator(
