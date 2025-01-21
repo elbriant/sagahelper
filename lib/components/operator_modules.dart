@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:network_to_file_image/network_to_file_image.dart';
 import 'package:provider/provider.dart';
+import 'package:sagahelper/components/range_tile.dart';
 import 'package:sagahelper/components/stat_tile.dart';
 import 'package:sagahelper/components/stored_image.dart';
 import 'package:sagahelper/components/styled_buttons.dart';
@@ -339,6 +340,14 @@ class OperatorModules extends StatelessWidget {
               int thisTalentCandidatePot = candidate["requiredPotentialRank"];
               return (overrideLocalPot ?? localModPotential ?? minPot) >= thisTalentCandidatePot;
             });
+
+            //range expands
+            if (candidate["displayRangeId"] && candidate["rangeId"] != null) {
+              result.add(
+                RangeTile.smol(candidate["rangeId"]),
+              );
+            }
+
             if (candidate["talentIndex"] < 0) continue;
             if (candidate["isHideTalent"]) continue;
 
