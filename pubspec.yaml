@@ -50,14 +50,13 @@ dependencies:
   provider: ^6.1.2
   animations: ^2.0.11
   path_provider: ^2.1.4
-  cached_network_image: ^3.4.1
   sliver_tools: ^0.2.12
   intl: ^0.19.0
   url_launcher: ^6.3.0
   just_audio: ^0.9.40
   system_theme: ^3.1.1
   carousel_slider: ^5.0.0
-  styled_text: ^8.1.0
+  styled_text: ^9.0.0-beta-4
   flutter_local_notifications: ^17.2.3
   flutter_native_splash: ^2.4.1
   permission_handler: ^11.3.1
@@ -74,6 +73,7 @@ dependencies:
   contentsize_tabbarview: ^0.0.2
   expandable: ^5.0.1
   network_to_file_image: ^7.0.0
+  gradient_borders: ^1.0.1
 
 dev_dependencies:
   flutter_test:

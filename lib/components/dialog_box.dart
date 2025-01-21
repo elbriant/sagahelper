@@ -5,7 +5,7 @@ import 'package:sagahelper/providers/styles_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:sagahelper/utils/extensions.dart';
 import 'package:sagahelper/providers/ui_provider.dart';
-import 'package:styled_text/widgets/styled_text.dart';
+import 'package:styled_text/styled_text.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -107,6 +107,7 @@ class DialogBox extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
             tags: context.read<StyleProvider>().tagsAsHtml(context: context),
+            async: true,
           ),
         ),
         title != null
@@ -196,6 +197,7 @@ class InkWellDialogBox extends StatelessWidget {
                         fontWeight: FontWeight.w700,
                       ),
                       tags: context.read<StyleProvider>().tagsAsHtml(context: context),
+                      async: true,
                     ),
                   ),
                   Center(
@@ -349,6 +351,7 @@ class AudioDialogBox extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                         ),
                         tags: context.read<StyleProvider>().tagsAsHtml(context: context),
+                        async: true,
                       ),
                     ),
                   ),

@@ -1,6 +1,10 @@
 import 'dart:developer' as dev;
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:sagahelper/components/alert_dialog.dart';
 import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/providers/cache_provider.dart';
+import 'package:sagahelper/utils/extensions.dart';
 import 'package:styled_text/styled_text.dart';
 
 class StyleProvider extends ChangeNotifier {
@@ -128,11 +132,16 @@ class StyleProvider extends ChangeNotifier {
         'ASPD': TextStyle(
           color: StaticColors.fromBrightness(context).sAspd,
         ),
+        'ASPD%': TextStyle(
+          color: HSLColor.fromColor(StaticColors.fromBrightness(context).sAspd)
+              .withLightness(0.55)
+              .toColor(),
+        ),
       };
 
   Map<String, StyledTextTagBase> tagsAsHtml({BuildContext? context}) => {
-        'b': StyledTextTag(style: const TextStyle(fontWeight: FontWeight.bold)),
-        'i': StyledTextTag(style: const TextStyle(fontStyle: FontStyle.italic)),
+        'b': const StyledTextTag(style: TextStyle(fontWeight: FontWeight.bold)),
+        'i': const StyledTextTag(style: TextStyle(fontStyle: FontStyle.italic)),
       };
 
   Map<String, StyledTextTagBase> tagsAsStats({BuildContext? context}) => {
@@ -189,13 +198,19 @@ class StyleProvider extends ChangeNotifier {
             color: statsStyles()['ASPD']!.color,
           ),
         ),
+        'icon-ASPD%': StyledTextWidgetTag(
+          ImageIcon(
+            const AssetImage('assets/sortIcon/atkspeed.png'),
+            color: statsStyles()['ASPD%']!.color,
+          ),
+        ),
         'bonusCol':
             StyledTextTag(style: TextStyle(color: StaticColors.fromBrightness(context).green)),
       };
 
   Map<String, StyledTextTagBase> tagsAsArknights({BuildContext? context}) => {
-        'b': StyledTextTag(style: const TextStyle(fontWeight: FontWeight.bold)),
-        'i': StyledTextTag(style: const TextStyle(fontStyle: FontStyle.italic)),
+        'b': const StyledTextTag(style: TextStyle(fontWeight: FontWeight.bold)),
+        'i': const StyledTextTag(style: TextStyle(fontStyle: FontStyle.italic)),
         'color': StyledTextCustomTag(
           baseStyle: const TextStyle(fontStyle: FontStyle.normal),
           parse: (baseStyle, attributes) {
@@ -238,7 +253,25 @@ class StyleProvider extends ChangeNotifier {
         'selectable': StyledTextActionTag(
           (String? text, Map<String?, String?> attrs) {
             dev.log('selected ${attrs.toString()}');
-            // TODO open dict
+
+            final navContext = NavigationService.navigatorKey.currentContext!;
+            final contx = context ?? navContext;
+            final gamedataConst = contx.read<CacheProvider>().cachedGamedataConst!;
+
+            if (!(gamedataConst["termDescriptionDict"] as Map).containsKey(attrs['custom'])) return;
+
+            final termDict = (gamedataConst["termDescriptionDict"] as Map)[attrs['custom']] as Map;
+
+            showAlertDialog(
+              context: contx,
+              dialogType: DialogType.dictionary,
+              title: Text(termDict["termName"]),
+              content: StyledText(
+                text: (termDict["description"] as String).akRichTextParser(),
+                tags: contx.read<StyleProvider>().tagsAsArknights(context: contx),
+                async: true,
+              ),
+            );
           },
           style: const TextStyle(decoration: TextDecoration.underline),
         ),

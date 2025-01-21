@@ -43,8 +43,9 @@ extension StringExtension on String {
     }
 
     return escapedString
-        .replaceAll(RegExp(r'<@'), '<info custom=')
-        .replaceAll(RegExp(r'<\$'), '<selectable custom=');
+        .replaceAll(RegExp(r'<@'), '<info custom="')
+        .replaceAll(RegExp(r'<\$'), '<selectable custom="')
+        .replaceAll(RegExp(r'(?<!/)>'), '">');
   }
 
   String varParser(List<dynamic>? vars) {

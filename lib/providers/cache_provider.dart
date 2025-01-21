@@ -20,15 +20,18 @@ class CacheProvider extends ChangeNotifier {
   Map<String, dynamic>? cachedCharMeta;
   Map<String, dynamic>? cachedGamedataConst;
   bool cached = false;
+  bool isCached = false;
 
-  bool get isCached {
-    Servers server =
-        NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer;
-    String version =
-        NavigationService.navigatorKey.currentContext!.read<ServerProvider>().versionOf(server);
-    bool cached = NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cached;
-
-    return cached && cachedListOperatorServer == server && cachedListOperatorVersion == version;
+  void setIsCached({
+    required Servers server,
+    required String version,
+    required bool cached,
+  }) {
+    final result =
+        cached && cachedListOperatorServer == server && cachedListOperatorVersion == version;
+    if (result == isCached) return;
+    isCached = result;
+    notifyListeners();
   }
 
   void cache({

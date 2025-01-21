@@ -1,14 +1,15 @@
 import 'dart:io';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flowder/flowder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:network_to_file_image/network_to_file_image.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
+import 'package:sagahelper/components/stored_image.dart';
 import 'package:sagahelper/components/styled_buttons.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/global_data.dart';
@@ -51,7 +52,8 @@ class _ArtPageState extends State<ArtPage> {
       setState(() {
         hasDynamicArt = true;
       });
-    } else if (widget.operator.skinsList[selectedIndex]["dynIllustId"] == null && hasDynamicArt == true) {
+    } else if (widget.operator.skinsList[selectedIndex]["dynIllustId"] == null &&
+        hasDynamicArt == true) {
       setState(() {
         hasDynamicArt = false;
       });
@@ -66,7 +68,8 @@ class _ArtPageState extends State<ArtPage> {
   }
 
   String getImageLink(int index) {
-    String opSkinId = (widget.operator.skinsList[index]['illustId'] as String).replaceFirst('illust_', '');
+    String opSkinId =
+        (widget.operator.skinsList[index]['illustId'] as String).replaceFirst('illust_', '');
     return '$kArtRepo/${widget.operator.id}/$opSkinId.png'.githubEncode();
   }
 
@@ -75,11 +78,18 @@ class _ArtPageState extends State<ArtPage> {
   }
 
   void fullscreen() {
+    String opSkinId = (widget.operator.skinsList[selectedIndex]['illustId'] as String)
+        .replaceFirst('illust_', '');
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => FullscreenArtsPage(
-          NetworkImage(getImageLink(selectedIndex)),
+          NetworkToFileImage(
+            url: getImageLink(selectedIndex),
+            file: LocalDataManager.localCacheFileSync(
+              'opart/${widget.operator.id}/$opSkinId.png',
+            ),
+          ),
           selectedIndex: selectedIndex,
           chibi: chibimode,
         ),
@@ -115,7 +125,8 @@ class _ArtPageState extends State<ArtPage> {
       indeterminate: true,
     );
 
-    String skin = (widget.operator.skinsList[selectedIndex]['illustId'] as String).replaceFirst('illust_', '');
+    String skin = (widget.operator.skinsList[selectedIndex]['illustId'] as String)
+        .replaceFirst('illust_', '');
     String link = '$kArtRepo/${widget.operator.id}/$skin.png'.githubEncode();
 
     final downloaderUtils = DownloaderUtils(
@@ -164,7 +175,8 @@ class _ArtPageState extends State<ArtPage> {
       context: context,
       builder: (BuildContext context) {
         Map skinInfo = widget.operator.skinsList[selectedIndex];
-        Map<String, StyledTextTagBase> tags = context.read<StyleProvider>().tagsAsArknights(context: context);
+        Map<String, StyledTextTagBase> tags =
+            context.read<StyleProvider>().tagsAsArknights(context: context);
         return SafeArea(
           child: SingleChildScrollView(
             child: Padding(
@@ -200,7 +212,9 @@ class _ArtPageState extends State<ArtPage> {
                         )
                       : null,
                   const SizedBox(height: 20),
-                  skinInfo["displaySkin"]["modelName"] != null ? Text('Model: ${skinInfo["displaySkin"]["modelName"]}') : null,
+                  skinInfo["displaySkin"]["modelName"] != null
+                      ? Text('Model: ${skinInfo["displaySkin"]["modelName"]}')
+                      : null,
                   skinInfo["displaySkin"]["drawerList"] != null
                       ? Text(
                           'Drawer: ${(skinInfo["displaySkin"]["drawerList"] as List).join(', ')}',
@@ -219,8 +233,11 @@ class _ArtPageState extends State<ArtPage> {
                             text: skinInfo["displaySkin"]["content"],
                             tags: tags,
                             style: TextStyle(
-                              color: skinInfo["displaySkin"]["skinName"] != null ? Theme.of(context).colorScheme.secondary : null,
+                              color: skinInfo["displaySkin"]["skinName"] != null
+                                  ? Theme.of(context).colorScheme.secondary
+                                  : null,
                             ),
+                            async: true,
                           ),
                         )
                       : null,
@@ -230,6 +247,7 @@ class _ArtPageState extends State<ArtPage> {
                           child: StyledText(
                             text: skinInfo["displaySkin"]["usage"],
                             tags: tags,
+                            async: true,
                           ),
                         )
                       : null,
@@ -240,6 +258,7 @@ class _ArtPageState extends State<ArtPage> {
                             text: skinInfo["displaySkin"]["description"],
                             tags: tags,
                             style: const TextStyle(fontStyle: FontStyle.italic),
+                            async: true,
                           ),
                         )
                       : null,
@@ -267,7 +286,8 @@ class _ArtPageState extends State<ArtPage> {
   @override
   Widget build(BuildContext context) {
     List<Widget> skinChildren = List.generate(widget.operator.skinsList.length, (int index) {
-      String avatarLink = '$kAvatarRepo/${widget.operator.skinsList[index]['avatarId']}.png'.githubEncode();
+      String avatarLink =
+          '$kAvatarRepo/${widget.operator.skinsList[index]['avatarId']}.png'.githubEncode();
 
       return Container(
         width: 80, //same as height to have a 1:1 box
@@ -283,10 +303,9 @@ class _ArtPageState extends State<ArtPage> {
           borderRadius: BorderRadius.circular(6),
           child: Stack(
             children: [
-              CachedNetworkImage(
+              StoredImage(
                 imageUrl: avatarLink,
-                errorWidget: (context, url, error) => const Center(child: Icon(Icons.error)),
-                placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                filePath: 'opartavatar/${widget.operator.skinsList[index]['avatarId']}.png',
               ),
               Positioned.fill(
                 child: Material(
@@ -334,7 +353,9 @@ class _ArtPageState extends State<ArtPage> {
                 child: Container(color: Colors.transparent),
               )
             : null,
-        backgroundColor: context.read<UiProvider>().useTranslucentUi == true ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5) : null,
+        backgroundColor: context.read<UiProvider>().useTranslucentUi == true
+            ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5)
+            : null,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -363,7 +384,9 @@ class _ArtPageState extends State<ArtPage> {
               bottom: 0,
               child: carouselContainer(skinChildren, carouselController),
             ),
-            hasDynamicArt && chibimode == false ? Positioned(right: 0, bottom: 0, child: dynamicSkinButton()) : null,
+            hasDynamicArt && chibimode == false
+                ? Positioned(right: 0, bottom: 0, child: dynamicSkinButton())
+                : null,
           ].nullParser(),
         ),
       ),
@@ -389,9 +412,16 @@ class _ArtPageState extends State<ArtPage> {
       pageController: _pageController,
       itemCount: widget.operator.skinsList.length,
       builder: (BuildContext context, int index) {
+        String opSkinId =
+            (widget.operator.skinsList[index]['illustId'] as String).replaceFirst('illust_', '');
         return PhotoViewGalleryPageOptions(
           filterQuality: FilterQuality.high,
-          imageProvider: NetworkImage(getImageLink(index)),
+          imageProvider: NetworkToFileImage(
+            url: getImageLink(index),
+            file: LocalDataManager.localCacheFileSync(
+              'opart/${widget.operator.id}/$opSkinId.png',
+            ),
+          ),
           heroAttributes: PhotoViewHeroAttributes(tag: '$selectedIndex hero'),
         );
       },
@@ -463,7 +493,7 @@ class FullscreenArtsPage extends StatefulWidget {
     required this.chibi,
   });
 
-  final NetworkImage image;
+  final ImageProvider<Object> image;
   final int selectedIndex;
   final bool chibi;
 

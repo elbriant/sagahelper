@@ -12,7 +12,7 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace = "com.senzee.sagahelper"
     compileSdk = 34
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973" // flutter.ndkVersion
 
     compileOptions {
         // Flag to enable support for the new language APIs

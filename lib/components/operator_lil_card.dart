@@ -1,5 +1,5 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:network_to_file_image/network_to_file_image.dart';
 import 'package:sagahelper/global_data.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/pages/operator_info_page.dart';
@@ -48,7 +48,7 @@ class OperatorLilCard extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8.0),
         border: Border.all(
-          color: rarityColors[operator.rarity]!,
+          color: rarityColors[operator.rarity],
           width: 1.0,
           strokeAlign: BorderSide.strokeAlignOutside,
         ),
@@ -60,9 +60,11 @@ class OperatorLilCard extends StatelessWidget {
           height: 50,
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: CachedNetworkImageProvider(
-                imgLink,
-                cacheKey: '${operator.id}_dl${DisplayList.avatar.index.toString()}',
+              image: NetworkToFileImage(
+                file: LocalDataManager.localCacheFileSync(
+                  'images/${operator.id}_dl${DisplayList.avatar.index.toString()}.png',
+                ),
+                url: imgLink,
               ),
               opacity: 0.6,
               alignment: const Alignment(0, 0.3),
@@ -71,7 +73,7 @@ class OperatorLilCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(8.0),
             gradient: LinearGradient(
               colors: [
-                rarityColors[operator.rarity]!.withAlpha(125),
+                rarityColors[operator.rarity].withAlpha(125),
                 Colors.transparent,
               ],
               stops: const [0, 1],
@@ -81,8 +83,8 @@ class OperatorLilCard extends StatelessWidget {
           ),
           child: InkWell(
             onTap: openOperatorInfo,
-            splashColor: rarityColors[operator.rarity]!.withAlpha(60),
-            highlightColor: rarityColors[operator.rarity]!.withAlpha(55),
+            splashColor: rarityColors[operator.rarity].withAlpha(60),
+            highlightColor: rarityColors[operator.rarity].withAlpha(55),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6.0),
               child: Row(
@@ -91,7 +93,7 @@ class OperatorLilCard extends StatelessWidget {
                   Text(
                     operator.name,
                     style: TextStyle(
-                      color: HSLColor.fromColor(rarityColors[operator.rarity]!)
+                      color: HSLColor.fromColor(rarityColors[operator.rarity])
                           .withLightness(
                             Theme.of(context).brightness == Brightness.light ? 0.16 : 0.65,
                           )

@@ -181,6 +181,21 @@ class LocalDataManager {
     }
   }
 
+  static File localCacheFileSync(String filepath) {
+    final path = _cachePath;
+    final completePath = '$path/$filepath';
+    var folderPath = completePath.split(r'/');
+    folderPath.removeLast();
+
+    final dirExists = Directory(folderPath.join('/')).existsSync();
+
+    if (!dirExists) {
+      Directory(folderPath.join('/')).createSync(recursive: true);
+    }
+
+    return File('$path/$filepath');
+  }
+
   static Future<File> localFile(String filePath) async {
     final path = _localPath;
     var dirExists = await File('$path/$filePath').exists();
