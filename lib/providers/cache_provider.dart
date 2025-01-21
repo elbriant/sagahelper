@@ -20,19 +20,6 @@ class CacheProvider extends ChangeNotifier {
   Map<String, dynamic>? cachedCharMeta;
   Map<String, dynamic>? cachedGamedataConst;
   bool cached = false;
-  bool isCached = false;
-
-  void setIsCached({
-    required Servers server,
-    required String version,
-    required bool cached,
-  }) {
-    final result =
-        cached && cachedListOperatorServer == server && cachedListOperatorVersion == version;
-    if (result == isCached) return;
-    isCached = result;
-    notifyListeners();
-  }
 
   void cache({
     required List<Operator> listOperator,

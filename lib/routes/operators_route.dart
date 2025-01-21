@@ -24,7 +24,9 @@ Future<List<Operator>> getOperators() async {
       NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer;
   String version =
       NavigationService.navigatorKey.currentContext!.read<ServerProvider>().versionOf(server);
-  if (cacheProv.isCached) {
+  if (cacheProv.cached &&
+      server == cacheProv.cachedListOperatorServer &&
+      version == cacheProv.cachedListOperatorVersion) {
     return Future<List<Operator>>.value(cacheProv.cachedListOperator);
   }
 
@@ -309,13 +311,14 @@ class _OperatorsPageState extends State<OperatorsPage> {
     final opFetched = context.select<SettingsProvider, bool>((prov) => prov.opFetched);
     final currentFilters =
         context.select<SettingsProvider, Map<String, FilterDetail>>((prov) => prov.operatorFilters);
+
     final cServer = context.select<SettingsProvider, Servers>((p) => p.currentServer);
     final cVersion = context.read<ServerProvider>().versionOf(cServer);
-    final cCached = context.select<CacheProvider, bool>((p) => p.cached);
+    final cCache = context.read<CacheProvider>();
 
-    context.read<CacheProvider>().setIsCached(server: cServer, version: cVersion, cached: cCached);
-
-    final isCached = context.select<CacheProvider, bool>((p) => p.isCached);
+    final isCached = cCache.cached &&
+        cServer == cCache.cachedListOperatorServer &&
+        cVersion == cCache.cachedListOperatorVersion;
 
     return Scaffold(
       extendBody: false,
@@ -457,7 +460,8 @@ class OperatorListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final settings = context.watch<SettingsProvider>();
+    final searchDelegate = context.select<SettingsProvider, int>((p) => p.operatorSearchDelegate);
+    final opDisplay = context.select<SettingsProvider, DisplayList>((p) => p.operatorDisplay);
 
     return RawScrollbar(
       thickness: 12,
@@ -466,8 +470,10 @@ class OperatorListView extends StatelessWidget {
       minThumbLength: 48,
       mainAxisMargin: 4,
       thumbColor: Theme.of(context).colorScheme.secondary.withOpacity(0.8),
-      child: GridView(
-        cacheExtent: 9999,
+      child: GridView.builder(
+        itemCount: operators.length,
+        addAutomaticKeepAlives: true,
+        cacheExtent: (2000 * searchDelegate).toDouble(),
         padding: EdgeInsets.fromLTRB(
           4.0,
           MediaQuery.paddingOf(context).top + 4.0,
@@ -475,13 +481,11 @@ class OperatorListView extends StatelessWidget {
           MediaQuery.paddingOf(context).bottom + 4.0,
         ),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: settings.operatorSearchDelegate,
-          childAspectRatio: settings.operatorDisplay == DisplayList.portrait ? 0.54 : 1.0,
+          crossAxisCount: searchDelegate,
+          childAspectRatio: opDisplay == DisplayList.portrait ? 0.54 : 1.0,
         ),
-        children: List.generate(
-          operators.length,
-          (int index) => OperatorContainer(index: index, operator: operators[index]),
-        ),
+        itemBuilder: (context, index) =>
+            OperatorContainer(index: index, operator: operators[index]),
       ),
     );
   }

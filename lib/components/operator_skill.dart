@@ -158,10 +158,10 @@ class OperatorSkill extends StatelessWidget {
               width: 72,
               margin: lRightPadding,
               decoration: BoxDecoration(
-                color: StaticColors.fromBrightness(context).orange,
+                color: StaticColors.fromBrightness(context).red,
                 borderRadius: BorderRadius.circular(8.0),
                 border: Border.all(
-                  color: StaticColors.fromBrightness(context).orange,
+                  color: StaticColors.fromBrightness(context).red,
                   strokeAlign: BorderSide.strokeAlignInside,
                   width: 2.0,
                 ),
@@ -173,7 +173,7 @@ class OperatorSkill extends StatelessWidget {
                 textAlign: TextAlign.center,
                 textScaler: TextScaler.linear(textScale),
                 style: TextStyle(
-                  color: StaticColors.fromBrightness(context).onOrange,
+                  color: StaticColors.fromBrightness(context).onRed,
                   fontWeight: FontWeight.w600,
                 ),
               ),

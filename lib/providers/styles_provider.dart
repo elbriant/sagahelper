@@ -13,20 +13,20 @@ class StyleProvider extends ChangeNotifier {
   Map<String, TextStyle> richTextStyles({BuildContext? context}) => {
         "mission.levelname": const TextStyle(color: Color(0xFFFFDE00)),
         "mission.number": const TextStyle(color: Color(0xFFFFDE00)),
-        "tu.kw": const TextStyle(color: Color(0xFF0098DC)),
+        "tu.kw": TextStyle(color: StaticColors.fromBrightness(context).akAttrUp),
         "tu.imp": const TextStyle(color: Color(0xFFFF0000)),
-        "cc.vup": const TextStyle(color: Color(0xFF0098DC)),
-        "cc.vdown": const TextStyle(color: Color(0xFFFF6237)),
+        "cc.vup": TextStyle(color: StaticColors.fromBrightness(context).akAttrUp),
+        "cc.vdown": TextStyle(color: StaticColors.fromBrightness(context).akAttrDown),
         "cc.rem": const TextStyle(color: Color(0xFFF49800)),
-        "cc.kw": const TextStyle(color: Color(0xFF00B0FF)),
+        "cc.kw": TextStyle(color: StaticColors.fromBrightness(context).akKeyword),
         "cc.pn": const TextStyle(fontStyle: FontStyle.italic),
         "cc.talpu": const TextStyle(fontStyle: FontStyle.normal),
-        "ba.vup": const TextStyle(color: Color(0xFF0098DC)),
-        "ba.vdown": const TextStyle(color: Color(0xFFFF6237)),
+        "ba.vup": TextStyle(color: StaticColors.fromBrightness(context).akAttrUp),
+        "ba.vdown": TextStyle(color: StaticColors.fromBrightness(context).akAttrDown),
         "ba.rem": const TextStyle(color: Color(0xFFF49800)),
-        "ba.kw": const TextStyle(color: Color(0xFF00B0FF)),
+        "ba.kw": TextStyle(color: StaticColors.fromBrightness(context).akKeyword),
         "ba.pn": const TextStyle(fontStyle: FontStyle.italic),
-        "ba.talpu": const TextStyle(color: Color(0xFF0098DC)),
+        "ba.talpu": TextStyle(color: StaticColors.fromBrightness(context).akAttrUp),
         "ba.xa": const TextStyle(color: Color(0xFFFF0000)),
         "ba.xb": const TextStyle(color: Color(0xFFFF7D00)),
         "ba.xc": const TextStyle(color: Color(0xFFFFFF00)),
@@ -36,7 +36,7 @@ class StyleProvider extends ChangeNotifier {
         "ba.xg": const TextStyle(color: Color(0xFFFF00FF)),
         "eb.key": const TextStyle(color: Color(0xFF00FFFF)),
         "eb.danger": const TextStyle(color: Color(0xFFFF0000)),
-        "ro.get": const TextStyle(color: Color(0xFF0098DC)),
+        "ro.get": TextStyle(color: StaticColors.fromBrightness(context).akAttrUp),
         "ro.lose": const TextStyle(color: Color(0xFFC82A36)),
         "rolv.rem": const TextStyle(color: Color(0xFFFF4C22)),
         "lv.description": const TextStyle(color: Color(0xFFd8d769)),
@@ -87,7 +87,7 @@ class StyleProvider extends ChangeNotifier {
         "limtedga.attention": const TextStyle(color: Color(0xFFE1322C)),
         "limtedga.lattention": const TextStyle(color: Color(0xFFFF9E58)),
         "vc.newyear10": const TextStyle(color: Color(0xFFFF3823)),
-        "vc.adgacha": const TextStyle(color: Color(0xFF0098DC)),
+        "vc.adgacha": TextStyle(color: StaticColors.fromBrightness(context).akAttrUp),
         "vc.attention": const TextStyle(color: Color(0xFFFFD800)),
         "act.missiontips": const TextStyle(color: Color(0xFFd9bd6a)),
         "lv.hdbg": const TextStyle(color: Color(0xFF7ba61f)),
@@ -133,9 +133,7 @@ class StyleProvider extends ChangeNotifier {
           color: StaticColors.fromBrightness(context).sAspd,
         ),
         'ASPD%': TextStyle(
-          color: HSLColor.fromColor(StaticColors.fromBrightness(context).sAspd)
-              .withLightness(0.55)
-              .toColor(),
+          color: StaticColors.fromBrightness(context).sAspdPercent,
         ),
       };
 
@@ -205,7 +203,7 @@ class StyleProvider extends ChangeNotifier {
           ),
         ),
         'bonusCol':
-            StyledTextTag(style: TextStyle(color: StaticColors.fromBrightness(context).green)),
+            StyledTextTag(style: TextStyle(color: StaticColors.fromBrightness(context).sBonus)),
       };
 
   Map<String, StyledTextTagBase> tagsAsArknights({BuildContext? context}) => {
@@ -285,12 +283,12 @@ class StyleProvider extends ChangeNotifier {
         }),
         'diffInsert': StyledTextTag(
           style: TextStyle(
-            color: StaticColors.fromBrightness(context).greenVariant,
+            color: StaticColors.fromBrightness(context).sBonusText,
           ),
         ),
         'add-icon': StyledTextIconTag(
           Icons.add,
-          color: StaticColors.fromBrightness(context).greenVariant,
+          color: StaticColors.fromBrightness(context).sBonus,
         ),
       };
   // input example <@ba.vup>{cost}</> where

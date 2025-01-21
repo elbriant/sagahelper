@@ -26,7 +26,7 @@ const List<String> opIdMustHaveE2Portrait = [
   'char_1037_amiya3',
 ];
 
-class OperatorContainer extends StatelessWidget {
+class OperatorContainer extends StatefulWidget {
   final Operator operator;
   final int index;
 
@@ -37,11 +37,18 @@ class OperatorContainer extends StatelessWidget {
   });
 
   @override
+  State<OperatorContainer> createState() => _OperatorContainerState();
+}
+
+class _OperatorContainerState extends State<OperatorContainer> with AutomaticKeepAliveClientMixin {
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     final String ghAvatarLink =
-        '$kAvatarRepo/${operator.id}${opIdMustHaveE2avatar.contains(operator.id) ? '_2' : ''}.png';
+        '$kAvatarRepo/${widget.operator.id}${opIdMustHaveE2avatar.contains(widget.operator.id) ? '_2' : ''}.png';
     final String ghPotraitLink =
-        '$kPortraitRepo/${operator.id}${opIdMustHaveE2Portrait.contains(operator.id) ? '_2' : '_1'}.png';
+        '$kPortraitRepo/${widget.operator.id}${opIdMustHaveE2Portrait.contains(widget.operator.id) ? '_2' : '_1'}.png';
 
     final opDisplay = context.select<SettingsProvider, DisplayList>((prov) => prov.operatorDisplay);
     final searchDelegate =
@@ -59,7 +66,7 @@ class OperatorContainer extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.all(4.0),
       decoration: BoxDecoration(
-        border: operator.rarity == 6
+        border: widget.operator.rarity == 6
             ? const GradientBoxBorder(
                 gradient: LinearGradient(
                   colors: [
@@ -73,11 +80,11 @@ class OperatorContainer extends StatelessWidget {
                 ),
                 width: 1.0,
               )
-            : Border.all(color: rarityColors[operator.rarity]),
+            : Border.all(color: rarityColors[widget.operator.rarity]),
         borderRadius: BorderRadius.circular(10.0),
         gradient: LinearGradient(
           colors: [
-            rarityColors[operator.rarity].withAlpha(125),
+            rarityColors[widget.operator.rarity].withAlpha(125),
             Colors.transparent,
           ],
           stops: const [0, 1],
@@ -99,10 +106,10 @@ class OperatorContainer extends StatelessWidget {
           alignment: Alignment.bottomCenter,
           children: [
             StoredImage(
-              filePath: 'images/${operator.id}_dl${opDisplay.index.toString()}.png',
+              filePath: 'images/${widget.operator.id}_dl${opDisplay.index.toString()}.png',
               imageUrl: imgLink,
               fit: BoxFit.fitWidth,
-              heroTag: operator.id,
+              heroTag: widget.operator.id,
             ),
             Positioned.fill(
               child: Visibility(
@@ -124,16 +131,16 @@ class OperatorContainer extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 1.5, left: 4, right: 4),
                       child: Text(
-                        operator.name,
+                        widget.operator.name,
                         overflow: TextOverflow.ellipsis,
                         maxLines: 2,
                         textAlign: TextAlign.center,
-                        textScaler: operator.name.length > 7
+                        textScaler: widget.operator.name.length > 7
                             // ignore: deprecated_member_use
                             ? TextScaler.linear(
                                 // ignore: deprecated_member_use
                                 (MediaQuery.textScalerOf(context).textScaleFactor -
-                                        (operator.name.length - 7) / 100) *
+                                        (widget.operator.name.length - 7) / 100) *
                                     (3 / searchDelegate),
                               )
                             // ignore: deprecated_member_use
@@ -156,9 +163,9 @@ class OperatorContainer extends StatelessWidget {
               child: Material(
                 type: MaterialType.transparency,
                 child: InkWell(
-                  splashColor: rarityColors[operator.rarity].withAlpha(45),
-                  highlightColor: rarityColors[operator.rarity].withAlpha(35),
-                  onTap: () => openOperatorInfo(operator),
+                  splashColor: rarityColors[widget.operator.rarity].withAlpha(45),
+                  highlightColor: rarityColors[widget.operator.rarity].withAlpha(35),
+                  onTap: () => openOperatorInfo(widget.operator),
                 ),
               ),
             ),
@@ -167,4 +174,7 @@ class OperatorContainer extends StatelessWidget {
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
