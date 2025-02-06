@@ -24,6 +24,10 @@ const String kSkillRepo =
 const String kBaseSkillRepo =
     'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/refs/heads/main/building_skill';
 
+// Assets from Arkgcc repo
+const String kTokenAvatarRepo =
+    'https://raw.githubusercontent.com/akgcc/arkdata/refs/heads/main/assets/torappu/dynamicassets/arts/charavatars';
+
 // Assets from ArknightsAssets repo
 const String kPortraitRepo =
     'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/charportraits';

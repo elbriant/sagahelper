@@ -1,18 +1,25 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:styled_text/styled_text.dart';
+
+import 'package:sagahelper/components/entity_card.dart';
 import 'package:sagahelper/components/range_tile.dart';
 import 'package:sagahelper/components/styled_buttons.dart';
+import 'package:sagahelper/models/entity.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/providers/styles_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
-import 'package:styled_text/styled_text.dart';
 
 class OperatorTalents extends StatelessWidget {
   const OperatorTalents({
     super.key,
     required this.operator,
     required this.currentElite,
+    required this.currentlevel,
     required this.currentPot,
+    required this.currentSkillLevel,
+    required this.currentSelectedSkill,
     this.localTalentElite,
     this.localTalentPot,
     required this.localTalentEliteSetter,
@@ -20,7 +27,10 @@ class OperatorTalents extends StatelessWidget {
   });
   final Operator operator;
   final int currentElite;
+  final double currentlevel;
   final int currentPot;
+  final int currentSkillLevel;
+  final int currentSelectedSkill;
   final int? localTalentElite;
   final int? localTalentPot;
 
@@ -117,9 +127,22 @@ class OperatorTalents extends StatelessWidget {
                       orElse: () => null,
                     )?["value"] ==
                     1.0)
-              RangeTile.smol(candidate?["rangeId"]),
+              Expanded(child: RangeTile.smol(candidate?["rangeId"])),
             //fck summoners
-            candidate?["tokenKey"] != null ? Text(candidate?["tokenKey"]) : null,
+            candidate?["tokenKey"] != null
+                ? Expanded(
+                    child: EntityCard(
+                      entity: Entity.fromId(
+                        id: candidate!["tokenKey"],
+                        elite: localTalentElite ?? currentElite,
+                        lv: currentlevel.toInt(),
+                        pot: localTalentPot ?? currentPot,
+                        selectedSkill: currentSelectedSkill,
+                        skillLevel: currentSkillLevel,
+                      ),
+                    ),
+                  )
+                : null,
           ].nullParser();
 
           return Card.filled(

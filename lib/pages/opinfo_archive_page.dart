@@ -127,9 +127,7 @@ class _ArchivePageState extends State<ArchivePage> with SingleTickerProviderStat
                         child: Row(
                           children: List.generate(
                             snapshot.data!.length,
-                            (index) {
-                              return OperatorLilCard(operator: snapshot.data![index]);
-                            },
+                            (index) => OperatorLilCard(operator: snapshot.data![index]),
                           ),
                         ),
                       ),

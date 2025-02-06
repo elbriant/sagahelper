@@ -34,6 +34,8 @@ class OpinfoArchiveHeader extends StatelessWidget {
                   right: 1,
                   top: 0,
                   child: Container(
+                    width: 180,
+                    height: 180,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       boxShadow: [

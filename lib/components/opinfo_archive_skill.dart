@@ -260,7 +260,10 @@ class _OpinfoArchiveSkillState extends State<OpinfoArchiveSkill> {
             child: OperatorTalents(
               operator: widget.operator,
               currentElite: elite,
+              currentlevel: showLevel,
               currentPot: pot,
+              currentSelectedSkill: showSkill,
+              currentSkillLevel: skillLv,
               localTalentElite: talentLocalElite,
               localTalentPot: talentLocalPot,
               localTalentEliteSetter: (value) => setState(() {
@@ -287,9 +290,12 @@ class _OpinfoArchiveSkillState extends State<OpinfoArchiveSkill> {
                       ),
                       child: OperatorSkill(
                         operator: widget.operator,
+                        currentElite: elite,
+                        currentlevel: showLevel,
                         skillsDetails: skillsDetails,
                         currentSelectedSkill: showSkill,
                         currentSkillLevel: skillLv,
+                        currentPot: pot,
                         onSkillLevelChanged: (value) => setState(() {
                           skillLv = value;
                         }),
@@ -298,6 +304,7 @@ class _OpinfoArchiveSkillState extends State<OpinfoArchiveSkill> {
                         }),
                       ),
                     ),
+                    const Divider(),
                   ],
                 )
               : null,
@@ -305,7 +312,6 @@ class _OpinfoArchiveSkillState extends State<OpinfoArchiveSkill> {
               ? Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Divider(),
                     const BigTitleText(title: 'Modules'),
                     Container(
                       width: double.maxFinite,
@@ -338,6 +344,7 @@ class _OpinfoArchiveSkillState extends State<OpinfoArchiveSkill> {
                         }),
                       ),
                     ),
+                    const Divider(),
                   ],
                 )
               : null,
@@ -345,7 +352,6 @@ class _OpinfoArchiveSkillState extends State<OpinfoArchiveSkill> {
               ? Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Divider(),
                     const BigTitleText(title: 'RIIC Base Skills'),
                     Container(
                       width: double.maxFinite,

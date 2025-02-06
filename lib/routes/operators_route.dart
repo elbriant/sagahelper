@@ -77,6 +77,7 @@ Future<List<Operator>> getOperators() async {
     charPatch: jsonDecode(misc[1]) as Map<String, dynamic>,
     charMeta: jsonDecode(misc[2]) as Map<String, dynamic>,
     gamedataConst: jsonDecode(misc[3]) as Map<String, dynamic>,
+    charTable: jsonDecode(response[0]) as Map<String, dynamic>,
   );
 
   return completedList;
@@ -157,7 +158,6 @@ class _OperatorsPageState extends State<OperatorsPage> {
   void reloadgamedata() {
     context.read<CacheProvider>().unCache();
     _menuController.close();
-    NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setOpFetched(false);
     setState(() {
       futureOperatorList = fetchSafeOperators();
     });

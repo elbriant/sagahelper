@@ -4,8 +4,8 @@ import 'package:sagahelper/components/styled_buttons.dart';
 
 typedef SliderSelectorBuilderCallback = Widget Function(int index, BuildContext context);
 
-class SliderSelector extends StatelessWidget {
-  SliderSelector({
+class SliderSelector extends StatefulWidget {
+  const SliderSelector({
     super.key,
     required this.length,
     required this.currentIndex,
@@ -13,12 +13,24 @@ class SliderSelector extends StatelessWidget {
     required this.builder,
   });
 
-  final CarouselSliderController _carouselController = CarouselSliderController();
   final int length;
   final int currentIndex;
 
   final ValueChanged<int> onValueChanged;
   final SliderSelectorBuilderCallback builder;
+
+  @override
+  State<SliderSelector> createState() => _SliderSelectorState();
+}
+
+class _SliderSelectorState extends State<SliderSelector> {
+  late final CarouselSliderController _carouselController;
+
+  @override
+  void initState() {
+    super.initState();
+    _carouselController = CarouselSliderController();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,17 +42,17 @@ class SliderSelector extends StatelessWidget {
             carouselController: _carouselController,
             options: CarouselOptions(
               scrollDirection: Axis.vertical,
-              onPageChanged: (int index, _) => onValueChanged.call(index),
+              onPageChanged: (int index, _) => widget.onValueChanged.call(index),
               enableInfiniteScroll: false,
               reverse: true,
               aspectRatio: 1,
               viewportFraction: 1.0,
             ),
             items: List.generate(
-              length,
+              widget.length,
               (int index) {
                 return Center(
-                  child: builder.call(index, context),
+                  child: widget.builder.call(index, context),
                 );
               },
             ),
@@ -50,11 +62,11 @@ class SliderSelector extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Visibility.maintain(
-              visible: currentIndex != length - 1,
+              visible: widget.currentIndex != widget.length - 1,
               child: LilButton(
                 icon: const Icon(Icons.arrow_drop_up_rounded),
                 fun: () => _carouselController.animateToPage(
-                  currentIndex + 1,
+                  widget.currentIndex + 1,
                   curve: Curves.easeOutCubic,
                 ),
                 padding: const EdgeInsets.all(0.0),
@@ -62,11 +74,11 @@ class SliderSelector extends StatelessWidget {
               ),
             ),
             Visibility.maintain(
-              visible: currentIndex != 0,
+              visible: widget.currentIndex != 0,
               child: LilButton(
                 icon: const Icon(Icons.arrow_drop_down_rounded),
                 fun: () => _carouselController.animateToPage(
-                  currentIndex - 1,
+                  widget.currentIndex - 1,
                   curve: Curves.easeOutCubic,
                 ),
                 padding: const EdgeInsets.all(0.0),

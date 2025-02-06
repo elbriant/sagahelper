@@ -1,28 +1,38 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:styled_text/styled_text.dart';
+
+import 'package:sagahelper/components/entity_card.dart';
 import 'package:sagahelper/components/range_tile.dart';
 import 'package:sagahelper/components/slider_selector.dart';
 import 'package:sagahelper/components/stored_image.dart';
 import 'package:sagahelper/components/styled_buttons.dart';
 import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/models/entity.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
 import 'package:sagahelper/providers/styles_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
-import 'package:styled_text/styled_text.dart';
 
 class OperatorSkill extends StatelessWidget {
   const OperatorSkill({
     super.key,
     required this.operator,
+    required this.currentlevel,
+    required this.currentElite,
+    required this.currentPot,
     required this.skillsDetails,
-    required this.currentSelectedSkill,
     required this.currentSkillLevel,
+    required this.currentSelectedSkill,
     required this.onSkillSelectedSetter,
     required this.onSkillLevelChanged,
   });
 
   final Operator operator;
+  final double currentlevel;
+  final int currentElite;
+  final int currentPot;
   final List<Map<String, dynamic>> skillsDetails;
   final int currentSkillLevel;
   final int currentSelectedSkill;
@@ -114,9 +124,26 @@ class OperatorSkill extends StatelessWidget {
 
     List<Widget> extraSlots = [
       selectedSkillDetailLv["rangeId"] != null
-          ? RangeTile.smol(selectedSkillDetailLv["rangeId"])
+          ? Expanded(child: RangeTile.smol(selectedSkillDetailLv["rangeId"]))
           : null,
-      selectedSkill["overrideTokenKey"] != null ? Text(selectedSkill["overrideTokenKey"]) : null,
+      selectedSkillDetailLv["rangeId"] != null && selectedSkill["overrideTokenKey"] != null
+          ? const SizedBox(width: 4.0)
+          : null,
+      selectedSkill["overrideTokenKey"] != null
+          ? Expanded(
+              flex: 2,
+              child: EntityCard(
+                entity: Entity.fromId(
+                  id: selectedSkill["overrideTokenKey"],
+                  elite: currentElite,
+                  lv: currentlevel.toInt(),
+                  pot: currentPot,
+                  selectedSkill: currentSelectedSkill,
+                  skillLevel: currentSkillLevel,
+                ),
+              ),
+            )
+          : null,
     ].nullParser();
 
     List<Widget> dataWidgets() {

@@ -12,7 +12,10 @@ import 'package:sagahelper/providers/settings_provider.dart';
 // >                   &gt;
 // <space>             &space;
 
-const Map<String, String> escapeRules = {'<Substitute>': '&lt;Substitute&gt;'};
+const Map<String, String> escapeRules = {
+  '<Substitute>': '&lt;Substitute&gt;',
+  '<Support Devices>': '&lt;Support Devices&gt;',
+};
 
 extension ListExtension on List<Widget?> {
   List<Widget> nullParser() {

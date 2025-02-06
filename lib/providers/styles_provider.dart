@@ -1,7 +1,7 @@
 import 'dart:developer' as dev;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sagahelper/components/alert_dialog.dart';
+import 'package:sagahelper/components/popup_dialog.dart';
 import 'package:sagahelper/global_data.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
@@ -209,6 +209,12 @@ class StyleProvider extends ChangeNotifier {
   Map<String, StyledTextTagBase> tagsAsArknights({BuildContext? context}) => {
         'b': const StyledTextTag(style: TextStyle(fontWeight: FontWeight.bold)),
         'i': const StyledTextTag(style: TextStyle(fontStyle: FontStyle.italic)),
+        'i-sub': StyledTextTag(
+          style: TextStyle(
+            fontStyle: FontStyle.italic,
+            color: Theme.of(context ?? navContext).textTheme.bodyMedium?.color?.withOpacity(0.7),
+          ),
+        ),
         'color': StyledTextCustomTag(
           baseStyle: const TextStyle(fontStyle: FontStyle.normal),
           parse: (baseStyle, attributes) {
@@ -260,11 +266,10 @@ class StyleProvider extends ChangeNotifier {
 
             final termDict = (gamedataConst["termDescriptionDict"] as Map)[attrs['custom']] as Map;
 
-            showAlertDialog(
+            PopupDialog.dictionary(
               context: contx,
-              dialogType: DialogType.dictionary,
-              title: Text(termDict["termName"]),
-              content: StyledText(
+              term: Text(termDict["termName"]),
+              definition: StyledText(
                 text: (termDict["description"] as String).akRichTextParser(),
                 tags: contx.read<StyleProvider>().tagsAsArknights(context: contx),
                 async: true,

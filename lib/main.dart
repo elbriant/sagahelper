@@ -17,7 +17,6 @@ import 'package:system_theme/system_theme.dart';
 import 'package:flutter_logs/flutter_logs.dart';
 
 // TODO context menu
-// TODO entity viewer (card and popup)
 // TODO Deep linking, ie: opening oproute with custom selected tag from op info
 
 Future<Map<String, dynamic>> loadConfigs() async {

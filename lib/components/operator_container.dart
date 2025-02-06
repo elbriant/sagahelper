@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 const List<Color> rarityColors = [
-  Colors.black,
+  Color.fromARGB(255, 69, 69, 69), // entities
   Color(0xFF9c9c9c),
   Color(0xFFd8dd5a),
   Color(0xFF4aabea),

@@ -4,7 +4,6 @@ import 'package:sagahelper/models/operator.dart';
 import 'package:flutter/material.dart';
 import 'package:sagahelper/providers/server_provider.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
-// import 'package:provider/provider.dart';
 
 class CacheProvider extends ChangeNotifier {
   List<Operator>? cachedListOperator;
@@ -19,6 +18,11 @@ class CacheProvider extends ChangeNotifier {
   Map<String, dynamic>? cachedCharPatch;
   Map<String, dynamic>? cachedCharMeta;
   Map<String, dynamic>? cachedGamedataConst;
+  Map<String, dynamic>? cachedCharTable;
+
+  /// just to know if variables are cached
+  /// if you want to know if is cached last version/current server
+  /// consider doing it with the other providers too
   bool cached = false;
 
   void cache({
@@ -34,6 +38,7 @@ class CacheProvider extends ChangeNotifier {
     required Map<String, dynamic> charPatch,
     required Map<String, dynamic> charMeta,
     required Map<String, dynamic> gamedataConst,
+    required Map<String, dynamic> charTable,
   }) {
     cachedListOperator = listOperator;
     cachedListOperatorServer = listOperatorServer;
@@ -47,6 +52,7 @@ class CacheProvider extends ChangeNotifier {
     cachedCharPatch = charPatch;
     cachedCharMeta = charMeta;
     cachedGamedataConst = gamedataConst;
+    cachedCharTable = charTable;
 
     cached = true;
     notifyListeners();
@@ -65,6 +71,8 @@ class CacheProvider extends ChangeNotifier {
     cachedCharPatch = null;
     cachedCharMeta = null;
     cachedGamedataConst = null;
+    cachedCharTable = null;
+
     if (NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().opFetched == true) {
       NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setOpFetched(false);
     }
