@@ -5,6 +5,7 @@ import 'package:sagahelper/models/filters.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
+import 'package:sagahelper/utils/extensions.dart';
 
 const List<String> professionList = [
   'caster',
@@ -28,7 +29,8 @@ class OpRouteFiltersFiltering extends StatelessWidget {
     final cacheProv = context.read<CacheProvider>();
 
     final List<FilterChip> rarityFilters = List.generate(6, (index) {
-      final String rarityString = 'r${(index + 1).toString()}';
+      final String rarityString = "${FilterType.rarity.prefix}_${(index + 1).toString()}";
+      final String rarity = 'r${(index + 1).toString()}';
 
       return FilterChip(
         label: Text('${(index + 1).toString()} \u2605'),
@@ -40,15 +42,19 @@ class OpRouteFiltersFiltering extends StatelessWidget {
                     : Icons.block,
               )
             : null,
-        onSelected: (_) => context
-            .read<SettingsProvider>()
-            .toggleOperatorFilter(rarityString, rarityString, FilterType.rarity),
+        onSelected: (_) => context.read<SettingsProvider>().toggleOperatorFilter(
+              FilterTag(
+                id: rarityString,
+                key: rarity,
+                type: FilterType.rarity,
+              ),
+            ),
         showCheckmark: false,
       );
     });
 
     final List<FilterChip> professionFilters = List.generate(professionList.length, (index) {
-      final id = 'class_${professionList[index]}';
+      final id = '${FilterType.profession.prefix}_${professionList[index]}';
       return FilterChip(
         label: Text(Operator.professionTranslate(professionList[index].toLowerCase())),
         selected: currentFilters.containsKey(id),
@@ -57,9 +63,13 @@ class OpRouteFiltersFiltering extends StatelessWidget {
                 currentFilters[id]!.mode == FilterMode.whitelist ? Icons.check : Icons.block,
               )
             : null,
-        onSelected: (_) => context
-            .read<SettingsProvider>()
-            .toggleOperatorFilter(id, professionList[index], FilterType.profession),
+        onSelected: (_) => context.read<SettingsProvider>().toggleOperatorFilter(
+              FilterTag(
+                id: id,
+                key: professionList[index],
+                type: FilterType.profession,
+              ),
+            ),
         showCheckmark: false,
       );
     });
@@ -71,7 +81,7 @@ class OpRouteFiltersFiltering extends StatelessWidget {
         if ((subclass.key as String).startsWith('notchar') ||
             (subclass.key as String).startsWith('none')) continue;
 
-        final id = 'subclass_${subclass.key}';
+        final id = '${FilterType.subprofession.prefix}_${subclass.key}';
 
         result.add(
           FilterChip(
@@ -82,9 +92,13 @@ class OpRouteFiltersFiltering extends StatelessWidget {
                     currentFilters[id]!.mode == FilterMode.whitelist ? Icons.check : Icons.block,
                   )
                 : null,
-            onSelected: (_) => context
-                .read<SettingsProvider>()
-                .toggleOperatorFilter(id, subclass.key, FilterType.subprofession),
+            onSelected: (_) => context.read<SettingsProvider>().toggleOperatorFilter(
+                  FilterTag(
+                    id: id,
+                    key: subclass.key,
+                    type: FilterType.subprofession,
+                  ),
+                ),
             showCheckmark: false,
           ),
         );
@@ -99,7 +113,7 @@ class OpRouteFiltersFiltering extends StatelessWidget {
       for (var faction in (cacheProv.cachedTeamTable as Map).entries) {
         if ((faction.key as String).startsWith('none')) continue;
 
-        final id = 'faction_${faction.key}';
+        final id = '${FilterType.faction.prefix}_${faction.key}';
 
         result.add(
           FilterChip(
@@ -111,9 +125,11 @@ class OpRouteFiltersFiltering extends StatelessWidget {
                   )
                 : null,
             onSelected: (_) => context.read<SettingsProvider>().toggleOperatorFilter(
-                  id,
-                  (faction.value["powerId"] as String).toLowerCase(),
-                  FilterType.faction,
+                  FilterTag(
+                    id: id,
+                    key: (faction.value["powerId"] as String).toLowerCase(),
+                    type: FilterType.faction,
+                  ),
                 ),
             showCheckmark: false,
           ),
@@ -134,13 +150,80 @@ class OpRouteFiltersFiltering extends StatelessWidget {
               )
             : null,
         onSelected: (_) => context.read<SettingsProvider>().toggleOperatorFilter(
-              'has_module',
-              'has_module',
-              FilterType.extra,
+              FilterTag(
+                id: 'has_module',
+                key: '${FilterType.extra.prefix}_has_module',
+                type: FilterType.extra,
+              ),
             ),
         showCheckmark: false,
       ),
     ];
+
+    List<Widget> taglistFilters() {
+      List<Widget> result = [];
+
+      for (var tag in (cacheProv.cachedGachaTable!["gachaTags"] as List)) {
+        final int tagId = (tag as Map)["tagId"];
+        if ((tagId >= 1 && tagId <= 11) || [14, 1012, 1013].contains(tagId)) {
+          continue;
+        }
+
+        final id = '${FilterType.tag.prefix}_${(tag["tagName"] as String).toLowerCase()}';
+
+        result.add(
+          FilterChip(
+            label: Text(tag["tagName"]),
+            selected: currentFilters.containsKey(id),
+            avatar: currentFilters.containsKey(id)
+                ? Icon(
+                    currentFilters[id]!.mode == FilterMode.whitelist ? Icons.check : Icons.block,
+                  )
+                : null,
+            onSelected: (_) => context.read<SettingsProvider>().toggleOperatorFilter(
+                  FilterTag(
+                    id: id,
+                    key: (tag["tagName"] as String).toLowerCase(),
+                    type: FilterType.tag,
+                  ),
+                ),
+            showCheckmark: false,
+          ),
+        );
+      }
+      return result;
+    }
+
+    List<Widget> positionFilters() {
+      List<Widget> result = [];
+
+      const List<String> positions = ["MELEE", "RANGED"];
+
+      for (var pos in positions) {
+        final id = '${FilterType.position.prefix}_${pos.toLowerCase()}';
+
+        result.add(
+          FilterChip(
+            label: Text(pos.capitalize()),
+            selected: currentFilters.containsKey(id),
+            avatar: currentFilters.containsKey(id)
+                ? Icon(
+                    currentFilters[id]!.mode == FilterMode.whitelist ? Icons.check : Icons.block,
+                  )
+                : null,
+            onSelected: (_) => context.read<SettingsProvider>().toggleOperatorFilter(
+                  FilterTag(
+                    id: id,
+                    key: pos.toLowerCase(),
+                    type: FilterType.position,
+                  ),
+                ),
+            showCheckmark: false,
+          ),
+        );
+      }
+      return result;
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,6 +263,20 @@ class OpRouteFiltersFiltering extends StatelessWidget {
           child: Wrap(
             spacing: 6.0,
             children: factionFilters(),
+          ),
+        ),
+        FilterTile(
+          title: 'Tags',
+          child: Wrap(
+            spacing: 6.0,
+            children: taglistFilters(),
+          ),
+        ),
+        FilterTile(
+          title: 'Position',
+          child: Wrap(
+            spacing: 6.0,
+            children: positionFilters(),
           ),
         ),
         FilterTile(

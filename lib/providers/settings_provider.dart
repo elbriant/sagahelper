@@ -297,18 +297,30 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void toggleOperatorFilter(String id, String key, FilterType filterType) {
+  void toggleOperatorFilter(FilterTag tag) {
     Map<String, FilterDetail> result = Map.of(operatorFilters);
-    if (result.containsKey(id)) {
-      if (result[id]!.mode != FilterMode.blacklist) {
-        result[id] =
-            FilterDetail(key: result[id]!.key, mode: FilterMode.blacklist, type: result[id]!.type);
+    if (result.containsKey(tag.id)) {
+      if (result[tag.id]!.mode != FilterMode.blacklist) {
+        result[tag.id] = FilterDetail(
+          key: result[tag.id]!.key,
+          mode: FilterMode.blacklist,
+          type: result[tag.id]!.type,
+        );
       } else {
-        result.remove(id);
+        result.remove(tag.id);
       }
     } else {
-      result[id] = FilterDetail(key: key, mode: FilterMode.whitelist, type: filterType);
+      result[tag.id] = FilterDetail(key: tag.key, mode: FilterMode.whitelist, type: tag.type);
     }
+    operatorFilters = result;
+    notifyListeners();
+  }
+
+  void addOperatorFilter(FilterTag tag) {
+    Map<String, FilterDetail> result = Map.of(operatorFilters);
+
+    result[tag.id] = FilterDetail(key: tag.key, mode: FilterMode.whitelist, type: tag.type);
+
     operatorFilters = result;
     notifyListeners();
   }

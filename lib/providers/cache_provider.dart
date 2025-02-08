@@ -19,6 +19,7 @@ class CacheProvider extends ChangeNotifier {
   Map<String, dynamic>? cachedCharMeta;
   Map<String, dynamic>? cachedGamedataConst;
   Map<String, dynamic>? cachedCharTable;
+  Map<String, dynamic>? cachedGachaTable;
 
   /// just to know if variables are cached
   /// if you want to know if is cached last version/current server
@@ -39,6 +40,7 @@ class CacheProvider extends ChangeNotifier {
     required Map<String, dynamic> charMeta,
     required Map<String, dynamic> gamedataConst,
     required Map<String, dynamic> charTable,
+    required Map<String, dynamic> gachaTable,
   }) {
     cachedListOperator = listOperator;
     cachedListOperatorServer = listOperatorServer;
@@ -53,6 +55,7 @@ class CacheProvider extends ChangeNotifier {
     cachedCharMeta = charMeta;
     cachedGamedataConst = gamedataConst;
     cachedCharTable = charTable;
+    cachedGachaTable = gachaTable;
 
     cached = true;
     notifyListeners();
@@ -72,6 +75,7 @@ class CacheProvider extends ChangeNotifier {
     cachedCharMeta = null;
     cachedGamedataConst = null;
     cachedCharTable = null;
+    cachedGachaTable = null;
 
     if (NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().opFetched == true) {
       NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setOpFetched(false);

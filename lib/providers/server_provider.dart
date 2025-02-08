@@ -75,6 +75,7 @@ class ServerProvider extends ChangeNotifier {
     '/excel/char_patch_table.json', // 1 amiyi changes
     '/excel/char_meta_table.json', // 2 related ops alters
     '/excel/gamedata_const.json', // 3 for now only for game terminology dictionary
+    '/excel/gacha_table.json', // 4 for now just to extract tag list from recruitment
   ];
 
   static final List<String> opFiles = [

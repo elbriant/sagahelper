@@ -78,6 +78,7 @@ Future<List<Operator>> getOperators() async {
     charMeta: jsonDecode(misc[2]) as Map<String, dynamic>,
     gamedataConst: jsonDecode(misc[3]) as Map<String, dynamic>,
     charTable: jsonDecode(response[0]) as Map<String, dynamic>,
+    gachaTable: jsonDecode(misc[4]) as Map<String, dynamic>,
   );
 
   return completedList;
@@ -217,6 +218,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
         bool test = true;
 
         // whitelist
+        // test must evalue true
         for (var rule in whitelist.entries) {
           switch (rule.key) {
             case FilterType.rarity:
@@ -239,11 +241,16 @@ class _OperatorsPageState extends State<OperatorsPage> {
               if (op.modules != null) values.add('has_module');
 
               test = values.any((e) => rule.value.contains(e.toLowerCase()));
+            case FilterType.position:
+              test = rule.value.contains(op.position.toLowerCase());
+            case FilterType.tag:
+              test = op.tagList.any((element) => rule.value.contains(element.toLowerCase()));
           }
           if (test == false) break;
         }
 
         // blacklist
+        // if test evaluate true, return false
         for (var rule in blacklist.entries) {
           switch (rule.key) {
             case FilterType.rarity:
@@ -269,6 +276,12 @@ class _OperatorsPageState extends State<OperatorsPage> {
               if (op.modules != null) values.add('has_module');
 
               if (values.any((e) => rule.value.contains(e.toLowerCase()))) test = false;
+            case FilterType.position:
+              if (rule.value.contains(op.position.toLowerCase())) test = false;
+            case FilterType.tag:
+              if (op.tagList.any((element) => rule.value.contains(element.toLowerCase()))) {
+                test = false;
+              }
           }
         }
 
@@ -311,14 +324,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
     final opFetched = context.select<SettingsProvider, bool>((prov) => prov.opFetched);
     final currentFilters =
         context.select<SettingsProvider, Map<String, FilterDetail>>((prov) => prov.operatorFilters);
-
-    final cServer = context.select<SettingsProvider, Servers>((p) => p.currentServer);
-    final cVersion = context.read<ServerProvider>().versionOf(cServer);
-    final cCache = context.read<CacheProvider>();
-
-    final isCached = cCache.cached &&
-        cServer == cCache.cachedListOperatorServer &&
-        cVersion == cCache.cachedListOperatorVersion;
+    final isCached = context.watch<CacheProvider>().cached;
 
     return Scaffold(
       extendBody: false,

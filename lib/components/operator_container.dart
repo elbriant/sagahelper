@@ -1,6 +1,7 @@
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
 import 'package:sagahelper/components/stored_image.dart';
 import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/models/filters.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/pages/operator_info_page.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
@@ -59,8 +60,17 @@ class _OperatorContainerState extends State<OperatorContainer> with AutomaticKee
       DisplayList.portrait => ghPotraitLink,
     };
 
-    void openOperatorInfo(Operator currOp) {
-      Navigator.of(context).push(MaterialPageRoute(builder: (context) => OperatorInfo(currOp)));
+    void openOperatorInfo(Operator currOp) async {
+      FilterTag? filter = await Navigator.of(context)
+          .push(MaterialPageRoute(builder: (context) => OperatorInfo(currOp)));
+      if (filter != null) {
+        NavigationService.navigatorKey.currentContext!
+            .read<SettingsProvider>()
+            .clearOperatorFilters();
+        NavigationService.navigatorKey.currentContext!
+            .read<SettingsProvider>()
+            .addOperatorFilter(filter);
+      }
     }
 
     return Container(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sagahelper/components/stored_image.dart';
 import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/models/filters.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
@@ -186,7 +187,13 @@ class OpinfoArchiveHeader extends StatelessWidget {
                       labelStyle: Theme.of(context).brightness == Brightness.light
                           ? const TextStyle(color: Colors.white)
                           : null,
-                      onPressed: () {},
+                      onPressed: () => Navigator.of(context).pop(
+                        FilterTag(
+                          id: "${FilterType.profession.prefix}_${operator.profession.toLowerCase()}",
+                          key: operator.profession.toLowerCase(),
+                          type: FilterType.profession,
+                        ),
+                      ),
                     );
                   }
                   if (index == 1) {
@@ -199,7 +206,13 @@ class OpinfoArchiveHeader extends StatelessWidget {
                       labelStyle: Theme.of(context).brightness == Brightness.light
                           ? const TextStyle(color: Colors.white)
                           : null,
-                      onPressed: () {},
+                      onPressed: () => Navigator.of(context).pop(
+                        FilterTag(
+                          id: "${FilterType.subprofession.prefix}_${operator.subProfessionId.toLowerCase()}",
+                          key: operator.subProfessionId.toLowerCase(),
+                          type: FilterType.subprofession,
+                        ),
+                      ),
                     );
                   }
                   if (index == 2) {
@@ -210,7 +223,13 @@ class OpinfoArchiveHeader extends StatelessWidget {
                             ? StaticColors.fromBrightness(context).yellow
                             : StaticColors.fromBrightness(context).red,
                       ),
-                      onPressed: () {},
+                      onPressed: () => Navigator.of(context).pop(
+                        FilterTag(
+                          id: "${FilterType.position.prefix}_${operator.position.toLowerCase()}",
+                          key: operator.position.toLowerCase(),
+                          type: FilterType.position,
+                        ),
+                      ),
                     );
                   }
                   return ActionChip(
@@ -218,7 +237,13 @@ class OpinfoArchiveHeader extends StatelessWidget {
                     side: BorderSide(
                       color: Theme.of(context).colorScheme.tertiary,
                     ),
-                    onPressed: () {},
+                    onPressed: () => Navigator.of(context).pop(
+                      FilterTag(
+                        id: "${FilterType.tag.prefix}_${(operator.tagList[index - 3] as String).toLowerCase()}",
+                        key: (operator.tagList[index - 3] as String).toLowerCase(),
+                        type: FilterType.tag,
+                      ),
+                    ),
                   );
                 }),
               ),

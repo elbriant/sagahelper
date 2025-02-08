@@ -56,8 +56,14 @@ class Entity {
     this.talents,
   });
 
-  factory Entity.fromId(
-      {required String id, int? lv, int? elite, int? pot, int? selectedSkill, int? skillLevel}) {
+  factory Entity.fromId({
+    required String id,
+    int? lv,
+    int? elite,
+    int? pot,
+    int? selectedSkill,
+    int? skillLevel,
+  }) {
     if (!NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cached) {
       throw NoCacheException(error: 'no cache trying to create an entity from id');
     }
