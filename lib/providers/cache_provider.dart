@@ -11,7 +11,7 @@ class CacheProvider extends ChangeNotifier {
   String? cachedListOperatorVersion;
   Map<String, dynamic>? cachedRangeTable;
   Map<String, dynamic>? cachedSkillTable;
-  Map<String, dynamic>? cachedModTable;
+  Map<String, dynamic>? cachedModInfoTable;
   Map<String, dynamic>? cachedModStatsTable;
   Map<String, dynamic>? cachedBaseSkillTable;
   Map<String, dynamic>? cachedTeamTable;
@@ -47,7 +47,7 @@ class CacheProvider extends ChangeNotifier {
     cachedListOperatorVersion = listOperatorVersion;
     cachedRangeTable = rangeTable;
     cachedSkillTable = skillTable;
-    cachedModTable = modTable;
+    cachedModInfoTable = modTable;
     cachedBaseSkillTable = baseSkillTable;
     cachedModStatsTable = modStatsTable;
     cachedTeamTable = teamTable;
@@ -67,7 +67,7 @@ class CacheProvider extends ChangeNotifier {
     cachedListOperatorVersion = null;
     cachedRangeTable = null;
     cachedSkillTable = null;
-    cachedModTable = null;
+    cachedModInfoTable = null;
     cachedBaseSkillTable = null;
     cachedModStatsTable = null;
     cachedTeamTable = null;

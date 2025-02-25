@@ -18,19 +18,19 @@ class Entity {
   final String subprofession;
 
   /// operator values, if null will deafult to use max values instead
-  final int level;
+  final int? level;
 
   /// operator values, if null will deafult to use max values instead
-  final int elite;
+  final int? elite;
 
   /// operator values, if null will deafult to use max values instead
-  final int potential;
+  final int? potential;
 
   /// operator values, if null will deafult to use max values instead
-  final int selectedSkill;
+  final int? selectedSkill;
 
   /// operator values, if null will deafult to use max values instead
-  final int selectedSkillLv;
+  final int? selectedSkillLv;
 
   final String rangeId;
 
@@ -79,14 +79,14 @@ class Entity {
       subprofession: entity["subProfessionId"],
       phases: entity["phases"],
       id: id,
-      elite: elite ?? (entity["phases"] as List).length - 1,
-      level: lv ?? ((entity["phases"] as List).last as Map)["maxLevel"],
-      potential: pot ?? 5,
+      elite: elite,
+      level: lv,
+      potential: pot,
       skills: (entity["skills"] as List?)?.isEmpty ?? true ? null : entity["skills"],
       talents: (entity["talents"] as List?)?.isEmpty ?? true ? null : entity["talents"],
       rangeId: entity["phases"][elite ?? (entity["phases"] as List).length - 1]["rangeId"],
-      selectedSkill: selectedSkill ?? -1,
-      selectedSkillLv: skillLevel ?? -1,
+      selectedSkill: selectedSkill,
+      selectedSkillLv: skillLevel,
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sagahelper/components/popup_dialog.dart';
 import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/models/styled_text_arknights_info_tag.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
 import 'package:styled_text/styled_text.dart';
@@ -245,7 +246,7 @@ class StyleProvider extends ChangeNotifier {
             if (attributes.containsKey('custom')) {
               final String richtext = attributes['custom']!;
               final TextStyle customStyle = richTextStyles()[richtext] ?? baseStyle!;
-              return baseStyle!.copyWith(
+              return baseStyle?.copyWith(
                 color: customStyle.color ?? baseStyle.color,
                 fontStyle: customStyle.fontStyle ?? baseStyle.fontStyle,
               );
@@ -294,6 +295,51 @@ class StyleProvider extends ChangeNotifier {
         'add-icon': StyledTextIconTag(
           Icons.add,
           color: StaticColors.fromBrightness(context).sBonus,
+        ),
+        'info-v2': StyledTextArknightsInfoTag(
+          baseStyle: const TextStyle(fontStyle: FontStyle.normal),
+          parse: (baseStyle, attributes) {
+            if (attributes.containsKey('custom') && !attributes.containsKey('selectable')) {
+              final String richtext = attributes['custom']!;
+              final TextStyle customStyle = richTextStyles()[richtext] ?? baseStyle!;
+              return baseStyle?.copyWith(
+                color: customStyle.color ?? baseStyle.color,
+                fontStyle: customStyle.fontStyle ?? baseStyle.fontStyle,
+              );
+            } else if (attributes.containsKey('selectable')) {
+              return const TextStyle(decoration: TextDecoration.underline);
+            } else {
+              return baseStyle;
+            }
+          },
+          onTapGenerator: (_, attrs_) {
+            if (!attrs_.containsKey('selectable')) return null;
+
+            return (String? text, Map<String?, String?> attrs) {
+              dev.log('selected ${attrs.toString()}');
+
+              final navContext = NavigationService.navigatorKey.currentContext!;
+              final contx = context ?? navContext;
+              final gamedataConst = contx.read<CacheProvider>().cachedGamedataConst!;
+
+              if (!(gamedataConst["termDescriptionDict"] as Map).containsKey(attrs['custom'])) {
+                return;
+              }
+
+              final termDict =
+                  (gamedataConst["termDescriptionDict"] as Map)[attrs['custom']] as Map;
+
+              PopupDialog.dictionary(
+                context: contx,
+                term: Text(termDict["termName"]),
+                definition: StyledText(
+                  text: (termDict["description"] as String).akRichTextParser(),
+                  tags: contx.read<StyleProvider>().tagsAsArknights(context: contx),
+                  async: true,
+                ),
+              );
+            };
+          },
         ),
       };
   // input example <@ba.vup>{cost}</> where

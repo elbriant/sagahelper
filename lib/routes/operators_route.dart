@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/scheduler.dart';
 import 'package:sagahelper/components/op_route_error.dart';
 import 'package:sagahelper/components/op_route_filters_popup.dart';
 import 'package:sagahelper/components/op_route_loading.dart';
@@ -154,6 +155,9 @@ class _OperatorsPageState extends State<OperatorsPage> {
     super.initState();
 
     futureOperatorList = fetchSafeOperators();
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      precacheImage(const AssetImage('assets/placeholders/avatar.png'), context);
+    });
   }
 
   void reloadgamedata() {

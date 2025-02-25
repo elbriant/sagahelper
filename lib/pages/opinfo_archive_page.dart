@@ -56,16 +56,20 @@ List<Operator>? computingRelatedOps(List input) {
   return result;
 }
 
-class _ArchivePageState extends State<ArchivePage> with SingleTickerProviderStateMixin {
+class _ArchivePageState extends State<ArchivePage>
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late TabController _secondaryTabController;
-  late final List<Widget> _secChildren;
-  int _activeIndex = 0;
   final List<Tab> _secTabs = <Tab>[
     const Tab(text: 'Combat'),
     const Tab(text: 'File'),
   ];
 
+  late final List<Widget> secChildren;
+
   late Future<List<Operator>?> relatedOperatorList;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
@@ -73,14 +77,17 @@ class _ArchivePageState extends State<ArchivePage> with SingleTickerProviderStat
 
     relatedOperatorList = getRelatedOps();
 
-    _secondaryTabController = TabController(vsync: this, length: _secTabs.length);
-    _secondaryTabController.addListener(() {
-      setState(() {
-        _activeIndex = _secondaryTabController.index;
+    _secondaryTabController = TabController(vsync: this, length: _secTabs.length)
+      ..addListener(() {
+        setState(() {
+          // change tab
+        });
       });
-    });
 
-    _secChildren = [OpinfoArchiveSkill(widget.operator), OpinfoArchiveLore(widget.operator)];
+    secChildren = [
+      OpinfoArchiveSkill(widget.operator),
+      OpinfoArchiveLore(widget.operator),
+    ];
   }
 
   Future<List<Operator>?> getRelatedOps() async {
@@ -98,15 +105,21 @@ class _ArchivePageState extends State<ArchivePage> with SingleTickerProviderStat
   }
 
   @override
+  void dispose() {
+    _secondaryTabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
+
     return FutureBuilder(
       future: relatedOperatorList,
       builder: (context, snapshot) {
         if (snapshot.hasError) throw snapshot.error!; //  Error
 
-        Widget relatedOperatorHeader = (snapshot.hasData &&
-                snapshot.connectionState == ConnectionState.done &&
-                snapshot.data != null)
+        Widget relatedOperatorHeader = (snapshot.hasData)
             ? SizedBox(
                 width: double.maxFinite,
                 child: Padding(
@@ -218,13 +231,7 @@ class _ArchivePageState extends State<ArchivePage> with SingleTickerProviderStat
             SliverToBoxAdapter(
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 350),
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  return AnimatedSwitcher.defaultTransitionBuilder(
-                    child,
-                    animation,
-                  );
-                },
-                child: _secChildren[_activeIndex],
+                child: secChildren[_secondaryTabController.index],
               ),
             ),
             SliverToBoxAdapter(

@@ -99,22 +99,28 @@ abstract final class PopupDialog {
       ),
       content: Builder(
         builder: (BuildContext context) {
+          final int elite = entity.elite ?? entity.phases.length - 1;
+          final int level = entity.level ?? (entity.phases.last as Map)["maxLevel"];
+          final int potential = entity.potential ?? 5;
+          final int skill = entity.selectedSkill ?? -1;
+          final int skillLv = entity.selectedSkillLv ?? -1;
+
           String getStat(String stat) {
-            List<dynamic> datakeyframe = entity.phases[entity.elite]['attributesKeyFrames'];
-            int maxLevel = entity.phases[entity.elite]["maxLevel"];
+            List<dynamic> datakeyframe = entity.phases[elite]['attributesKeyFrames'];
+            int maxLevel = entity.phases[elite]["maxLevel"];
 
             if (stat == 'baseAttackTime' || stat == 'respawnTime') {
               var value = lerpDouble(
                 datakeyframe[0]['data'][stat],
                 datakeyframe[1]['data'][stat],
-                (entity.level - 1.0) / (maxLevel - 1),
+                (level - 1.0) / (maxLevel - 1),
               )!;
               if (stat == 'baseAttackTime') {
                 //shown value is atk interval, here we calculate the interval with the real ASPD
                 value /= lerpDouble(
                       datakeyframe[0]['data']['attackSpeed'],
                       datakeyframe[1]['data']['attackSpeed'],
-                      (entity.level - 1.0) / (maxLevel - 1),
+                      (level - 1.0) / (maxLevel - 1),
                     )! /
                     100;
               }
@@ -124,7 +130,7 @@ abstract final class PopupDialog {
               var value = lerpDouble(
                 datakeyframe[0]['data'][stat],
                 datakeyframe[1]['data'][stat],
-                (entity.level - 1.0) / (maxLevel - 1),
+                (level - 1.0) / (maxLevel - 1),
               )!;
               return value.round().toString();
             }
@@ -276,11 +282,11 @@ abstract final class PopupDialog {
                             talentPots.sort();
 
                             int minElite = talentElites.lastWhere(
-                              (e) => e <= entity.elite,
+                              (e) => e <= elite,
                               orElse: () => talentElites.first,
                             );
                             int minPot = talentPots.lastWhere(
-                              (e) => e <= entity.potential,
+                              (e) => e <= potential,
                               orElse: () => talentPots.first,
                             );
 
@@ -428,9 +434,9 @@ abstract final class PopupDialog {
                   entity.skills != null
                       ? Builder(
                           builder: (context) {
-                            int currentSelectedSkill = entity.selectedSkill == -1
+                            int currentSelectedSkill = skill == -1
                                 ? entity.skills!.lastIndexWhere((e) => (e["skillId"] != null))
-                                : entity.selectedSkill;
+                                : skill;
 
                             if (currentSelectedSkill == -1) return const SizedBox.shrink();
 
@@ -442,14 +448,14 @@ abstract final class PopupDialog {
                                 .read<CacheProvider>()
                                 .cachedSkillTable![selectedSkill["skillId"]];
 
-                            int currentSkillLevel = entity.selectedSkill == -1
+                            int currentSkillLevel = skillLv == -1
                                 ? (context
                                                 .read<CacheProvider>()
                                                 .cachedSkillTable![selectedSkill["skillId"]]
                                             ["levels"] as List)
                                         .length -
                                     1
-                                : entity.selectedSkill;
+                                : skillLv;
 
                             Map skillDetailLv = context
                                     .read<CacheProvider>()

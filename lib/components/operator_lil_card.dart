@@ -13,8 +13,13 @@ class OperatorLilCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     void openOperatorInfo() {
-      Navigator.of(context)
-          .pushReplacement(MaterialPageRoute(builder: (context) => OperatorInfo(operator)));
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => OperatorInfoPage(
+            operator: operator,
+          ),
+        ),
+      );
     }
 
     final String imgLink =

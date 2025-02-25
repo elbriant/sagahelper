@@ -6,6 +6,7 @@ import 'package:sagahelper/components/popup_dialog.dart';
 import 'package:sagahelper/global_data.dart';
 
 import 'package:sagahelper/models/entity.dart';
+import 'package:sagahelper/providers/op_info_provider.dart';
 import 'package:sagahelper/providers/styles_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
 import 'package:styled_text/styled_text.dart';
@@ -37,7 +38,17 @@ class EntityCard extends StatelessWidget {
       child: Material(
         type: MaterialType.transparency,
         child: InkWell(
-          onTap: () => PopupDialog.entityView(context: context, entity: entity),
+          onTap: () => PopupDialog.entityView(
+            context: context,
+            entity: Entity.fromId(
+              id: entity.id,
+              elite: entity.elite ?? context.read<OpInfoProvider?>()?.elite,
+              lv: entity.level ?? context.read<OpInfoProvider?>()?.level.toInt(),
+              pot: entity.potential ?? context.read<OpInfoProvider?>()?.potential,
+              selectedSkill: entity.selectedSkill ?? context.read<OpInfoProvider?>()?.selectedSkill,
+              skillLevel: entity.selectedSkillLv ?? context.read<OpInfoProvider?>()?.skillLevel,
+            ),
+          ),
           splashColor: rarityColors[0].withOpacity(0.4),
           highlightColor: rarityColors[0].withOpacity(0.3),
           borderRadius: BorderRadius.circular(8.0),

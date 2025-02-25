@@ -2,12 +2,12 @@ import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:flutter/material.dart';
 
 class CustomTabBar extends StatelessWidget implements PreferredSizeWidget {
-  final TabController controller;
+  final TabController? controller;
   final List<Tab> tabs;
   final bool isTransparent;
   const CustomTabBar({
     super.key,
-    required this.controller,
+    this.controller,
     required this.tabs,
     this.isTransparent = false,
   });
@@ -26,7 +26,7 @@ class CustomTabBar extends StatelessWidget implements PreferredSizeWidget {
             child: Padding(
               padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
               child: TabBar(
-                controller: controller,
+                controller: controller ?? DefaultTabController.maybeOf(context),
                 dividerColor: Colors.transparent,
                 tabs: tabs,
               ),
@@ -42,7 +42,7 @@ class CustomTabBar extends StatelessWidget implements PreferredSizeWidget {
           child: Padding(
             padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
             child: TabBar(
-              controller: controller,
+              controller: controller ?? DefaultTabController.maybeOf(context),
               dividerColor: Colors.transparent,
               tabs: tabs,
             ),

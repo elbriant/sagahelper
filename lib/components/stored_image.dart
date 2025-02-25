@@ -17,7 +17,7 @@ class StoredImage extends StatelessWidget {
     this.alignment = Alignment.center,
     this.filterQuality = FilterQuality.medium,
     this.placeholder,
-    this.showProgressOnPlaceholder = true,
+    this.showProgress = true,
     this.useSync = true,
     this.width,
     this.height,
@@ -33,7 +33,7 @@ class StoredImage extends StatelessWidget {
   final AlignmentGeometry alignment;
   final FilterQuality filterQuality;
   final Widget? placeholder;
-  final bool showProgressOnPlaceholder;
+  final bool showProgress;
   final bool useSync;
   final double? width;
   final double? height;
@@ -57,85 +57,67 @@ class StoredImage extends StatelessWidget {
       return FutureBuilder(
         future: imgFile,
         builder: (context, snapshot) {
-          final Widget imgChild =
-              (snapshot.hasData && snapshot.connectionState == ConnectionState.done)
-                  ? Image(
-                      image: NetworkToFileImage(
-                        url: imageUrl,
-                        file: snapshot.data!,
-                        scale: scale,
-                      ),
-                      fit: fit,
-                      color: color,
-                      width: width,
-                      height: height,
-                      alignment: alignment,
-                      colorBlendMode: colorBlendMode,
-                      filterQuality: filterQuality,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Center(child: Icon(Icons.error));
-                      },
-                      loadingBuilder: (
-                        BuildContext context,
-                        Widget child,
-                        ImageChunkEvent? loadingProgress,
-                      ) {
-                        if (loadingProgress == null) {
-                          return child;
-                        }
+          final prepPlaceholder = showProgress
+              ? Center(
+                  child: Stack(
+                    children: [
+                      placeholder ?? const SizedBox.shrink(),
+                      const CircularProgressIndicator(),
+                    ],
+                  ),
+                )
+              : placeholder ?? const SizedBox.shrink();
 
-                        if (placeholder == null) {
-                          return Center(
-                            child: CircularProgressIndicator(
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                  : null,
-                            ),
-                          );
-                        }
-
-                        return Stack(
-                          children: [
-                            placeholder!,
-                            showProgressOnPlaceholder
-                                ? Center(
-                                    child: CircularProgressIndicator(
-                                      value: loadingProgress.expectedTotalBytes != null
-                                          ? loadingProgress.cumulativeBytesLoaded /
-                                              loadingProgress.expectedTotalBytes!
-                                          : null,
-                                    ),
-                                  )
-                                : null,
-                          ].nonNulls.toList(),
-                        );
-                      },
-                    )
-                  : placeholder == null
-                      ? const Center(child: CircularProgressIndicator())
-                      : Stack(
-                          children: [
-                            placeholder!,
-                            showProgressOnPlaceholder
-                                ? const Center(child: CircularProgressIndicator())
-                                : null,
-                          ].nonNulls.toList(),
-                        );
-
-          if (heroTag != null) {
-            return Hero(
-              tag: heroTag!,
-              child: imgChild,
-            );
-          } else {
-            return imgChild;
+          if (!snapshot.hasData) {
+            return heroTag != null
+                ? Hero(
+                    tag: heroTag!,
+                    child: prepPlaceholder,
+                  )
+                : prepPlaceholder;
           }
+
+          final image = Image(
+            image: NetworkToFileImage(
+              url: imageUrl,
+              file: snapshot.data!,
+              scale: scale,
+            ),
+            fit: fit,
+            color: color,
+            width: width,
+            height: height,
+            alignment: alignment,
+            colorBlendMode: colorBlendMode,
+            filterQuality: filterQuality,
+            errorBuilder: (context, error, stackTrace) {
+              return const Center(child: Icon(Icons.error));
+            },
+            loadingBuilder: (
+              BuildContext context,
+              Widget child,
+              ImageChunkEvent? loadingProgress,
+            ) {
+              return AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: loadingProgress == null ? child : prepPlaceholder,
+              );
+            },
+          );
+
+          final prepWidget = heroTag != null
+              ? Hero(
+                  tag: heroTag!,
+                  child: image,
+                )
+              : image;
+
+          return prepWidget;
         },
       );
     }
 
-    final imgChild = Image(
+    final image = Image(
       image: NetworkToFileImage(
         url: imageUrl,
         file: filePath != null ? LocalDataManager.localCacheFileSync(filePath!) : null,
@@ -160,20 +142,10 @@ class StoredImage extends StatelessWidget {
           return child;
         }
 
-        if (placeholder == null) {
-          return Center(
-            child: CircularProgressIndicator(
-              value: loadingProgress.expectedTotalBytes != null
-                  ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                  : null,
-            ),
-          );
-        }
-
         return Stack(
           children: [
-            placeholder!,
-            showProgressOnPlaceholder
+            placeholder ?? const SizedBox.shrink(),
+            showProgress
                 ? Center(
                     child: CircularProgressIndicator(
                       value: loadingProgress.expectedTotalBytes != null
@@ -182,19 +154,19 @@ class StoredImage extends StatelessWidget {
                           : null,
                     ),
                   )
-                : null,
-          ].nonNulls.toList(),
+                : const SizedBox.shrink(),
+          ],
         );
       },
     );
 
-    if (heroTag != null) {
-      return Hero(
-        tag: heroTag!,
-        child: imgChild,
-      );
-    } else {
-      return imgChild;
-    }
+    final prepWidget = (heroTag != null)
+        ? Hero(
+            tag: heroTag!,
+            child: image,
+          )
+        : image;
+
+    return prepWidget;
   }
 }

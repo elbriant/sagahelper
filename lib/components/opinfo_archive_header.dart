@@ -1,24 +1,74 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:network_to_file_image/network_to_file_image.dart';
 import 'package:sagahelper/components/stored_image.dart';
 import 'package:sagahelper/global_data.dart';
 import 'package:sagahelper/models/filters.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
+import 'package:transparent_image/transparent_image.dart';
 
-class OpinfoArchiveHeader extends StatelessWidget {
+class OpinfoArchiveHeader extends StatefulWidget {
   const OpinfoArchiveHeader({super.key, required this.operator, required this.relatedOps});
   final Operator operator;
   final Widget relatedOps;
 
+  static final photoTween = Matrix4Tween(
+    begin: Matrix4.translationValues(0, 0, 0)..rotateZ(0),
+    end: Matrix4.translationValues(-20, 10, -1)..rotateZ(-0.088),
+  );
+
+  @override
+  State<OpinfoArchiveHeader> createState() => _OpinfoArchiveHeaderState();
+}
+
+class _OpinfoArchiveHeaderState extends State<OpinfoArchiveHeader>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    duration: const Duration(milliseconds: 350),
+    vsync: this,
+  );
+
+  late final Animation<Matrix4> _animationTransform = OpinfoArchiveHeader.photoTween
+      .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
+
+  late final Future<File> _logoFile;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed((const Duration(milliseconds: 200)), () {
+        if (mounted) {
+          _controller.forward();
+        }
+      });
+    });
+
+    String? logo = widget.operator.teamId ?? widget.operator.groupId ?? widget.operator.nationId;
+    if (logo == 'laterano' || logo == 'leithanien') {
+      logo = logo?.replaceFirst('l', 'L');
+    }
+
+    _logoFile = LocalDataManager.localCacheFile('logo/$logo.png', true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final professionStr = 'assets/classes/class_${operator.profession.toLowerCase()}.png';
+    final professionStr = 'assets/classes/class_${widget.operator.profession.toLowerCase()}.png';
     final subprofessionStr =
-        'assets/subclasses/sub_${operator.subProfessionId.toLowerCase()}_icon.png';
+        'assets/subclasses/sub_${widget.operator.subProfessionId.toLowerCase()}_icon.png';
 
-    final String ghAvatarLink = '$kAvatarRepo/${operator.id}.png';
-    String? logo = operator.teamId ?? operator.groupId ?? operator.nationId;
+    final String ghAvatarLink = '$kAvatarRepo/${widget.operator.id}.png';
+    String? logo = widget.operator.teamId ?? widget.operator.groupId ?? widget.operator.nationId;
     if (logo == 'laterano' || logo == 'leithanien') {
       logo = logo?.replaceFirst('l', 'L');
     }
@@ -47,18 +97,22 @@ class OpinfoArchiveHeader extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: StoredImage(
-                      filePath: 'logo/$logo.png',
-                      colorBlendMode: BlendMode.modulate,
-                      color: const Color.fromARGB(150, 255, 255, 255),
-                      imageUrl: ghLogoLink,
-                      scale: 2.5,
-                      placeholder: Image.asset(
-                        'assets/placeholders/logo.png',
-                        colorBlendMode: BlendMode.modulate,
-                        color: Colors.transparent,
-                        scale: 2.5,
-                      ),
+                    child: FutureBuilder(
+                      future: _logoFile,
+                      builder: (context, snapshot) {
+                        if (!snapshot.hasData) return const SizedBox.shrink();
+
+                        return FadeInImage(
+                          placeholder: MemoryImage(kTransparentImage),
+                          image: NetworkToFileImage(
+                            file: snapshot.data!,
+                            url: ghLogoLink,
+                            scale: 2.5,
+                          ),
+                          colorBlendMode: BlendMode.modulate,
+                          color: const Color.fromARGB(150, 255, 255, 255),
+                        );
+                      },
                     ),
                   ),
                 )
@@ -73,45 +127,14 @@ class OpinfoArchiveHeader extends StatelessWidget {
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-                          Transform(
-                            transform: Matrix4.translationValues(-20, 10, -1)..rotateZ(-0.088),
-                            child: Container(
-                              padding: const EdgeInsets.all(0.0),
-                              margin: const EdgeInsets.all(10.0),
-                              decoration: BoxDecoration(
-                                boxShadow: const <BoxShadow>[
-                                  BoxShadow(
-                                    color: Color.fromRGBO(0, 0, 0, 0.5),
-                                    offset: Offset(0, 8.0),
-                                    blurRadius: 10.0,
-                                  ),
-                                ],
-                                border: Border.all(
-                                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                                  width: 4.0,
-                                  style: BorderStyle.solid,
-                                ),
-                              ),
-                              child: StoredImage(
-                                colorBlendMode: BlendMode.modulate,
-                                color: const Color.fromARGB(99, 255, 255, 255),
-                                scale: 0.9,
-                                fit: BoxFit.fitWidth,
-                                placeholder: Image.asset(
-                                  'assets/placeholders/avatar.png',
-                                  colorBlendMode: BlendMode.modulate,
-                                  color: Colors.transparent,
-                                  scale: 0.9,
-                                  fit: BoxFit.fitWidth,
-                                ),
-                                imageUrl: ghAvatarLink,
-                                filePath:
-                                    'images/${operator.id}_dl${DisplayList.avatar.index.toString()}.png',
-                              ),
-                            ),
-                          ),
-                          Transform(
-                            transform: Matrix4.rotationZ(0.0),
+                          AnimatedBuilder(
+                            animation: _controller,
+                            builder: (context, child) {
+                              return Transform(
+                                transform: _animationTransform.value,
+                                child: child,
+                              );
+                            },
                             child: Container(
                               padding: const EdgeInsets.all(0.0),
                               margin: const EdgeInsets.all(10.0),
@@ -131,19 +154,57 @@ class OpinfoArchiveHeader extends StatelessWidget {
                                 color: const Color.fromARGB(255, 241, 241, 241),
                               ),
                               child: StoredImage(
-                                heroTag: operator.id,
-                                filePath:
-                                    'images/${operator.id}_dl${DisplayList.avatar.index.toString()}.png',
+                                colorBlendMode: BlendMode.modulate,
+                                color: const Color.fromARGB(99, 255, 255, 255),
+                                scale: 0.9,
                                 fit: BoxFit.fitWidth,
                                 placeholder: Image.asset(
                                   'assets/placeholders/avatar.png',
                                   colorBlendMode: BlendMode.modulate,
                                   color: Colors.transparent,
+                                  scale: 0.9,
                                   fit: BoxFit.fitWidth,
                                 ),
                                 imageUrl: ghAvatarLink,
-                                useSync: true,
+                                filePath:
+                                    'images/${widget.operator.id}_dl${DisplayList.avatar.index.toString()}.png',
+                                useSync: false,
+                                showProgress: false,
                               ),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(0.0),
+                            margin: const EdgeInsets.all(10.0),
+                            decoration: BoxDecoration(
+                              boxShadow: const <BoxShadow>[
+                                BoxShadow(
+                                  color: Color.fromRGBO(0, 0, 0, 0.5),
+                                  offset: Offset(0, 8.0),
+                                  blurRadius: 10.0,
+                                ),
+                              ],
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                width: 4.0,
+                                style: BorderStyle.solid,
+                              ),
+                              color: const Color.fromARGB(255, 241, 241, 241),
+                            ),
+                            child: StoredImage(
+                              heroTag: widget.operator.id,
+                              filePath:
+                                  'images/${widget.operator.id}_dl${DisplayList.avatar.index.toString()}.png',
+                              fit: BoxFit.fitWidth,
+                              placeholder: Image.asset(
+                                'assets/placeholders/avatar.png',
+                                colorBlendMode: BlendMode.modulate,
+                                color: Colors.transparent,
+                                fit: BoxFit.fitWidth,
+                              ),
+                              imageUrl: ghAvatarLink,
+                              useSync: true,
+                              showProgress: false,
                             ),
                           ),
                         ],
@@ -159,15 +220,15 @@ class OpinfoArchiveHeader extends StatelessWidget {
                   TextSpan(
                     children: [
                       TextSpan(
-                        text: '[${operator.displayNumber} / ${operator.id}]\n',
+                        text: '[${widget.operator.displayNumber} / ${widget.operator.id}]\n',
                         style: TextStyle(
                           color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.5),
                           fontStyle: FontStyle.italic,
                         ),
                       ),
-                      TextSpan(text: operator.itemUsage),
+                      TextSpan(text: widget.operator.itemUsage),
                       TextSpan(
-                        text: '\n${operator.itemDesc}',
+                        text: '\n${widget.operator.itemDesc}',
                         style: const TextStyle(fontStyle: FontStyle.italic),
                       ),
                     ],
@@ -176,10 +237,10 @@ class OpinfoArchiveHeader extends StatelessWidget {
               ),
               Wrap(
                 spacing: 8.0,
-                children: List.generate(operator.tagList.length + 3, (index) {
+                children: List.generate(widget.operator.tagList.length + 3, (index) {
                   if (index == 0) {
                     return ActionChip(
-                      label: Text(operator.professionString),
+                      label: Text(widget.operator.professionString),
                       avatar: Image.asset(professionStr),
                       backgroundColor: Theme.of(context).brightness == Brightness.light
                           ? Theme.of(context).colorScheme.primary.withOpacity(0.85)
@@ -189,8 +250,8 @@ class OpinfoArchiveHeader extends StatelessWidget {
                           : null,
                       onPressed: () => Navigator.of(context).pop(
                         FilterTag(
-                          id: "${FilterType.profession.prefix}_${operator.profession.toLowerCase()}",
-                          key: operator.profession.toLowerCase(),
+                          id: "${FilterType.profession.prefix}_${widget.operator.profession.toLowerCase()}",
+                          key: widget.operator.profession.toLowerCase(),
                           type: FilterType.profession,
                         ),
                       ),
@@ -198,7 +259,7 @@ class OpinfoArchiveHeader extends StatelessWidget {
                   }
                   if (index == 1) {
                     return ActionChip(
-                      label: Text(operator.subProfessionString),
+                      label: Text(widget.operator.subProfessionString),
                       avatar: Image.asset(subprofessionStr),
                       backgroundColor: Theme.of(context).brightness == Brightness.light
                           ? Theme.of(context).colorScheme.primary.withOpacity(0.7)
@@ -208,8 +269,8 @@ class OpinfoArchiveHeader extends StatelessWidget {
                           : null,
                       onPressed: () => Navigator.of(context).pop(
                         FilterTag(
-                          id: "${FilterType.subprofession.prefix}_${operator.subProfessionId.toLowerCase()}",
-                          key: operator.subProfessionId.toLowerCase(),
+                          id: "${FilterType.subprofession.prefix}_${widget.operator.subProfessionId.toLowerCase()}",
+                          key: widget.operator.subProfessionId.toLowerCase(),
                           type: FilterType.subprofession,
                         ),
                       ),
@@ -217,30 +278,30 @@ class OpinfoArchiveHeader extends StatelessWidget {
                   }
                   if (index == 2) {
                     return ActionChip(
-                      label: Text(operator.position.toLowerCase().capitalize()),
+                      label: Text(widget.operator.position.toLowerCase().capitalize()),
                       side: BorderSide(
-                        color: operator.position == 'RANGED'
+                        color: widget.operator.position == 'RANGED'
                             ? StaticColors.fromBrightness(context).yellow
                             : StaticColors.fromBrightness(context).red,
                       ),
                       onPressed: () => Navigator.of(context).pop(
                         FilterTag(
-                          id: "${FilterType.position.prefix}_${operator.position.toLowerCase()}",
-                          key: operator.position.toLowerCase(),
+                          id: "${FilterType.position.prefix}_${widget.operator.position.toLowerCase()}",
+                          key: widget.operator.position.toLowerCase(),
                           type: FilterType.position,
                         ),
                       ),
                     );
                   }
                   return ActionChip(
-                    label: Text(operator.tagList[index - 3]),
+                    label: Text(widget.operator.tagList[index - 3]),
                     side: BorderSide(
                       color: Theme.of(context).colorScheme.tertiary,
                     ),
                     onPressed: () => Navigator.of(context).pop(
                       FilterTag(
-                        id: "${FilterType.tag.prefix}_${(operator.tagList[index - 3] as String).toLowerCase()}",
-                        key: (operator.tagList[index - 3] as String).toLowerCase(),
+                        id: "${FilterType.tag.prefix}_${(widget.operator.tagList[index - 3] as String).toLowerCase()}",
+                        key: (widget.operator.tagList[index - 3] as String).toLowerCase(),
                         type: FilterType.tag,
                       ),
                     ),
@@ -250,7 +311,7 @@ class OpinfoArchiveHeader extends StatelessWidget {
               AnimatedSize(
                 duration: const Duration(milliseconds: 250),
                 curve: Curves.ease,
-                child: relatedOps,
+                child: widget.relatedOps,
               ),
             ],
           ),

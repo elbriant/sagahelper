@@ -61,8 +61,13 @@ class _OperatorContainerState extends State<OperatorContainer> with AutomaticKee
     };
 
     void openOperatorInfo(Operator currOp) async {
-      FilterTag? filter = await Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => OperatorInfo(currOp)));
+      FilterTag? filter = await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => OperatorInfoPage(
+            operator: currOp,
+          ),
+        ),
+      );
       if (filter != null) {
         NavigationService.navigatorKey.currentContext!
             .read<SettingsProvider>()

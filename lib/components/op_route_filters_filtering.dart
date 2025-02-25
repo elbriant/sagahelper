@@ -77,7 +77,7 @@ class OpRouteFiltersFiltering extends StatelessWidget {
     List<Widget> subProfessionFilters() {
       List<Widget> result = [];
 
-      for (var subclass in (cacheProv.cachedModTable!["subProfDict"] as Map).entries) {
+      for (var subclass in (cacheProv.cachedModInfoTable!["subProfDict"] as Map).entries) {
         if ((subclass.key as String).startsWith('notchar') ||
             (subclass.key as String).startsWith('none')) continue;
 
@@ -141,18 +141,19 @@ class OpRouteFiltersFiltering extends StatelessWidget {
     final List<FilterChip> extraFilters = [
       FilterChip(
         label: const Text('Has module'),
-        selected: currentFilters.containsKey('has_module'),
-        avatar: currentFilters.containsKey('has_module')
+        selected: currentFilters.containsKey('${FilterType.extra.prefix}_has_module'),
+        avatar: currentFilters.containsKey('${FilterType.extra.prefix}_has_module')
             ? Icon(
-                currentFilters['has_module']!.mode == FilterMode.whitelist
+                currentFilters['${FilterType.extra.prefix}_has_module']!.mode ==
+                        FilterMode.whitelist
                     ? Icons.check
                     : Icons.block,
               )
             : null,
         onSelected: (_) => context.read<SettingsProvider>().toggleOperatorFilter(
               FilterTag(
-                id: 'has_module',
-                key: '${FilterType.extra.prefix}_has_module',
+                id: '${FilterType.extra.prefix}_has_module',
+                key: 'has_module',
                 type: FilterType.extra,
               ),
             ),

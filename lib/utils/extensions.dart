@@ -28,6 +28,8 @@ extension ListExtension on List<Widget?> {
 }
 
 extension DoubleExtension on double {
+  /// makes a String of a double value
+  /// removing leading zeros
   String toStringWithPrecision([int? precision]) {
     return toStringAsFixed(precision ?? 3).replaceFirst(RegExp(r'\.?0*$'), '');
   }
@@ -46,9 +48,10 @@ extension StringExtension on String {
     }
 
     return escapedString
-        .replaceAll(RegExp(r'<@'), '<info custom="')
-        .replaceAll(RegExp(r'<\$'), '<selectable custom="')
-        .replaceAll(RegExp(r'(?<!/)>'), '">');
+        .replaceAll(RegExp(r'<@'), '<info-v2 custom=')
+        .replaceAll(RegExp(r'<\$'), '<info-v2 selectable="true" custom=')
+        .replaceAll(RegExp(r'(?<!/)>'), '>')
+        .replaceAll(RegExp(r'<\/>'), '</info-v2>');
   }
 
   String varParser(List<dynamic>? vars) {
