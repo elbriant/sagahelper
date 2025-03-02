@@ -64,7 +64,7 @@ class Entity {
     int? selectedSkill,
     int? skillLevel,
   }) {
-    if (!NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cached) {
+    if (!NavigationService.navigatorKey.currentContext!.read<CacheProvider>().operatorsDataCached) {
       throw NoCacheException(error: 'no cache trying to create an entity from id');
     }
     final cacheCharTable =

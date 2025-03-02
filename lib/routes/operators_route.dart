@@ -25,7 +25,7 @@ Future<List<Operator>> getOperators() async {
       NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer;
   String version =
       NavigationService.navigatorKey.currentContext!.read<ServerProvider>().versionOf(server);
-  if (cacheProv.cached &&
+  if (cacheProv.operatorsDataCached &&
       server == cacheProv.cachedListOperatorServer &&
       version == cacheProv.cachedListOperatorVersion) {
     return Future<List<Operator>>.value(cacheProv.cachedListOperator);
@@ -64,7 +64,7 @@ Future<List<Operator>> getOperators() async {
   // Use the compute function to run parsing in a separate isolate.
   List<Operator> completedList = await compute(parseOperators, input);
 
-  cacheProv.cache(
+  cacheProv.operatorsDataCache(
     listOperator: completedList,
     listOperatorServer: server,
     listOperatorVersion: version,
@@ -161,7 +161,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
   }
 
   void reloadgamedata() {
-    context.read<CacheProvider>().unCache();
+    context.read<CacheProvider>().operatorDataUnCache();
     _menuController.close();
     setState(() {
       futureOperatorList = fetchSafeOperators();
@@ -328,7 +328,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
     final opFetched = context.select<SettingsProvider, bool>((prov) => prov.opFetched);
     final currentFilters =
         context.select<SettingsProvider, Map<String, FilterDetail>>((prov) => prov.operatorFilters);
-    final isCached = context.watch<CacheProvider>().cached;
+    final isCached = context.watch<CacheProvider>().operatorsDataCached;
 
     return Scaffold(
       extendBody: false,

@@ -24,9 +24,9 @@ class CacheProvider extends ChangeNotifier {
   /// just to know if variables are cached
   /// if you want to know if is cached last version/current server
   /// consider doing it with the other providers too
-  bool cached = false;
+  bool operatorsDataCached = false;
 
-  void cache({
+  void operatorsDataCache({
     required List<Operator> listOperator,
     required Servers listOperatorServer,
     required String listOperatorVersion,
@@ -57,11 +57,11 @@ class CacheProvider extends ChangeNotifier {
     cachedCharTable = charTable;
     cachedGachaTable = gachaTable;
 
-    cached = true;
+    operatorsDataCached = true;
     notifyListeners();
   }
 
-  void unCache() {
+  void operatorDataUnCache() {
     cachedListOperator = null;
     cachedListOperatorServer = null;
     cachedListOperatorVersion = null;
@@ -81,7 +81,18 @@ class CacheProvider extends ChangeNotifier {
       NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setOpFetched(false);
     }
 
-    cached = false;
+    operatorsDataCached = false;
+    notifyListeners();
+  }
+
+  void unCacheAll() {
+    operatorDataUnCache();
+    setStageTable(null);
+  }
+
+  Map<String, dynamic>? cachedStageTable;
+  void setStageTable(Map<String, dynamic>? response) {
+    cachedStageTable = response;
     notifyListeners();
   }
 }

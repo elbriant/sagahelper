@@ -14,10 +14,11 @@ class StatTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isPercent = stat.contains(r'%');
+    final bool isNegative = value.characters.first == r'-';
 
     return StyledText(
       text:
-          '<icon-${stat.replaceAll(r' ', '')}/><color stat="${stat.replaceAll(' ', '')}">$stat</color>\n${isBonus ? '<bonusCol>+' : ''}$value${isPercent ? '%' : ''}${isBonus ? '</bonusCol>' : ''}',
+          '<icon-${stat.replaceAll(r' ', '')}/><color stat="${stat.replaceAll(' ', '')}">$stat</color>\n${isBonus ? '<bonusCol>${isBonus ? '<bonusCol>${isNegative ? '' : '+'}' : ''}' : ''}$value${isPercent ? '%' : ''}${isBonus ? '</bonusCol>' : ''}',
       tags: context.read<StyleProvider>().tagsAsStats(context: context),
       style: const TextStyle(
         shadows: [Shadow(offset: Offset.zero, blurRadius: 1.0)],
@@ -59,9 +60,10 @@ class StatTileValue extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isPercent = stat.contains(r'%');
+    final bool isNegative = value.characters.first == r'-';
     return StyledText(
       text:
-          '${isBonus ? '<bonusCol>+' : ''}$value${isPercent ? '%' : ''}${isBonus ? '</bonusCol>' : ''}',
+          '${isBonus ? '<bonusCol>${isNegative ? '' : '+'}' : ''}$value${isPercent ? '%' : ''}${isBonus ? '</bonusCol>' : ''}',
       tags: context.read<StyleProvider>().tagsAsStats(context: context),
       style: const TextStyle(
         shadows: [Shadow(offset: Offset.zero, blurRadius: 1.0)],

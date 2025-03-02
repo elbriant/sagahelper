@@ -56,7 +56,7 @@ class _SettingsSettingsState extends State<SettingsSettings> {
         backgroundColor: context.read<UiProvider>().useTranslucentUi
             ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5)
             : null,
-        title: const Text('Server'),
+        title: const Text('Settings'),
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.arrow_back),

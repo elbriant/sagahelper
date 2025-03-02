@@ -47,6 +47,12 @@ extension StringExtension on String {
       escapedString = escapedString.replaceAll(RegExp(rule), escapeRules[rule]!);
     }
 
+    // escape stage hazards
+    escapedString = escapedString.replaceAllMapped(
+      RegExp(r'(?<=<@lv\.item>)<([\w\s-]+)>(?=<\/>)'),
+      (m) => '&lt;${m[1]}&gt;',
+    );
+
     return escapedString
         .replaceAll(RegExp(r'<@'), '<info-v2 custom=')
         .replaceAll(RegExp(r'<\$'), '<info-v2 selectable="true" custom=')

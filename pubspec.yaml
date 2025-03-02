@@ -112,6 +112,7 @@ flutter:
     - assets/masteries/
     - assets/sortIcon/
     - assets/modules_shining/
+    - assets/supply_stages/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

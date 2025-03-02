@@ -67,8 +67,13 @@ class ServerProvider extends ChangeNotifier {
     var a = <String>[];
     a.addAll(metadataFiles);
     a.addAll(opFiles);
+    a.addAll(homeFiles);
     return a;
   }
+
+  static final List<String> homeFiles = [
+    '/excel/stage_table.json', // 0 for now just used to know if weekly supply are forcefully open
+  ];
 
   static final List<String> metadataFiles = [
     '/excel/handbook_team_table.json', // 0 factions

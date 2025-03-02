@@ -16,6 +16,30 @@ bool opThemed = false;
 
 // ------------- constants
 
+const Map<String, Map> credits = {
+  "yuanyan3060 - ArknightsGameResource": {
+    "assets": "Avatars, Skill and RIIC Skill assets",
+    "link": "https://github.com/yuanyan3060/ArknightsGameResource/",
+  },
+  "akgcc - arkdata": {
+    "assets": "Entities assets",
+    "link": "https://github.com/akgcc/arkdata/",
+  },
+  "ArknightsAssets - ArknightsAssets": {
+    "assets": "Portraits, Operators Art, Factions and modules assets",
+    "link": "https://github.com/ArknightsAssets/ArknightsAssets/",
+  },
+  "Aceship - Arknight-voices": {
+    "assets": "Operators voicelines",
+    "link": "https://github.com/Aceship/Arknight-voices/",
+  },
+  "Arknights - hypergryph": {
+    "assets":
+        "Arknights is a trademark of Hypergryph and Yostar. \n This fan app is not officially affiliated with or endorsed by Hypergryph or Yostar. \n All rights to the Arknights intellectual property belong to their respective owners.",
+    "link": "https://ak.hypergryph.com",
+  },
+};
+
 // Assets from yuanyan3060 repo
 const String kAvatarRepo =
     'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/refs/heads/main/avatar';

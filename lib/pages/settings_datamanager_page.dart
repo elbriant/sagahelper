@@ -4,6 +4,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/providers/cache_provider.dart';
 import 'package:sagahelper/providers/server_provider.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
 import 'package:sagahelper/providers/ui_provider.dart';
@@ -148,6 +149,8 @@ class ServerTile extends StatelessWidget {
       servprov.deleteServer(server).then((_) async {
         servprov.setSingleServerState(server, await servprov.getServerStatus(server));
       });
+
+      NavigationService.navigatorKey.currentContext!.read<CacheProvider>().unCacheAll();
     }
 
     void forceFetch() async {

@@ -2,11 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:sagahelper/components/home_main_widget.dart';
+import 'package:sagahelper/components/home_orundum.dart';
+import 'package:sagahelper/components/home_unlocked_today.dart';
 import 'package:sagahelper/notification_services.dart';
+import 'package:sagahelper/providers/cache_provider.dart';
 import 'package:sagahelper/providers/server_provider.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:glass_kit/glass_kit.dart';
 import 'package:provider/provider.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/providers/ui_provider.dart';
@@ -26,6 +29,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late String serverTimeString;
   late String serverResetString;
+  late DateTime serverCurrentDatetime;
   late String localTimeString;
   late String localResetString;
   late String timeUntilReset;
@@ -34,12 +38,27 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
+    super.initState();
     _getTime();
     timer = Timer.periodic(const Duration(seconds: 1), (Timer t) => _getTime());
-    super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      checkServer();
+      checkServer().then((_) async {
+        List response = [];
+        final server =
+            NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer;
+        for (String filepath in ServerProvider.homeFiles) {
+          response.add(
+            await NavigationService.navigatorKey.currentContext!
+                .read<ServerProvider>()
+                .getFile(filepath, server),
+          );
+        }
+
+        NavigationService.navigatorKey.currentContext!
+            .read<CacheProvider>()
+            .setStageTable(jsonDecode(response[0]) as Map<String, dynamic>);
+      });
       checkForUpdates();
       FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
           FlutterLocalNotificationsPlugin();
@@ -57,7 +76,21 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = context.read<SettingsProvider>();
+    final children = [
+      HomeMainWidget(
+        localResetTime: localResetString,
+        serverTime: serverTimeString,
+        timeUntilReset: timeUntilReset,
+      ),
+      const SizedBox(height: 40),
+      HomeOrundum(
+        orundumResetTime: orundumResetString,
+      ),
+      const SizedBox(height: 40),
+      HomeUnlockedToday(
+        currentDatetime: serverCurrentDatetime,
+      ),
+    ];
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -74,123 +107,15 @@ class _HomePageState extends State<HomePage> {
             : null,
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            24.0,
-            MediaQuery.paddingOf(context).top + AppBar().preferredSize.height + 24.0,
-            24.0,
-            MediaQuery.paddingOf(context).bottom + 24.0,
-          ),
-          child: Column(
-            children: [
-              SizedBox(
-                height: !settings.homeCompactMode ? 150 : 75,
-                child: Card.filled(
-                  color: Theme.of(context).colorScheme.secondaryContainer,
-                  elevation: 2,
-                  child: Column(
-                    children: [
-                      !settings.homeCompactMode
-                          ? Expanded(
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Center(
-                                      child: Text(
-                                        'Local Reset Time: \n$localResetString',
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: Center(
-                                      child: Text(
-                                        'Server: ${settings.currentServerString.toUpperCase()}\n$serverTimeString',
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : Container(),
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Center(
-                                child: Text(
-                                  'Time until reset: \n$timeUntilReset',
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 40),
-              GlassContainer.clearGlass(
-                height: 120,
-                borderRadius: BorderRadius.circular(12),
-                padding: const EdgeInsets.all(2.0),
-                gradient: LinearGradient(
-                  colors: [
-                    Theme.of(context).colorScheme.tertiaryContainer.withOpacity(0.40),
-                    Theme.of(context).colorScheme.tertiaryContainer.withOpacity(0.10),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderGradient: LinearGradient(
-                  colors: [
-                    const Color(0xffff0000),
-                    Theme.of(context).colorScheme.primary.withOpacity(0.40),
-                  ],
-                  stops: const [0.25, 0.75],
-                  begin: Alignment.bottomLeft,
-                  end: Alignment.topRight,
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Stack(
-                    children: [
-                      Image.asset(
-                        'assets/orundum.webp',
-                        scale: 1.8,
-                        fit: BoxFit.none,
-                        width: double.maxFinite,
-                        alignment: const Alignment(-0.8, 0.2),
-                        colorBlendMode: BlendMode.modulate,
-                        color: Colors.white.withOpacity(0.7),
-                      ),
-                      Container(
-                        width: double.maxFinite,
-                        height: double.maxFinite,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          boxShadow: [
-                            BoxShadow(
-                              color: Theme.of(context).colorScheme.surface.withOpacity(0.4),
-                              spreadRadius: -20,
-                              blurStyle: BlurStyle.normal,
-                              blurRadius: 25,
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          'Time until weekly orundum reset: \n$orundumResetString',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+      body: ListView.builder(
+        padding: EdgeInsets.fromLTRB(
+          24.0,
+          MediaQuery.paddingOf(context).top + AppBar().preferredSize.height + 24.0,
+          24.0,
+          MediaQuery.paddingOf(context).bottom + 24.0,
         ),
+        itemCount: children.length,
+        itemBuilder: (context, index) => children[index],
       ),
     );
   }
@@ -244,6 +169,7 @@ class _HomePageState extends State<HomePage> {
       localTimeString = _formatDateTime(now);
       serverTimeString = _formatDateTime(serverDateTime);
       serverResetString = _formatDateTime(serverResetTime);
+      serverCurrentDatetime = serverDateTime;
       localResetString = hour12
           ? DateFormat('h:mm a').format(localResetTime.toLocal())
           : DateFormat('HH:mm').format(localResetTime.toLocal());
@@ -297,10 +223,26 @@ class _HomePageState extends State<HomePage> {
           );
       if (lastAvailable) {
         // ask if update
+
+        final currentVersion = NavigationService.navigatorKey.currentContext!
+            .read<ServerProvider>()
+            .versionOf(
+              NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer,
+            );
+        final lastestVersion = await NavigationService.navigatorKey.currentContext!
+            .read<ServerProvider>()
+            .fetchLastestVersion(
+              NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer,
+            );
+
         NavigationService.navigatorKey.currentContext!
             .read<SettingsProvider>()
-            .setLoadingString('there is a gamedata update...');
-        await Future.delayed(const Duration(seconds: 2));
+            .setLoadingString('There is a gamedata update...');
+        showNotification(
+          title: 'Gamedata update',
+          body: 'Current version: $currentVersion Last version: $lastestVersion',
+        );
+        await Future.delayed(const Duration(seconds: 3));
         NavigationService.navigatorKey.currentContext!
             .read<SettingsProvider>()
             .setIsLoadingHome(false);
