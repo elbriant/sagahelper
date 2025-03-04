@@ -11,7 +11,7 @@
 
 ## Downloads
 Get the lastest version in [releases](https://github.com/elbriant/sagahelper/releases)
-Select apk based on your android architecture, if you don't know which one to downloadq you can download app-release.apk (it's bigger but contains all ABIs)
+select apk based on your android architecture, if you don't know which one to download you can download app-release.apk (it's bigger but contains all ABIs)
 
 ## Suggestions and contributions
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
