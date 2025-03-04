@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sagahelper/components/home_main_widget.dart';
@@ -13,7 +14,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/providers/ui_provider.dart';
-import 'package:intl/intl.dart';
 import 'package:sagahelper/global_data.dart'
     show NavigationService, firstTimeCheck, checkForUpdatesFlag;
 import 'package:http/http.dart' as http;
@@ -26,45 +26,45 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
+List computeJsonDecode(List<String?> input) {
+  List<Map?> result = [];
+
+  for (final i in input) {
+    if (i == null) {
+      result.add(null);
+      continue;
+    }
+
+    result.add(jsonDecode(i));
+  }
+
+  return result;
+}
+
 class _HomePageState extends State<HomePage> {
-  late String serverTimeString;
-  late String serverResetString;
   late DateTime serverCurrentDatetime;
-  late String localTimeString;
-  late String localResetString;
-  late String timeUntilReset;
-  late String orundumResetString;
   late Timer timer;
 
   @override
   void initState() {
     super.initState();
-    _getTime();
-    timer = Timer.periodic(const Duration(seconds: 1), (Timer t) => _getTime());
+
+    final cserver =
+        NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer;
+
+    _getTime(cserver);
+    timer = Timer.periodic(const Duration(seconds: 1), (Timer t) => _getTime(cserver));
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      checkServer().then((_) async {
-        List response = [];
-        final server =
-            NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer;
-        for (String filepath in ServerProvider.homeFiles) {
-          response.add(
-            await NavigationService.navigatorKey.currentContext!
-                .read<ServerProvider>()
-                .getFile(filepath, server),
-          );
-        }
-
-        NavigationService.navigatorKey.currentContext!
-            .read<CacheProvider>()
-            .setStageTable(jsonDecode(response[0]) as Map<String, dynamic>);
+      checkServer().then((_) {
+        _cacheDependencies();
       });
-      checkForUpdates();
-      FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-          FlutterLocalNotificationsPlugin();
-      flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-          ?.requestNotificationsPermission();
+
+      requestNotification();
+
+      if (!checkForUpdatesFlag) {
+        checkForUpdates();
+      }
     });
   }
 
@@ -78,17 +78,15 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final children = [
       HomeMainWidget(
-        localResetTime: localResetString,
-        serverTime: serverTimeString,
-        timeUntilReset: timeUntilReset,
+        serverTime: serverCurrentDatetime,
       ),
       const SizedBox(height: 40),
       HomeOrundum(
-        orundumResetTime: orundumResetString,
+        serverTime: serverCurrentDatetime,
       ),
       const SizedBox(height: 40),
       HomeUnlockedToday(
-        currentDatetime: serverCurrentDatetime,
+        serverTime: serverCurrentDatetime,
       ),
     ];
 
@@ -120,62 +118,57 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _getTime() {
-    var cs = 'en';
-    var hour12 = true;
-    if (context.mounted) {
-      cs = context.read<SettingsProvider>().currentServerString;
-      hour12 = context.read<SettingsProvider>().homeHour12Format;
-    }
-
+  void _getTime(Servers server) {
     final DateTime now = DateTime.now();
     DateTime serverDateTime;
-    if (cs == 'cn') {
+
+    if (server == Servers.cn) {
       serverDateTime = now.toUtc().add(const Duration(hours: 8)); // shanghai UTC+8
-    } else if (cs == 'jp') {
-      serverDateTime = now.toUtc().add(const Duration(hours: 9)); // tokyo UTC+9
-    } else {
-      // en
+    } else if (server == Servers.en) {
       serverDateTime = now.toUtc().subtract(const Duration(hours: 7)); // UTC-7
-    }
-
-    final DateTime serverResetTime = serverDateTime.copyWith(hour: 4, minute: 0, second: 0);
-    final DateTime orundumResetTime = serverDateTime
-        .copyWith(hour: 4, minute: 0, second: 0)
-        .add(Duration(days: 1 - serverDateTime.weekday));
-
-    DateTime localResetTime;
-    DateTime localOrundumResetTime;
-    if (cs == 'cn') {
-      localResetTime = serverResetTime.subtract(const Duration(hours: 8)); // shanghai UTC+8
-      localOrundumResetTime = orundumResetTime.subtract(const Duration(hours: 8));
-    } else if (cs == 'jp') {
-      localResetTime = serverResetTime.subtract(const Duration(hours: 9)); // tokyo UTC+9
-      localOrundumResetTime = orundumResetTime.subtract(const Duration(hours: 9));
     } else {
-      // en
-      localResetTime = serverResetTime.add(const Duration(hours: 7)); // UTC-7
-      localOrundumResetTime = orundumResetTime.add(const Duration(hours: 7));
+      // jp / kr
+      serverDateTime = now.toUtc().add(const Duration(hours: 9)); // tokyo UTC+9
     }
-
-    final Duration orundumResetTimeDiff = localOrundumResetTime.toLocal().difference(now).isNegative
-        ? localOrundumResetTime.toLocal().add(const Duration(days: 7)).difference(now)
-        : localOrundumResetTime.toLocal().difference(now);
-    final Duration difference = localResetTime.toLocal().difference(now).isNegative
-        ? localResetTime.toLocal().add(const Duration(days: 1)).difference(now)
-        : localResetTime.toLocal().difference(now);
 
     setState(() {
-      localTimeString = _formatDateTime(now);
-      serverTimeString = _formatDateTime(serverDateTime);
-      serverResetString = _formatDateTime(serverResetTime);
       serverCurrentDatetime = serverDateTime;
-      localResetString = hour12
-          ? DateFormat('h:mm a').format(localResetTime.toLocal())
-          : DateFormat('HH:mm').format(localResetTime.toLocal());
-      timeUntilReset = _formatRemainingTime(difference);
-      orundumResetString = _formatRemainingTime(orundumResetTimeDiff);
     });
+  }
+
+  void _cacheDependencies() async {
+    List<String?> files = [];
+    final server =
+        NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer;
+
+    for (String filepath in ServerProvider.homeFiles) {
+      files.add(
+        await NavigationService.navigatorKey.currentContext!
+            .read<ServerProvider>()
+            .tryGetFile(filepath, server),
+      );
+    }
+
+    final decode = await compute(computeJsonDecode, files);
+
+    NavigationService.navigatorKey.currentContext!
+        .read<CacheProvider>()
+        .setStageTable(decode[0] as Map<String, dynamic>?);
+  }
+
+  void requestNotification() async {
+    if (!NavigationService.navigatorKey.currentContext!
+        .read<SettingsProvider>()
+        .prefs[PrefsFlags.homeNotificationRequest]) {
+      FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+          FlutterLocalNotificationsPlugin();
+      final res = await flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.requestNotificationsPermission();
+      NavigationService.navigatorKey.currentContext!
+          .read<SettingsProvider>()
+          .setAndSaveBoolPref(PrefsFlags.homeNotificationRequest, res ?? false);
+    }
   }
 
   Future<void> checkServer() async {
@@ -258,78 +251,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  String _formatDateTime(DateTime dateTime) {
-    if (context.mounted) {
-      List<String> result = [];
-      final settings = context.read<SettingsProvider>();
-      // date
-      if (settings.homeShowDate) {
-        result.add('EEE dd/MM');
-      }
-
-      //time
-      if (settings.homeHour12Format) {
-        if (settings.homeShowSeconds) {
-          //12 hour and seconds
-          result.add('hh:mm:ss a');
-        } else {
-          //12 hour
-          result.add('h:mm a');
-        }
-      } else {
-        if (settings.homeShowSeconds) {
-          //24 hour and seconds
-          result.add('HH:mm:ss');
-        } else {
-          //24 hour
-          result.add('H:mm');
-        }
-      }
-      return DateFormat(result.join(' ')).format(dateTime);
-    }
-    return '';
-  }
-
-  String _formatRemainingTime(Duration time) {
-    if (context.mounted) {
-      List<String> result = [];
-
-      //days
-      if (time.inDays > 1) {
-        result.add('${time.inDays} days');
-      } else if (time.inDays == 1) {
-        result.add('${time.inDays} day');
-      }
-
-      // hours
-      if (time.inHours.remainder(24) > 1) {
-        result.add('${time.inHours.remainder(24)} hours');
-      } else if (time.inHours.remainder(24) == 1) {
-        result.add('${time.inHours.remainder(24)} hour');
-      }
-      // minutes
-      if (time.inMinutes.remainder(60) > 1) {
-        result.add('${time.inMinutes.remainder(60)} minutes');
-      } else if (time.inMinutes.remainder(60) == 1) {
-        result.add('${time.inMinutes.remainder(60)} minute');
-      }
-
-      // seconds
-      if (context.read<SettingsProvider>().homeShowSeconds) {
-        if (time.inSeconds.remainder(60) > 1) {
-          result.add('${time.inSeconds.remainder(60)} seconds');
-        } else if (time.inSeconds.remainder(60) == 1) {
-          result.add('${time.inSeconds.remainder(60)} second');
-        }
-      }
-
-      return result.join(' ');
-    }
-    return '';
-  }
-
   Future<void> checkForUpdates() async {
-    if (checkForUpdatesFlag) return;
     checkForUpdatesFlag = true;
 
     final response = await http

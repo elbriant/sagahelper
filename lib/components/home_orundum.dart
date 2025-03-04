@@ -1,13 +1,33 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
 import 'package:glass_kit/glass_kit.dart';
+import 'package:sagahelper/utils/extensions.dart';
 
 class HomeOrundum extends StatelessWidget {
-  const HomeOrundum({super.key, required this.orundumResetTime});
+  const HomeOrundum({
+    super.key,
+    required this.serverTime,
+  });
 
-  final String orundumResetTime;
+  final DateTime serverTime;
+
+  DateTime get utcResetTime => DateTime.timestamp().copyWith(hour: 11, minute: 0, second: 0);
+
+  String getOrundumResetTime() {
+    final now = DateTime.now();
+    final serverResetTime = utcResetTime.add(Duration(days: 1 - utcResetTime.weekday));
+
+    final Duration difference = serverResetTime.toLocal().difference(now).isNegative
+        ? serverResetTime.toLocal().add(const Duration(days: 7)).difference(now)
+        : serverResetTime.toLocal().difference(now);
+
+    return difference.asRemainingTime();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final String orundumResetTime = getOrundumResetTime();
+
     return GlassContainer.clearGlass(
       height: 120,
       borderRadius: BorderRadius.circular(12),

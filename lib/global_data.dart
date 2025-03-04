@@ -17,6 +17,10 @@ bool opThemed = false;
 // ------------- constants
 
 const Map<String, Map> credits = {
+  "Kengxxiao - ArknightsGameData": {
+    "assets": "Providing the raw game data",
+    "link": "https://github.com/Kengxxiao/ArknightsGameData",
+  },
   "yuanyan3060 - ArknightsGameResource": {
     "assets": "Avatars, Skill and RIIC Skill assets",
     "link": "https://github.com/yuanyan3060/ArknightsGameResource/",
@@ -32,6 +36,10 @@ const Map<String, Map> credits = {
   "Aceship - Arknight-voices": {
     "assets": "Operators voicelines",
     "link": "https://github.com/Aceship/Arknight-voices/",
+  },
+  "Seseren - Twitter/X": {
+    "assets": "Saga gifs",
+    "link": "https://twitter.com/Seseren_kr",
   },
   "Arknights - hypergryph": {
     "assets":

@@ -159,6 +159,15 @@ class ServerProvider extends ChangeNotifier {
     return File('$serverLocalPath$filepath').readAsString();
   }
 
+  Future<String?> tryGetFile(String filepath, Servers server) async {
+    String serverLocalPath = await LocalDataManager.localpathServer(server.folderLabel);
+    if ((await File('$serverLocalPath$filepath').exists())) {
+      return await File('$serverLocalPath$filepath').readAsString();
+    } else {
+      return null;
+    }
+  }
+
   Future<bool> checkUpdateOf(Servers server) async {
     String update = await fetchLastestVersion(server);
 

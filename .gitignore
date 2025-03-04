@@ -42,6 +42,10 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# key
+# If you wish to build your own app, consider creating your key.properties files
+# storePassword=[YOUR KEY'S STORE PASSWORD]
+# keyPassword=[YOUR KEY'S PASSWORD]
+# keyAlias=[YOUR KEY'S ALIAS]
+# storeFile=[PATH TO YOUR KEY'S STORE FILE]
 /android/key.properties
 /android/app/keystore.jks

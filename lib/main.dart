@@ -16,8 +16,6 @@ import 'package:sagahelper/providers/ui_provider.dart';
 import 'package:system_theme/system_theme.dart';
 import 'package:flutter_logs/flutter_logs.dart';
 
-// TODO context menu
-
 Future<Map<String, dynamic>> loadConfigs() async {
   var firstcheck = await LocalDataManager.existConfig();
 

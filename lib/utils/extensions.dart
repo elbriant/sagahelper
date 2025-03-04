@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:sagahelper/global_data.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
@@ -124,5 +125,74 @@ extension StringExtension on String {
     );
 
     return color;
+  }
+}
+
+extension DateTimeExtension on DateTime {
+  String formatHome() {
+    List<String> result = [];
+    final settings = NavigationService.navigatorKey.currentContext!.read<SettingsProvider>();
+
+    // date
+    if (settings.homeShowDate) {
+      result.add('EEE dd/MM');
+    }
+
+    //time
+    if (settings.homeHour12Format) {
+      if (settings.homeShowSeconds) {
+        //12 hour and seconds
+        result.add('hh:mm:ss a');
+      } else {
+        //12 hour
+        result.add('h:mm a');
+      }
+    } else {
+      if (settings.homeShowSeconds) {
+        //24 hour and seconds
+        result.add('HH:mm:ss');
+      } else {
+        //24 hour
+        result.add('H:mm');
+      }
+    }
+    return DateFormat(result.join(' ')).format(this);
+  }
+}
+
+extension DurationExtension on Duration {
+  String asRemainingTime() {
+    List<String> result = [];
+
+    //days
+    if (inDays > 1) {
+      result.add('$inDays days');
+    } else if (inDays == 1) {
+      result.add('$inDays day');
+    }
+
+    // hours
+    if (inHours.remainder(24) > 1) {
+      result.add('${inHours.remainder(24)} hours');
+    } else if (inHours.remainder(24) == 1) {
+      result.add('${inHours.remainder(24)} hour');
+    }
+    // minutes
+    if (inMinutes.remainder(60) > 1) {
+      result.add('${inMinutes.remainder(60)} minutes');
+    } else if (inMinutes.remainder(60) == 1) {
+      result.add('${inMinutes.remainder(60)} minute');
+    }
+
+    // seconds
+    if (NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().homeShowSeconds) {
+      if (inSeconds.remainder(60) > 1) {
+        result.add('${inSeconds.remainder(60)} seconds');
+      } else if (inSeconds.remainder(60) == 1) {
+        result.add('${inSeconds.remainder(60)} second');
+      }
+    }
+
+    return result.join(' ');
   }
 }

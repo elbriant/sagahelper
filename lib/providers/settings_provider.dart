@@ -13,7 +13,8 @@ enum DisplayList {
 }
 
 enum PrefsFlags {
-  menuShowAdvanced('opInfo_menushowadvanced');
+  menuShowAdvanced('opInfo_menushowadvanced'),
+  homeNotificationRequest('home_requestNotification');
 
   const PrefsFlags(this.key);
   final String key;
@@ -152,8 +153,9 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Map prefs = {
+  Map<PrefsFlags, dynamic> prefs = {
     PrefsFlags.menuShowAdvanced: false,
+    PrefsFlags.homeNotificationRequest: false,
   };
 
   static SharedPreferencesWithCache? _cachedPrefs;
@@ -188,6 +190,8 @@ class SettingsProvider extends ChangeNotifier {
     if (_cachedPrefs == null) {
       throw const FormatException('prefs not initialized');
     }
+    if (prefs[flag] == value) return;
+
     prefs[flag] = value;
     await _cachedPrefs!.setBool(flag.key, value);
     notifyListeners();

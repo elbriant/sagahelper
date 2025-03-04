@@ -7,8 +7,8 @@ import 'package:sagahelper/providers/styles_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
 import 'package:styled_text/styled_text.dart';
 
-const Map<String, Map<String, dynamic>> stages = {
-  "weekly_1": {
+const List<MapEntry<String, Map<String, dynamic>>> stages = [
+  MapEntry("weekly_1", {
     "name": "Solid Defense",
     "desc":
         "A mission to acquire the materials needed for the Promotion of Defender and Medic Operators.\nThe battle will be easier if you employ Defender and Medic Operators well.\n<@lv.item><Poison Haze></> Operators lose HP constantly.",
@@ -18,8 +18,8 @@ const Map<String, Map<String, dynamic>> stages = {
       5,
       7,
     ],
-  },
-  "weekly_2": {
+  }),
+  MapEntry("weekly_2", {
     "name": "Fierce Attack",
     "desc":
         "A mission to acquire the materials needed for the Promotion of Sniper and Caster Operators.\nThe battle will be easier if you employ Sniper and Caster Operators well.\n<@lv.item><Anti-air Rune></>Operators deployed on it will attack a bit more slowly but their ATK against aerial units will be increased significantly.",
@@ -29,8 +29,8 @@ const Map<String, Map<String, dynamic>> stages = {
       5,
       6,
     ],
-  },
-  "weekly_3": {
+  }),
+  MapEntry("weekly_3", {
     "name": "Unstoppable Charge",
     "desc":
         "A mission to acquire the materials needed for the Promotion of Vanguard and Supporter Operators.\nThe battle will be easier if you employ Vanguard and Supporter Operators well.\n<@lv.item><Medical Rune></> Operators deployed on it enjoy constant healing.",
@@ -40,8 +40,8 @@ const Map<String, Map<String, dynamic>> stages = {
       6,
       7,
     ],
-  },
-  "weekly_4": {
+  }),
+  MapEntry("weekly_4", {
     "name": "Fearless Protection",
     "desc":
         "A mission to acquire the materials needed for the Promotion of Guard and Specialist Operators.\nThe battle will be easier if you employ Guard and Specialist Operators well.",
@@ -51,8 +51,8 @@ const Map<String, Map<String, dynamic>> stages = {
       6,
       7,
     ],
-  },
-  "weekly_5": {
+  }),
+  MapEntry("weekly_5", {
     "name": "Tough Siege",
     "desc":
         "Defend against enemies in a hostile environment.\n<@lv.item><Poison Haze></> Operators lose HP constantly",
@@ -62,8 +62,8 @@ const Map<String, Map<String, dynamic>> stages = {
       6,
       7,
     ],
-  },
-  "weekly_6": {
+  }),
+  MapEntry("weekly_6", {
     "name": "Aerial Threat",
     "desc":
         "Defend against the enemy's aerial units.\n<@lv.rem>Melee Operators cannot be deployed.</>",
@@ -73,8 +73,8 @@ const Map<String, Map<String, dynamic>> stages = {
       5,
       7,
     ],
-  },
-  "weekly_7": {
+  }),
+  MapEntry("weekly_7", {
     "name": "Tactical Drill",
     "desc":
         "Defend against the enemy's surprise attack.\n<@lv.rem>Deployment Points will not automatically recover in this operation; You get 1 Deployment Point upon killing 1 enemy.</>",
@@ -87,8 +87,8 @@ const Map<String, Map<String, dynamic>> stages = {
       6,
       7,
     ],
-  },
-  "weekly_8": {
+  }),
+  MapEntry("weekly_8", {
     "name": "Resource Search",
     "desc": "Defend against enemies with high DEF.",
     "days": [
@@ -97,8 +97,8 @@ const Map<String, Map<String, dynamic>> stages = {
       5,
       6,
     ],
-  },
-  "weekly_9": {
+  }),
+  MapEntry("weekly_9", {
     "name": "Cargo Escort",
     "desc":
         "Defend against enemies in a flexible way.\n<@lv.rem>The recovery speed of Deployment Points is slow in this operation, but deployment is not limited to melee and ranged cells.</>",
@@ -108,16 +108,16 @@ const Map<String, Map<String, dynamic>> stages = {
       6,
       7,
     ],
-  },
-};
+  }),
+];
 
 class HomeUnlockedToday extends StatelessWidget {
   const HomeUnlockedToday({
     super.key,
-    required this.currentDatetime,
+    required this.serverTime,
   });
 
-  final DateTime currentDatetime;
+  final DateTime serverTime;
 
   bool getSpecialOpen(Map<String, dynamic>? stageTable) {
     if (stageTable == null) return false;
@@ -126,17 +126,14 @@ class HomeUnlockedToday extends StatelessWidget {
         ((stageTable["forceOpenTable"] as Map).values.last as Map)["endTime"];
 
     final bool isCurrentlyActive =
-        currentDatetime.isBefore(DateTime.fromMillisecondsSinceEpoch(lastEndTimeEpoch * 1000));
+        serverTime.isBefore(DateTime.fromMillisecondsSinceEpoch(lastEndTimeEpoch * 1000));
 
     return isCurrentlyActive;
   }
 
   @override
   Widget build(BuildContext context) {
-    final List<MapEntry> entries = stages.entries.toList();
-    final stageTable =
-        context.select<CacheProvider, Map<String, dynamic>?>((p) => p.cachedStageTable);
-
+    final stageTable = context.read<CacheProvider>().cachedStageTable;
     final bool specialOpen = getSpecialOpen(stageTable);
 
     return Container(
@@ -179,18 +176,17 @@ class HomeUnlockedToday extends StatelessWidget {
               spacing: 4.0,
               runSpacing: 4.0,
               alignment: WrapAlignment.center,
-              children: List.generate(entries.length, (index) {
-                if (!(entries[index].value["days"] as List<int>)
-                        .contains(currentDatetime.weekday) &&
+              children: List.generate(stages.length, (index) {
+                if (!(stages[index].value["days"] as List<int>).contains(serverTime.weekday) &&
                     !specialOpen) {
-                  return const SizedBox.shrink();
+                  return null;
                 }
 
                 return _StageCards(
-                  weekly: entries[index],
+                  weekly: stages[index],
                   speciallyOpen: specialOpen,
                 );
-              }),
+              }).nullParser(),
             ),
           ),
         ],
