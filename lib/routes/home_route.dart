@@ -41,17 +41,18 @@ List computeJsonDecode(List<String?> input) {
 
 class _HomePageState extends State<HomePage> {
   late DateTime serverCurrentDatetime;
+  late Servers currentServer;
   late Timer timer;
 
   @override
   void initState() {
     super.initState();
 
-    final cserver =
+    currentServer =
         NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer;
 
-    _getTime(cserver);
-    timer = Timer.periodic(const Duration(seconds: 1), (Timer t) => _getTime(cserver));
+    _getTime();
+    timer = Timer.periodic(const Duration(seconds: 1), (Timer t) => _getTime());
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       checkServer().then((_) {
@@ -74,13 +75,17 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final resetTime = getResetTime();
+
     final children = [
       HomeMainWidget(
         serverTime: serverCurrentDatetime,
+        serverResetTime: resetTime,
       ),
       const SizedBox(height: 40),
       HomeOrundum(
         serverTime: serverCurrentDatetime,
+        serverResetTime: resetTime,
       ),
       const SizedBox(height: 40),
       HomeUnlockedToday(
@@ -116,22 +121,46 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _getTime(Servers server) {
-    final DateTime now = DateTime.now();
+  void _getTime() {
+    final DateTime now = DateTime.timestamp();
     DateTime serverDateTime;
 
-    if (server == Servers.cn) {
-      serverDateTime = now.toUtc().add(const Duration(hours: 8)); // shanghai UTC+8
-    } else if (server == Servers.en) {
-      serverDateTime = now.toUtc().subtract(const Duration(hours: 7)); // UTC-7
+    if (currentServer == Servers.cn) {
+      serverDateTime = now.add(const Duration(hours: 8)); // shanghai UTC+8
+    } else if (currentServer == Servers.en) {
+      serverDateTime = now.subtract(const Duration(hours: 7)); // UTC-7
     } else {
       // jp / kr
-      serverDateTime = now.toUtc().add(const Duration(hours: 9)); // tokyo UTC+9
+      serverDateTime = now.add(const Duration(hours: 9)); // tokyo UTC+9
     }
 
     setState(() {
       serverCurrentDatetime = serverDateTime;
     });
+  }
+
+  /// basically utc +/- offset +/- server reset time (4:00am on all servers)
+  DateTime getResetTime() {
+    final DateTime now = DateTime.timestamp()
+        .copyWith(hour: 0, minute: 0, second: 0, microsecond: 0, millisecond: 0);
+    DateTime serverDateTime;
+
+    // formula to get reset time in utc is
+    // 4 (server reset) - [server offset]
+
+    if (currentServer == Servers.cn) {
+      // 4 - 8 = -4
+      serverDateTime = now.subtract(const Duration(hours: 4)); // shanghai UTC+8
+    } else if (currentServer == Servers.en) {
+      // 4 - (-7) = 11
+      serverDateTime = now.add(const Duration(hours: 11)); // UTC-7
+    } else {
+      // jp / kr
+      // 4 - 9 = -5
+      serverDateTime = now.subtract(const Duration(hours: 5)); // tokyo UTC+9
+    }
+
+    return serverDateTime;
   }
 
   void _cacheDependencies() async {

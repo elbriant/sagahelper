@@ -9,18 +9,18 @@ class HomeMainWidget extends StatelessWidget {
   const HomeMainWidget({
     super.key,
     required this.serverTime,
+    required this.serverResetTime,
   });
 
   final DateTime serverTime;
-
-  DateTime get utcResetTime => DateTime.timestamp().copyWith(hour: 11, minute: 0, second: 0);
+  final DateTime serverResetTime;
 
   String getTimeUntilReset() {
     final now = DateTime.now();
 
-    final Duration difference = utcResetTime.toLocal().difference(now).isNegative
-        ? utcResetTime.toLocal().add(const Duration(days: 1)).difference(now)
-        : utcResetTime.toLocal().difference(now);
+    final Duration difference = serverResetTime.toLocal().difference(now).isNegative
+        ? serverResetTime.toLocal().add(const Duration(days: 1)).difference(now)
+        : serverResetTime.toLocal().difference(now);
 
     return difference.asRemainingTime();
   }
@@ -32,8 +32,8 @@ class HomeMainWidget extends StatelessWidget {
     final hour12 = context.read<SettingsProvider>().homeHour12Format;
 
     final String localResetTime = hour12
-        ? DateFormat('h:mm a').format(utcResetTime.toLocal())
-        : DateFormat('HH:mm').format(utcResetTime.toLocal());
+        ? DateFormat('h:mm a').format(serverResetTime.toLocal())
+        : DateFormat('HH:mm').format(serverResetTime.toLocal());
 
     final String serverCurrentTime = serverTime.formatHome();
 

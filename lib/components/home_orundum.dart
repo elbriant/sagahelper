@@ -7,19 +7,19 @@ class HomeOrundum extends StatelessWidget {
   const HomeOrundum({
     super.key,
     required this.serverTime,
+    required this.serverResetTime,
   });
 
   final DateTime serverTime;
-
-  DateTime get utcResetTime => DateTime.timestamp().copyWith(hour: 11, minute: 0, second: 0);
+  final DateTime serverResetTime;
 
   String getOrundumResetTime() {
     final now = DateTime.now();
-    final serverResetTime = utcResetTime.add(Duration(days: 1 - utcResetTime.weekday));
+    final serverResetMondayTime = serverResetTime.add(Duration(days: 1 - serverResetTime.weekday));
 
-    final Duration difference = serverResetTime.toLocal().difference(now).isNegative
-        ? serverResetTime.toLocal().add(const Duration(days: 7)).difference(now)
-        : serverResetTime.toLocal().difference(now);
+    final Duration difference = serverResetMondayTime.toLocal().difference(now).isNegative
+        ? serverResetMondayTime.toLocal().add(const Duration(days: 7)).difference(now)
+        : serverResetMondayTime.toLocal().difference(now);
 
     return difference.asRemainingTime();
   }
