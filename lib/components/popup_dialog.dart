@@ -12,6 +12,7 @@ import 'package:sagahelper/models/entity.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
 import 'package:sagahelper/providers/styles_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
+import 'package:sagahelper/utils/misc.dart';
 import 'package:styled_text/styled_text.dart';
 import 'package:transparent_image/transparent_image.dart';
 
@@ -574,6 +575,66 @@ abstract final class PopupDialog {
           );
         },
       ),
+    );
+  }
+
+  static void appUpdateAlert({
+    required BuildContext context,
+    required String label,
+    required String body,
+    required String updateUrl,
+    String? newVersion,
+    String? currentVersion,
+  }) {
+    _show(
+      context: context,
+      title: Text(label),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (newVersion != null)
+            Text(
+              'New version: $newVersion',
+              textScaler: const TextScaler.linear(1.1),
+            ),
+          if (currentVersion != null)
+            Text(
+              'Current: $currentVersion',
+              style: const TextStyle(fontStyle: FontStyle.italic),
+            ),
+          if (currentVersion != null || newVersion != null)
+            const SizedBox(
+              height: 10,
+            ),
+          const Text(
+            'Changelog:',
+            textScaler: TextScaler.linear(1.2),
+          ),
+          const SizedBox(
+            height: 6,
+          ),
+          StyledText(
+            text: body,
+            tags: context.read<StyleProvider>().tagsAsHtml(context: context),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          child: const Text('Dismiss'),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        TextButton(
+          child: const Text('Update'),
+          onPressed: () {
+            openUrl(updateUrl);
+          },
+        ),
+      ],
     );
   }
 }

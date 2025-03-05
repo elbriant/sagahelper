@@ -2,42 +2,26 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/global_data.dart';
-import 'package:sagahelper/notification_services.dart';
 import 'package:sagahelper/providers/ui_provider.dart';
 import 'package:sagahelper/utils/misc.dart';
-import 'package:http/http.dart' as http;
 
 class AboutSettings extends StatelessWidget {
   const AboutSettings({super.key});
 
   void checkUpdates() async {
-    final response = await http
-        .get(Uri.parse('https://api.github.com/repos/elbriant/sagahelper/releases/latest'));
-
-    if (response.statusCode == 200) {
-      final json = jsonDecode(response.body) as Map<String, dynamic>;
-      PackageInfo packageInfo = await PackageInfo.fromPlatform();
-      String version = packageInfo.version;
-      String githubVersion = (json['tag_name'] as String).substring(1);
-
-      if (isVersionGreaterThan(githubVersion, version)) {
-        showNotification(
-          title: 'Update Available',
-          body: 'New version ${json['tag_name']}, tap to open',
-          payload: 'update-${json['html_url']}',
-          channel: Channels.news,
+    final status = await fetchUpdateAndAlert(
+      onError: (res) {
+        ShowSnackBar.showSnackBar(
+          "Couldn't check updates [${res.statusCode} : ${(jsonDecode(res.body) as Map<String, dynamic>)["message"]}]",
         );
-      } else {
-        ShowSnackBar.showSnackBar("Already have lastest version");
-      }
-    } else {
-      ShowSnackBar.showSnackBar(
-        "Couldn't check updates [${response.statusCode} : ${(jsonDecode(response.body) as Map<String, dynamic>)["message"]}]",
-      );
+      },
+    );
+
+    if (status == UpdateStatus.upToDate) {
+      ShowSnackBar.showSnackBar("Already have lastest version");
     }
   }
 

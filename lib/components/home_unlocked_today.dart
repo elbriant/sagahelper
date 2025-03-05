@@ -136,6 +136,9 @@ class HomeUnlockedToday extends StatelessWidget {
     final stageTable = context.read<CacheProvider>().cachedStageTable;
     final bool specialOpen = getSpecialOpen(stageTable);
 
+    // weekday of the server is based on 4:00 am not 12:00 am
+    final int currentWeekday = (serverTime.hour >= 4) ? serverTime.weekday : serverTime.weekday - 1;
+
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
@@ -177,7 +180,7 @@ class HomeUnlockedToday extends StatelessWidget {
               runSpacing: 4.0,
               alignment: WrapAlignment.center,
               children: List.generate(stages.length, (index) {
-                if (!(stages[index].value["days"] as List<int>).contains(serverTime.weekday) &&
+                if (!(stages[index].value["days"] as List<int>).contains(currentWeekday) &&
                     !specialOpen) {
                   return null;
                 }

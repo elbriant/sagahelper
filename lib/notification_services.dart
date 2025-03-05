@@ -1,4 +1,7 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:provider/provider.dart';
+import 'package:sagahelper/providers/server_provider.dart';
+import 'package:sagahelper/providers/settings_provider.dart';
 import 'package:sagahelper/utils/misc.dart';
 import 'package:sagahelper/global_data.dart';
 
@@ -15,6 +18,15 @@ void notificationResponse(NotificationResponse notificationResponse) async {
   if (notificationResponse.payload != null) {
     if (notificationResponse.payload?.startsWith('update') ?? false) {
       openUrl(notificationResponse.payload!.split('-')[1]);
+    }
+    if (notificationResponse.payload == 'doUpdateServer') {
+      final server =
+          NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer;
+      NavigationService.navigatorKey.currentContext!
+          .read<ServerProvider>()
+          .setSingleServerState(server, DataState.downloading);
+      ShowSnackBar.showSnackBar('starting to download last version');
+      NavigationService.navigatorKey.currentContext!.read<ServerProvider>().downloadLastest(server);
     }
   }
 

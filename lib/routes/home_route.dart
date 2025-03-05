@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sagahelper/components/home_main_widget.dart';
 import 'package:sagahelper/components/home_orundum.dart';
 import 'package:sagahelper/components/home_unlocked_today.dart';
@@ -16,7 +15,6 @@ import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/providers/ui_provider.dart';
 import 'package:sagahelper/global_data.dart'
     show NavigationService, firstTimeCheck, checkForUpdatesFlag;
-import 'package:http/http.dart' as http;
 import 'package:sagahelper/utils/misc.dart';
 
 class HomePage extends StatefulWidget {
@@ -230,10 +228,11 @@ class _HomePageState extends State<HomePage> {
 
         NavigationService.navigatorKey.currentContext!
             .read<SettingsProvider>()
-            .setLoadingString('There is a gamedata update...');
+            .setLoadingString('There is a game data update...');
         showNotification(
-          title: 'Gamedata update',
-          body: 'Current version: $currentVersion Last version: $lastestVersion',
+          title: 'Game data update',
+          body: 'Current version: $currentVersion / Last version: $lastestVersion',
+          payload: 'doUpdateServer',
         );
         await Future.delayed(const Duration(seconds: 3));
         NavigationService.navigatorKey.currentContext!
@@ -253,26 +252,6 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> checkForUpdates() async {
     checkForUpdatesFlag = true;
-
-    final response = await http
-        .get(Uri.parse('https://api.github.com/repos/elbriant/sagahelper/releases/latest'));
-
-    if (response.statusCode == 200) {
-      final json = jsonDecode(response.body) as Map<String, dynamic>;
-      PackageInfo packageInfo = await PackageInfo.fromPlatform();
-      String version = packageInfo.version;
-      String githubVersion = (json['tag_name'] as String).substring(1);
-
-      if (isVersionGreaterThan(githubVersion, version)) {
-        showNotification(
-          title: 'Update Available',
-          body: 'New version ${json['tag_name']}, tap to open',
-          payload: 'update-${json['html_url']}',
-          channel: Channels.news,
-        );
-      }
-    } else {
-      // some error xd
-    }
+    fetchUpdateAndAlert();
   }
 }
