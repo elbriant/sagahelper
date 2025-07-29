@@ -34,8 +34,8 @@ class HomeOrundum extends StatelessWidget {
       padding: const EdgeInsets.all(2.0),
       gradient: LinearGradient(
         colors: [
-          Theme.of(context).colorScheme.tertiaryContainer.withOpacity(0.40),
-          Theme.of(context).colorScheme.tertiaryContainer.withOpacity(0.10),
+          Theme.of(context).colorScheme.tertiaryContainer.withValues(alpha: 0.40),
+          Theme.of(context).colorScheme.tertiaryContainer.withValues(alpha: 0.10),
         ],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
@@ -43,7 +43,7 @@ class HomeOrundum extends StatelessWidget {
       borderGradient: LinearGradient(
         colors: [
           const Color(0xffff0000),
-          Theme.of(context).colorScheme.primary.withOpacity(0.40),
+          Theme.of(context).colorScheme.primary.withValues(alpha: 0.40),
         ],
         stops: const [0.25, 0.75],
         begin: Alignment.bottomLeft,
@@ -60,7 +60,7 @@ class HomeOrundum extends StatelessWidget {
               width: double.maxFinite,
               alignment: const Alignment(-0.8, 0.2),
               colorBlendMode: BlendMode.modulate,
-              color: Colors.white.withOpacity(0.7),
+              color: Colors.white.withValues(alpha: 0.7),
             ),
             Container(
               width: double.maxFinite,
@@ -69,7 +69,7 @@ class HomeOrundum extends StatelessWidget {
               decoration: BoxDecoration(
                 boxShadow: [
                   BoxShadow(
-                    color: Theme.of(context).colorScheme.surface.withOpacity(0.4),
+                    color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.4),
                     spreadRadius: -20,
                     blurStyle: BlurStyle.normal,
                     blurRadius: 25,

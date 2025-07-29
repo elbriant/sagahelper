@@ -29,7 +29,7 @@ class SystemNavBar extends StatelessWidget {
       return TranslucentWidget(
         child: Container(
           height: MediaQuery.paddingOf(context).bottom,
-          color: Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5),
+          color: Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.5),
         ),
       );
     } else {

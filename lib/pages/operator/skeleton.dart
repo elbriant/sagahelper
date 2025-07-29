@@ -1,4 +1,3 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -9,9 +8,9 @@ import 'package:sagahelper/components/stored_image.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/global_data.dart';
 import 'package:sagahelper/models/operator.dart';
-import 'package:sagahelper/pages/opinfo_archive_page.dart';
-import 'package:sagahelper/pages/opinfo_art_page.dart';
-import 'package:sagahelper/pages/opinfo_voice_page.dart';
+import 'package:sagahelper/pages/operator/archive_page.dart';
+import 'package:sagahelper/pages/operator/art_page.dart';
+import 'package:sagahelper/pages/operator/voice_page.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
 import 'package:sagahelper/providers/ui_provider.dart';
 
@@ -23,9 +22,9 @@ Future<Widget> buildOperatorInfo(operator) async {
   );
 }
 
-class OperatorInfoPage extends StatelessWidget {
+class OperatorInfoSkeletonPage extends StatelessWidget {
   final Operator operator;
-  const OperatorInfoPage({
+  const OperatorInfoSkeletonPage({
     super.key,
     required this.operator,
   });
@@ -139,7 +138,7 @@ class OperatorInfoPlaceholder extends StatelessWidget {
                     ),
                   ),
             backgroundColor: context.read<UiProvider>().useTranslucentUi == true
-                ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5)
+                ? Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.5)
                 : null,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back),

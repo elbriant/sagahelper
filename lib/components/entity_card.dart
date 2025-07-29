@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:network_to_file_image/network_to_file_image.dart';
 import 'package:provider/provider.dart';
-import 'package:sagahelper/components/operator_container.dart';
+import 'package:sagahelper/components/operator_info_page/operator_container.dart';
 import 'package:sagahelper/components/popup_dialog.dart';
 import 'package:sagahelper/global_data.dart';
 
@@ -30,7 +30,7 @@ class EntityCard extends StatelessWidget {
           width: 2.0,
           strokeAlign: BorderSide.strokeAlignOutside,
         ),
-        color: rarityColors[0].withOpacity(0.4),
+        color: rarityColors[0].withValues(alpha: 0.4),
       ),
       clipBehavior: Clip.none,
       margin: const EdgeInsets.fromLTRB(4.0, 8.0, 4.0, 4.0),
@@ -49,8 +49,8 @@ class EntityCard extends StatelessWidget {
               skillLevel: entity.selectedSkillLv ?? context.read<OpInfoProvider?>()?.skillLevel,
             ),
           ),
-          splashColor: rarityColors[0].withOpacity(0.4),
-          highlightColor: rarityColors[0].withOpacity(0.3),
+          splashColor: rarityColors[0].withValues(alpha: 0.4),
+          highlightColor: rarityColors[0].withValues(alpha: 0.3),
           borderRadius: BorderRadius.circular(8.0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,

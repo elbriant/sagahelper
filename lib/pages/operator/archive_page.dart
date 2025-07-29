@@ -3,10 +3,10 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sagahelper/components/operator_lil_card.dart';
-import 'package:sagahelper/components/opinfo_archive_header.dart';
-import 'package:sagahelper/components/opinfo_archive_lore.dart';
-import 'package:sagahelper/components/opinfo_archive_skill.dart';
+import 'package:sagahelper/components/operator_info_page/operator_lil_card.dart';
+import 'package:sagahelper/components/operator_info_page/opinfo_archive_header.dart';
+import 'package:sagahelper/components/operator_info_page/opinfo_archive_lore.dart';
+import 'package:sagahelper/components/operator_info_page/opinfo_archive_skill.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/global_data.dart';
 import 'package:sagahelper/models/operator.dart';
@@ -176,7 +176,7 @@ class _ArchivePageState extends State<ArchivePage>
                       ),
                     ),
               backgroundColor: context.read<UiProvider>().useTranslucentUi == true
-                  ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5)
+                  ? Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.5)
                   : null,
               leading: IconButton(
                 icon: const Icon(Icons.arrow_back),

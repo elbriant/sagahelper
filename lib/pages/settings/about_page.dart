@@ -39,7 +39,7 @@ class AboutSettings extends StatelessWidget {
               )
             : null,
         backgroundColor: context.read<UiProvider>().useTranslucentUi == true
-            ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5)
+            ? Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.5)
             : null,
         title: const Text('About'),
         leading: IconButton(

@@ -213,7 +213,8 @@ class StyleProvider extends ChangeNotifier {
         'i-sub': StyledTextTag(
           style: TextStyle(
             fontStyle: FontStyle.italic,
-            color: Theme.of(context ?? navContext).textTheme.bodyMedium?.color?.withOpacity(0.7),
+            color:
+                Theme.of(context ?? navContext).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
           ),
         ),
         'color': StyledTextCustomTag(

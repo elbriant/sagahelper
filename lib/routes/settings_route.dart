@@ -1,8 +1,8 @@
-import 'package:sagahelper/pages/settings_about_page.dart';
-import 'package:sagahelper/pages/settings_appearance_page.dart';
-import 'package:sagahelper/pages/settings_datamanager_page.dart';
+import 'package:sagahelper/pages/settings/about_page.dart';
+import 'package:sagahelper/pages/settings/appearance_page.dart';
+import 'package:sagahelper/pages/settings/datamanager_page.dart';
 import 'package:flutter/material.dart';
-import 'package:sagahelper/pages/settings_settings_page.dart';
+import 'package:sagahelper/pages/settings/settings_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});

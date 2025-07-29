@@ -119,10 +119,11 @@ class StyledLangButton extends StatelessWidget {
                         sublabel!,
                         style: selected
                             ? TextStyle(
-                                color: Theme.of(context).colorScheme.primary.withOpacity(0.7),
+                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
                               )
                             : TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                color:
+                                    Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                               ),
                         textScaler: const TextScaler.linear(0.7),
                       )
@@ -174,7 +175,7 @@ class LilButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = (selected ? backgroundColor : backgroundColor?.withOpacity(0.3)) ??
+    final color = (selected ? backgroundColor : backgroundColor?.withValues(alpha: 0.3)) ??
         (selected
             ? Theme.of(context).colorScheme.surfaceContainerHighest
             : Theme.of(context).colorScheme.surfaceContainerHigh);
@@ -342,7 +343,7 @@ class DiffChip extends StatelessWidget {
           ),
           Container(
             decoration: BoxDecoration(
-              color: lBGColor.withOpacity(0.5),
+              color: lBGColor.withValues(alpha: 0.5),
             ),
             padding: const EdgeInsets.only(left: 4.0, right: 4.0),
             child: Center(

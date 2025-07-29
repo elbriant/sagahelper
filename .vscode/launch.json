@@ -1,19 +1,19 @@
 {
     "configurations": [
         {
-            "name": "sagahelper (debug M2102J20SG)",
+            "name": "sagahelper (debug)",
             "program": "lib/main.dart",
-            "deviceId": "M2102J20SG",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "sagahelper (profiler M2102J20SG)",
+            "name": "sagahelper (profiler)",
             "program": "lib/main.dart",
-            "deviceId": "M2102J20SG",
             "request": "launch",
             "type": "dart",
-            "args": ["--profile"]
+            "args": [
+                "--profile"
+            ]
         }
     ]
 }

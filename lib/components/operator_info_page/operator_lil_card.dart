@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:network_to_file_image/network_to_file_image.dart';
 import 'package:sagahelper/global_data.dart';
 import 'package:sagahelper/models/operator.dart';
-import 'package:sagahelper/pages/operator_info_page.dart';
-import 'package:sagahelper/components/operator_container.dart';
+import 'package:sagahelper/pages/operator/skeleton.dart';
+import 'package:sagahelper/components/operator_info_page/operator_container.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
 
 class OperatorLilCard extends StatelessWidget {
@@ -15,7 +15,7 @@ class OperatorLilCard extends StatelessWidget {
     void openOperatorInfo() {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (context) => OperatorInfoPage(
+          builder: (context) => OperatorInfoSkeletonPage(
             operator: operator,
           ),
         ),

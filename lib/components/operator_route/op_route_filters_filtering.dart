@@ -79,7 +79,9 @@ class OpRouteFiltersFiltering extends StatelessWidget {
 
       for (var subclass in (cacheProv.cachedModInfoTable!["subProfDict"] as Map).entries) {
         if ((subclass.key as String).startsWith('notchar') ||
-            (subclass.key as String).startsWith('none')) continue;
+            (subclass.key as String).startsWith('none')) {
+          continue;
+        }
 
         final id = '${FilterType.subprofession.prefix}_${subclass.key}';
 

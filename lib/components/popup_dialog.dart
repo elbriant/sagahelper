@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:network_to_file_image/network_to_file_image.dart';
 import 'package:provider/provider.dart';
-import 'package:sagahelper/components/operator_container.dart';
+import 'package:sagahelper/components/operator_info_page/operator_container.dart';
 import 'package:sagahelper/components/range_tile.dart';
 import 'package:sagahelper/components/stat_tile.dart';
 import 'package:sagahelper/components/stored_image.dart';
@@ -214,8 +214,9 @@ abstract final class PopupDialog {
                   ),
                   Table(
                     border: TableBorder.symmetric(
-                      inside:
-                          BorderSide(color: Theme.of(context).colorScheme.outline.withOpacity(0.4)),
+                      inside: BorderSide(
+                        color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.4),
+                      ),
                     ),
                     columnWidths: const {0: FlexColumnWidth(0.45), 1: FlexColumnWidth(0.55)},
                     children: [

@@ -122,7 +122,7 @@ class BottomNavBar extends StatelessWidget {
         context.select<UiProvider?, int>((uiProvider) => uiProvider?.currentHomePageIndx ?? 0);
 
     return NavigationBar(
-      backgroundColor: Theme.of(context).colorScheme.surfaceContainer.withOpacity(opacity),
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: opacity),
       labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
       onDestinationSelected: setNavBB,
       selectedIndex: selectedIndex,

@@ -502,7 +502,10 @@ class _OperatorModulesState extends State<OperatorModules> {
                               colorBlendMode: BlendMode.modulate,
                               color: selected
                                   ? Theme.of(context).colorScheme.surface
-                                  : Theme.of(context).colorScheme.inverseSurface.withOpacity(0.7),
+                                  : Theme.of(context)
+                                      .colorScheme
+                                      .inverseSurface
+                                      .withValues(alpha: 0.7),
                             ),
                           ),
                         ),

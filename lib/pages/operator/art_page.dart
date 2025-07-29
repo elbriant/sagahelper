@@ -206,7 +206,7 @@ class _ArtPageState extends State<ArtPage> {
                       ? Text(
                           skinInfo["skinId"],
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                             fontStyle: FontStyle.italic,
                           ),
                         )
@@ -354,7 +354,7 @@ class _ArtPageState extends State<ArtPage> {
               )
             : null,
         backgroundColor: context.read<UiProvider>().useTranslucentUi == true
-            ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5)
+            ? Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.5)
             : null,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -439,7 +439,7 @@ class _ArtPageState extends State<ArtPage> {
         child: Container(
           margin: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
           height: height,
-          color: Theme.of(context).colorScheme.surfaceDim.withOpacity(0.5),
+          color: Theme.of(context).colorScheme.surfaceDim.withValues(alpha: 0.5),
           child: CarouselSlider(
             carouselController: controller,
             items: children,

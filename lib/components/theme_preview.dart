@@ -76,7 +76,9 @@ class ThemePreview extends StatelessWidget {
             child: Text(
               previewedTheme.name,
               style: TextStyle(
-                color: Theme.of(context).brightness == Brightness.light ? (previewedTheme.colorLight.colorScheme.secondary) : (previewedTheme.colorDark.colorScheme.secondary),
+                color: Theme.of(context).brightness == Brightness.light
+                    ? (previewedTheme.colorLight.colorScheme.secondary)
+                    : (previewedTheme.colorDark.colorScheme.secondary),
               ),
             ),
           ),
@@ -122,10 +124,17 @@ class InnerCard extends StatelessWidget {
             alignment: Alignment.center,
             children: [
               Container(
-                color: getCurrentBrightness() ? (lightColorScheme.surface) : (darkColorScheme.surface),
+                color:
+                    getCurrentBrightness() ? (lightColorScheme.surface) : (darkColorScheme.surface),
               ),
               Container(
-                color: getCurrentBrightness() ? (usingTraslucent() ? lightColorScheme.surfaceContainer.withOpacity(0.5) : lightColorScheme.surfaceContainer) : (usingTraslucent() ? darkColorScheme.surfaceContainer.withOpacity(0.5) : darkColorScheme.surfaceContainer),
+                color: getCurrentBrightness()
+                    ? (usingTraslucent()
+                        ? lightColorScheme.surfaceContainer.withValues(alpha: 0.5)
+                        : lightColorScheme.surfaceContainer)
+                    : (usingTraslucent()
+                        ? darkColorScheme.surfaceContainer.withValues(alpha: 0.5)
+                        : darkColorScheme.surfaceContainer),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
@@ -133,7 +142,9 @@ class InnerCard extends StatelessWidget {
                     CustomPaint(
                       size: const Size(40, 5),
                       painter: TitleLine(
-                        color: getCurrentBrightness() ? (lightColorScheme.onPrimaryContainer) : (darkColorScheme.onPrimaryContainer),
+                        color: getCurrentBrightness()
+                            ? (lightColorScheme.onPrimaryContainer)
+                            : (darkColorScheme.onPrimaryContainer),
                       ),
                     ),
                     const SizedBox(width: 5),
@@ -141,7 +152,9 @@ class InnerCard extends StatelessWidget {
                         ? Icon(
                             Icons.check_circle,
                             size: 20,
-                            color: getCurrentBrightness() ? (lightColorScheme.primary) : (darkColorScheme.primary),
+                            color: getCurrentBrightness()
+                                ? (lightColorScheme.primary)
+                                : (darkColorScheme.primary),
                           )
                         : Container(),
                   ],
@@ -163,14 +176,18 @@ class InnerCard extends StatelessWidget {
                   child: CustomPaint(
                     size: const Size(double.maxFinite, 5),
                     painter: TitleLine(
-                      color: getCurrentBrightness() ? (lightColorScheme.primary) : (darkColorScheme.primary),
+                      color: getCurrentBrightness()
+                          ? (lightColorScheme.primary)
+                          : (darkColorScheme.primary),
                     ),
                   ),
                 ),
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8.0),
-                    color: getCurrentBrightness() ? (lightColorScheme.primaryContainer) : (darkColorScheme.primaryContainer),
+                    color: getCurrentBrightness()
+                        ? (lightColorScheme.primaryContainer)
+                        : (darkColorScheme.primaryContainer),
                   ),
                   margin: const EdgeInsets.fromLTRB(6, 2, 6, 10),
                   child: Padding(
@@ -178,7 +195,9 @@ class InnerCard extends StatelessWidget {
                     child: CustomPaint(
                       size: const Size(double.maxFinite, 5),
                       painter: TitleLine(
-                        color: getCurrentBrightness() ? (lightColorScheme.onPrimaryContainer) : (darkColorScheme.onPrimaryContainer),
+                        color: getCurrentBrightness()
+                            ? (lightColorScheme.onPrimaryContainer)
+                            : (darkColorScheme.onPrimaryContainer),
                       ),
                     ),
                   ),
@@ -188,7 +207,9 @@ class InnerCard extends StatelessWidget {
                   child: CustomPaint(
                     size: const Size(double.maxFinite, 5),
                     painter: TitleLine(
-                      color: getCurrentBrightness() ? (lightColorScheme.onSurface) : (darkColorScheme.onSurface),
+                      color: getCurrentBrightness()
+                          ? (lightColorScheme.onSurface)
+                          : (darkColorScheme.onSurface),
                     ),
                   ),
                 ),
@@ -203,10 +224,17 @@ class InnerCard extends StatelessWidget {
             alignment: Alignment.center,
             children: [
               Container(
-                color: getCurrentBrightness() ? (lightColorScheme.surface) : (darkColorScheme.surface),
+                color:
+                    getCurrentBrightness() ? (lightColorScheme.surface) : (darkColorScheme.surface),
               ),
               Container(
-                color: getCurrentBrightness() ? (usingTraslucent() ? lightColorScheme.surfaceContainer.withOpacity(0.5) : lightColorScheme.surfaceContainer) : (usingTraslucent() ? darkColorScheme.surfaceContainer.withOpacity(0.5) : darkColorScheme.surfaceContainer),
+                color: getCurrentBrightness()
+                    ? (usingTraslucent()
+                        ? lightColorScheme.surfaceContainer.withValues(alpha: 0.5)
+                        : lightColorScheme.surfaceContainer)
+                    : (usingTraslucent()
+                        ? darkColorScheme.surfaceContainer.withValues(alpha: 0.5)
+                        : darkColorScheme.surfaceContainer),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -216,7 +244,9 @@ class InnerCard extends StatelessWidget {
                         margin: const EdgeInsets.fromLTRB(8, 2, 0, 2),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: getCurrentBrightness() ? (lightColorScheme.primary) : (darkColorScheme.primary),
+                          color: getCurrentBrightness()
+                              ? (lightColorScheme.primary)
+                              : (darkColorScheme.primary),
                         ),
                       ),
                     ),
@@ -228,7 +258,9 @@ class InnerCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
                           shape: BoxShape.rectangle,
-                          color: getCurrentBrightness() ? (lightColorScheme.outline) : (darkColorScheme.outline),
+                          color: getCurrentBrightness()
+                              ? (lightColorScheme.outline)
+                              : (darkColorScheme.outline),
                         ),
                       ),
                     ),

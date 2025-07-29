@@ -121,19 +121,25 @@ class HomeUnlockedToday extends StatelessWidget {
 
   bool getSpecialOpen(Map<String, dynamic>? stageTable) {
     if (stageTable == null) return false;
+    bool isCurrentlyActive = false;
 
-    final int lastEndTimeEpoch =
-        ((stageTable["forceOpenTable"] as Map).values.last as Map)["endTime"];
+    final DateTime mockTime = DateTime.fromMillisecondsSinceEpoch(1755690800000);
 
-    final bool isCurrentlyActive =
-        serverTime.isBefore(DateTime.fromMillisecondsSinceEpoch(lastEndTimeEpoch * 1000));
+    for (Map epoch in (stageTable["forceOpenTable"] as Map).values) {
+      if (mockTime.isAfter(DateTime.fromMillisecondsSinceEpoch(epoch["startTime"] * 1000)) &&
+          mockTime.isBefore(DateTime.fromMillisecondsSinceEpoch(epoch["endTime"] * 1000))) {
+        isCurrentlyActive = true;
+        break;
+      }
+    }
 
     return isCurrentlyActive;
   }
 
   @override
   Widget build(BuildContext context) {
-    final stageTable = context.read<CacheProvider>().cachedStageTable;
+    final stageTable =
+        context.select<CacheProvider, Map<String, dynamic>?>((p) => p.cachedStageTable);
     final bool specialOpen = getSpecialOpen(stageTable);
 
     // weekday of the server is based on 4:00 am not 12:00 am
@@ -142,11 +148,11 @@ class HomeUnlockedToday extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.40)),
+        border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.40)),
         gradient: LinearGradient(
           colors: [
-            Theme.of(context).colorScheme.secondaryContainer.withOpacity(0.20),
-            Theme.of(context).colorScheme.secondaryContainer.withOpacity(0.30),
+            Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.20),
+            Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.30),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -169,7 +175,7 @@ class HomeUnlockedToday extends StatelessWidget {
             Text(
               "There's special event making all supply stages open",
               style: TextStyle(
-                color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
               ),
               textScaler: const TextScaler.linear(0.75),
             ),
@@ -221,7 +227,7 @@ class _StageCards extends StatelessWidget {
                 ),
               )
             : Border.all(
-                color: Theme.of(context).colorScheme.outline.withOpacity(0.40),
+                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.40),
                 strokeAlign: BorderSide.strokeAlignOutside,
               ),
         color: Theme.of(context).colorScheme.primaryContainer,

@@ -1,8 +1,8 @@
 import 'package:contentsize_tabbarview/contentsize_tabbarview.dart';
 import 'package:flutter/material.dart';
-import 'package:sagahelper/components/op_route_filters_appareance.dart';
-import 'package:sagahelper/components/op_route_filters_filtering.dart';
-import 'package:sagahelper/components/op_route_filters_sorting.dart';
+import 'package:sagahelper/components/operator_route/op_route_filters_appareance.dart';
+import 'package:sagahelper/components/operator_route/op_route_filters_filtering.dart';
+import 'package:sagahelper/components/operator_route/op_route_filters_sorting.dart';
 
 class OpRouteFiltersPopup extends StatelessWidget {
   const OpRouteFiltersPopup({super.key});

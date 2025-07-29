@@ -426,7 +426,7 @@ class _OperatorSkillState extends State<OperatorSkill> {
                                             .textTheme
                                             .bodyMedium
                                             ?.color
-                                            ?.withOpacity(0.1),
+                                            ?.withValues(alpha: 0.1),
                                       ),
                                     ),
                                   ),
@@ -439,7 +439,7 @@ class _OperatorSkillState extends State<OperatorSkill> {
                                             : Theme.of(context)
                                                 .colorScheme
                                                 .inverseSurface
-                                                .withOpacity(0.7),
+                                                .withValues(alpha: 0.7),
                                         width: 1.0,
                                         strokeAlign: BorderSide.strokeAlignOutside,
                                       ),

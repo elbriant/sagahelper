@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:sagahelper/components/home_main_widget.dart';
-import 'package:sagahelper/components/home_orundum.dart';
-import 'package:sagahelper/components/home_unlocked_today.dart';
+import 'package:sagahelper/components/home/home_main_widget.dart';
+import 'package:sagahelper/components/home/home_orundum.dart';
+import 'package:sagahelper/components/home/home_unlocked_today.dart';
 import 'package:sagahelper/notification_services.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
 import 'package:sagahelper/providers/server_provider.dart';
@@ -104,7 +104,7 @@ class _HomePageState extends State<HomePage> {
               )
             : null,
         backgroundColor: context.read<UiProvider>().useTranslucentUi == true
-            ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5)
+            ? Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.5)
             : null,
         elevation: 0,
       ),

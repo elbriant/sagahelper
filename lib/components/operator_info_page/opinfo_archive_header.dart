@@ -91,7 +91,7 @@ class _OpinfoArchiveHeaderState extends State<OpinfoArchiveHeader>
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: Theme.of(context).colorScheme.primary.withOpacity(0.25),
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
                           spreadRadius: 40,
                           blurRadius: 55,
                         ),
@@ -222,7 +222,8 @@ class _OpinfoArchiveHeaderState extends State<OpinfoArchiveHeader>
                       TextSpan(
                         text: '[${widget.operator.displayNumber} / ${widget.operator.id}]\n',
                         style: TextStyle(
-                          color: Theme.of(context).textTheme.bodySmall?.color?.withOpacity(0.5),
+                          color:
+                              Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.5),
                           fontStyle: FontStyle.italic,
                         ),
                       ),
@@ -243,7 +244,7 @@ class _OpinfoArchiveHeaderState extends State<OpinfoArchiveHeader>
                       label: Text(widget.operator.professionString),
                       avatar: Image.asset(professionStr),
                       backgroundColor: Theme.of(context).brightness == Brightness.light
-                          ? Theme.of(context).colorScheme.primary.withOpacity(0.85)
+                          ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.85)
                           : null,
                       labelStyle: Theme.of(context).brightness == Brightness.light
                           ? const TextStyle(color: Colors.white)
@@ -262,7 +263,7 @@ class _OpinfoArchiveHeaderState extends State<OpinfoArchiveHeader>
                       label: Text(widget.operator.subProfessionString),
                       avatar: Image.asset(subprofessionStr),
                       backgroundColor: Theme.of(context).brightness == Brightness.light
-                          ? Theme.of(context).colorScheme.primary.withOpacity(0.7)
+                          ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.7)
                           : null,
                       labelStyle: Theme.of(context).brightness == Brightness.light
                           ? const TextStyle(color: Colors.white)

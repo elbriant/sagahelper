@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/scheduler.dart';
-import 'package:sagahelper/components/op_route_error.dart';
-import 'package:sagahelper/components/op_route_filters_popup.dart';
-import 'package:sagahelper/components/op_route_loading.dart';
-import 'package:sagahelper/components/op_route_search_not_found.dart';
-import 'package:sagahelper/components/operator_container.dart';
+import 'package:sagahelper/components/operator_route/op_route_error.dart';
+import 'package:sagahelper/components/operator_route/op_route_filters_popup.dart';
+import 'package:sagahelper/components/operator_route/op_route_loading.dart';
+import 'package:sagahelper/components/operator_route/op_route_search_not_found.dart';
+import 'package:sagahelper/components/operator_info_page/operator_container.dart';
 import 'package:sagahelper/global_data.dart';
 import 'package:sagahelper/models/filters.dart';
 import 'package:sagahelper/models/operator.dart';
@@ -364,7 +364,7 @@ class _OperatorsPageState extends State<OperatorsPage> {
               )
             : null,
         backgroundColor: context.read<UiProvider>().useTranslucentUi == true
-            ? Theme.of(context).colorScheme.surfaceContainer.withOpacity(0.5)
+            ? Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.5)
             : null,
         actions: [
           !isSearching
@@ -479,7 +479,7 @@ class OperatorListView extends StatelessWidget {
       radius: const Radius.circular(12),
       minThumbLength: 48,
       mainAxisMargin: 4,
-      thumbColor: Theme.of(context).colorScheme.secondary.withOpacity(0.8),
+      thumbColor: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.8),
       child: GridView.builder(
         itemCount: operators.length,
         addAutomaticKeepAlives: true,
