@@ -492,7 +492,7 @@ class _OperatorModulesState extends State<OperatorModules> {
                               image: isThisAdvanced
                                   ? NetworkToFileImage(
                                       url:
-                                          '$kModIconRepo/${modulesInfoList[index]["typeIcon"] == 'trp-d' ? 'TRP-D' : modulesInfoList[index]["typeIcon"]}.png'
+                                          '$kModIconRepo/${(modulesInfoList[index]["typeIcon"] as String).toLowerCase() == 'trp-d' ? 'TRP-D' : (modulesInfoList[index]["typeIcon"] as String).toLowerCase()}.png'
                                               .githubEncode(),
                                       file: LocalDataManager.localCacheFileSync(
                                         'modicon/${modulesInfoList[index]["typeIcon"]}.png',

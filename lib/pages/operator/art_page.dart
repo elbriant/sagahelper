@@ -70,7 +70,7 @@ class _ArtPageState extends State<ArtPage> {
   String getImageLink(int index) {
     String opSkinId =
         (widget.operator.skinsList[index]['illustId'] as String).replaceFirst('illust_', '');
-    return '$kArtRepo/${widget.operator.id}/$opSkinId.png'.githubEncode();
+    return '$kArtRepo/$opSkinId.png'.githubEncode();
   }
 
   void showDynamicSkin() {

@@ -134,6 +134,11 @@ class _HomePageState extends State<HomePage> {
       serverDateTime = now.add(const Duration(hours: 9)); // tokyo UTC+9
     }
 
+    // day changes on 4:00am on all servers, not when 12:00am
+    if (serverDateTime.hour >= 0 && serverDateTime.hour < 4) {
+      serverDateTime = serverDateTime.subtract(const Duration(days: 1));
+    }
+
     setState(() {
       serverCurrentDatetime = serverDateTime;
     });

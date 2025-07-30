@@ -21,21 +21,13 @@ const Map<String, Map> credits = {
     "assets": "Providing the raw game data",
     "link": "https://github.com/Kengxxiao/ArknightsGameData",
   },
-  "yuanyan3060 - ArknightsGameResource": {
-    "assets": "Avatars, Skill and RIIC Skill assets",
-    "link": "https://github.com/yuanyan3060/ArknightsGameResource/",
+  "elbriant - Sagapi-assets": {
+    "assets": "Various assets from CN data",
+    "link": "https://github.com/elbriant/sagapi-assets/",
   },
-  "akgcc - arkdata": {
-    "assets": "Entities assets",
-    "link": "https://github.com/akgcc/arkdata/",
-  },
-  "ArknightsAssets - ArknightsAssets": {
-    "assets": "Portraits, Operators Art, Factions and modules assets",
-    "link": "https://github.com/ArknightsAssets/ArknightsAssets/",
-  },
-  "Aceship - Arknight-voices": {
+  "elbriant - Sagapi-audio": {
     "assets": "Operators voicelines",
-    "link": "https://github.com/Aceship/Arknight-voices/",
+    "link": "https://github.com/elbriant/sagapi-audio/",
   },
   "Seseren - Twitter/X": {
     "assets": "Saga gifs",
@@ -48,32 +40,28 @@ const Map<String, Map> credits = {
   },
 };
 
-// Assets from yuanyan3060 repo
+// Assets from sagapi-assets repo
 const String kAvatarRepo =
-    'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/refs/heads/main/avatar';
+    'https://raw.githubusercontent.com/elbriant/sagapi-assets/refs/heads/assets/assets/charavatars';
 const String kSkillRepo =
-    'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/refs/heads/main/skill';
+    'https://raw.githubusercontent.com/elbriant/sagapi-assets/refs/heads/assets/assets/skills';
 const String kBaseSkillRepo =
-    'https://raw.githubusercontent.com/yuanyan3060/ArknightsGameResource/refs/heads/main/building_skill';
-
-// Assets from Arkgcc repo
+    'https://raw.githubusercontent.com/elbriant/sagapi-assets/refs/heads/assets/assets/building_skill';
 const String kTokenAvatarRepo =
-    'https://raw.githubusercontent.com/akgcc/arkdata/refs/heads/main/assets/torappu/dynamicassets/arts/charavatars';
-
-// Assets from ArknightsAssets repo
+    'https://raw.githubusercontent.com/elbriant/sagapi-assets/refs/heads/assets/assets/charavatars';
 const String kPortraitRepo =
-    'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/charportraits';
+    'https://raw.githubusercontent.com/elbriant/sagapi-assets/refs/heads/assets/assets/charportraits';
 const String kArtRepo =
-    'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/characters';
+    'https://raw.githubusercontent.com/elbriant/sagapi-assets/refs/heads/assets/assets/chararts';
 const String kLogoRepo =
-    'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/cn/assets/torappu/dynamicassets/arts/camplogo';
+    'https://raw.githubusercontent.com/elbriant/sagapi-assets/refs/heads/assets/assets/logo';
 const String kModImgRepo =
-    'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/refs/heads/cn/assets/torappu/dynamicassets/arts/ui/uniequipimg';
+    'https://raw.githubusercontent.com/elbriant/sagapi-assets/refs/heads/assets/assets/ui/uniequipimg';
 const String kModIconRepo =
-    'https://raw.githubusercontent.com/ArknightsAssets/ArknightsAssets/refs/heads/cn/assets/torappu/dynamicassets/arts/ui/uniequiptype';
+    'https://raw.githubusercontent.com/elbriant/sagapi-assets/refs/heads/assets/assets/ui/uniequiptype';
 
-// Voice Assets from Aceship's repo
-const String kVoiceRepo = 'https://github.com/Aceship/Arknight-voices/raw/refs/heads/main';
+// Voice Assets from sagapi-audio repo
+const String kVoiceRepo = 'https://github.com/elbriant/sagapi-audio/raw/refs/heads/audio/audio';
 
 // ---------- helper classes
 

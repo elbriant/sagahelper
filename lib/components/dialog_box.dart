@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:provider/provider.dart';
 import 'package:sagahelper/global_data.dart';
@@ -13,7 +14,7 @@ class AudioPlayerManager {
   final player = AudioPlayer();
   Stream<DurationState>? durationState;
 
-  void init(String url) async {
+  void init(String url, [String? fallbackUrl]) async {
     durationState = Rx.combineLatest2<Duration, PlaybackEvent, DurationState>(
       player.positionStream,
       player.playbackEventStream,
@@ -26,11 +27,20 @@ class AudioPlayerManager {
     try {
       await player.setUrl(url);
       player.play();
-    } on PlayerInterruptedException catch (e) {
-      // This call was interrupted since another audio source was loaded or the
-      // player was stopped or disposed before this audio source could complete
-      // loading.
-      ShowSnackBar.showSnackBar("Connection aborted: ${e.message}");
+    } on PlayerException {
+      if (fallbackUrl != null) {
+        await player.setUrl(fallbackUrl);
+        player.play();
+        ShowSnackBar.showSnackBar(
+          "Audio source doesn't exist for selected language, fallback to japanese",
+        );
+      } else {
+        rethrow;
+      }
+    } on PlayerInterruptedException {
+      // ignore interrumptions
+    } on PlatformException {
+      // ignore interrumptions
     } catch (e) {
       // Fallback for all other errors
       ShowSnackBar.showSnackBar('An error occured: $e');

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:provider/provider.dart';
 import 'package:sagahelper/components/dialog_box.dart';
@@ -66,23 +65,6 @@ class _VoicePageState extends State<VoicePage> with WidgetsBindingObserver {
       }
     }
     selectedVoicelines = voicelines.first;
-
-    manager.player.playbackEventStream.listen(
-      (event) {},
-      onError: (Object e, StackTrace st) {
-        if (e is PlatformException) {
-          ShowSnackBar.showSnackBar(
-            'Error code: ${e.code}, Error message: ${e.message}, AudioSource index: ${e.details?["index"]}',
-            type: SnackBarType.failure,
-          );
-        } else {
-          ShowSnackBar.showSnackBar(
-            'An error occurred: $e',
-            type: SnackBarType.failure,
-          );
-        }
-      },
-    );
 
     manager.player.playerStateStream.listen((state) {
       playerState = state;
@@ -267,7 +249,7 @@ class _VoicePageState extends State<VoicePage> with WidgetsBindingObserver {
         playingIndex = index;
       });
     }
-    // get link using Aceship's repo
+    // get link using Sagapi-audio repo
     String voicelang = switch (langs[selectedLang]) {
       'jp' => 'voice',
       'en' => 'voice_en',
@@ -288,8 +270,9 @@ class _VoicePageState extends State<VoicePage> with WidgetsBindingObserver {
     }
 
     String link = '$kVoiceRepo/$voicelang/$opId/$voiceId.mp3'.githubEncode();
+    String fallbackJpLink = '$kVoiceRepo/voice/$opId/$voiceId.mp3'.githubEncode();
 
-    manager.init(link);
+    manager.init(link, fallbackJpLink);
   }
 
   // not proud of this code

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
 import 'package:provider/provider.dart';
+import 'package:sagahelper/components/home/home_title.dart';
 import 'package:sagahelper/components/popup_dialog.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
 import 'package:sagahelper/providers/styles_provider.dart';
@@ -123,14 +124,11 @@ class HomeUnlockedToday extends StatelessWidget {
     if (stageTable == null) return false;
     bool isCurrentlyActive = false;
 
-    final DateTime mockTime = DateTime.fromMillisecondsSinceEpoch(1755690800000);
+    Map epoch = (stageTable["forceOpenTable"] as Map).values.last;
 
-    for (Map epoch in (stageTable["forceOpenTable"] as Map).values) {
-      if (mockTime.isAfter(DateTime.fromMillisecondsSinceEpoch(epoch["startTime"] * 1000)) &&
-          mockTime.isBefore(DateTime.fromMillisecondsSinceEpoch(epoch["endTime"] * 1000))) {
-        isCurrentlyActive = true;
-        break;
-      }
+    if (serverTime.isAfter(DateTime.fromMillisecondsSinceEpoch(epoch["startTime"] * 1000)) &&
+        serverTime.isBefore(DateTime.fromMillisecondsSinceEpoch(epoch["endTime"] * 1000))) {
+      isCurrentlyActive = true;
     }
 
     return isCurrentlyActive;
@@ -142,64 +140,47 @@ class HomeUnlockedToday extends StatelessWidget {
         context.select<CacheProvider, Map<String, dynamic>?>((p) => p.cachedStageTable);
     final bool specialOpen = getSpecialOpen(stageTable);
 
-    // weekday of the server is based on 4:00 am not 12:00 am
-    final int currentWeekday = (serverTime.hour >= 4) ? serverTime.weekday : serverTime.weekday - 1;
-
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.40)),
-        gradient: LinearGradient(
-          colors: [
-            Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.20),
-            Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.30),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const SizedBox(height: 8.0),
+        const HomeTitle(
+          label: 'Open Today',
         ),
-      ),
-      padding: const EdgeInsets.all(2.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 8.0),
-          Text(
-            'Open today',
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.secondary,
-              fontWeight: FontWeight.w500,
-            ),
-            textScaler: const TextScaler.linear(1.25),
-          ),
-          if (specialOpen)
-            Text(
+        if (specialOpen)
+          SizedBox(
+            width: double.maxFinite,
+            child: Text(
               "There's special event making all supply stages open",
               style: TextStyle(
                 color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
               ),
               textScaler: const TextScaler.linear(0.75),
             ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 2.0, vertical: 8.0),
-            child: Wrap(
-              spacing: 4.0,
-              runSpacing: 4.0,
-              alignment: WrapAlignment.center,
-              children: List.generate(stages.length, (index) {
-                if (!(stages[index].value["days"] as List<int>).contains(currentWeekday) &&
-                    !specialOpen) {
-                  return null;
-                }
+          ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2.0, vertical: 8.0),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Material(
+              child: Row(
+                spacing: 8,
+                children: List.generate(stages.length, (index) {
+                  if (!(stages[index].value["days"] as List<int>).contains(serverTime.weekday) &&
+                      !specialOpen) {
+                    return null;
+                  }
 
-                return _StageCards(
-                  weekly: stages[index],
-                  speciallyOpen: specialOpen,
-                );
-              }).nullParser(),
+                  return _StageCards(
+                    weekly: stages[index],
+                    speciallyOpen: specialOpen,
+                  );
+                }).nullParser(),
+              ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -212,8 +193,6 @@ class _StageCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final int textLength = (weekly.value["name"] as String).length;
-
     return Ink(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
@@ -234,11 +213,8 @@ class _StageCards extends StatelessWidget {
         image: DecorationImage(
           image: AssetImage('assets/supply_stages/${weekly.key}-min.png'),
           fit: BoxFit.none,
-
-          // small totally unnecesary scale trick based on string length
-          scale: 1.45 / (textLength < 18 ? (1 - 0.2 * (17 / textLength)) : 1),
-
-          alignment: const Alignment(0, 0.25),
+          scale: 2,
+          alignment: const Alignment(0, -0.25),
           colorFilter:
               const ColorFilter.mode(Color.fromARGB(236, 228, 228, 228), BlendMode.modulate),
         ),
@@ -253,11 +229,22 @@ class _StageCards extends StatelessWidget {
           ),
         ),
         borderRadius: BorderRadius.circular(6),
-        child: Padding(
-          padding: const EdgeInsets.all(6.0),
-          child: Text(
-            weekly.value["name"],
-            style: const TextStyle(color: Colors.white, shadows: [Shadow(blurRadius: 2.0)]),
+        child: SizedBox(
+          width: 64,
+          height: 172,
+          child: Center(
+            child: Text(
+              weekly.value["name"],
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Colors.white,
+                shadows: [
+                  Shadow(blurRadius: 2.0),
+                  Shadow(blurRadius: 2.0),
+                  Shadow(blurRadius: 2.0),
+                ],
+              ),
+            ),
           ),
         ),
       ),
