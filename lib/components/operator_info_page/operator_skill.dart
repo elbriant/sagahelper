@@ -11,7 +11,7 @@ import 'package:sagahelper/components/range_tile.dart';
 import 'package:sagahelper/components/slider_selector.dart';
 import 'package:sagahelper/components/stored_image.dart';
 import 'package:sagahelper/components/styled_buttons.dart';
-import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/core/global_data.dart';
 import 'package:sagahelper/models/entity.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/providers/settings_provider.dart';

@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:sagahelper/components/dialog_box.dart';
 import 'package:sagahelper/components/styled_buttons.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
-import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/core/global_data.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/providers/ui_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';

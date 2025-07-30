@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:sagahelper/providers/ui_provider.dart';
-import 'package:sagahelper/themes.dart';
+import 'package:sagahelper/core/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

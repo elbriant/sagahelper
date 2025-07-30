@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:network_to_file_image/network_to_file_image.dart';
-import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/core/global_data.dart';
 
 class StoredImage extends StatelessWidget {
   const StoredImage({

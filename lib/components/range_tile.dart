@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/core/global_data.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
 
 class RangeTile extends StatelessWidget {

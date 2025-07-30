@@ -8,7 +8,7 @@ import 'package:sagahelper/components/operator_info_page/opinfo_archive_header.d
 import 'package:sagahelper/components/operator_info_page/opinfo_archive_lore.dart';
 import 'package:sagahelper/components/operator_info_page/opinfo_archive_skill.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
-import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/core/global_data.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
 import 'package:sagahelper/providers/cache_provider.dart';

@@ -1,7 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:provider/provider.dart';
 
-import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/core/global_data.dart';
 import 'package:sagahelper/models/errors.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
 

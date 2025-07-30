@@ -6,7 +6,7 @@ import 'package:sagahelper/components/shimmer.dart';
 import 'package:sagahelper/components/shimmer_loading_mask.dart';
 import 'package:sagahelper/components/stored_image.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
-import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/core/global_data.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/pages/operator/archive_page.dart';
 import 'package:sagahelper/pages/operator/art_page.dart';

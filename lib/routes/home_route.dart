@@ -5,7 +5,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:sagahelper/components/home/home_main_widget.dart';
 import 'package:sagahelper/components/home/home_orundum.dart';
 import 'package:sagahelper/components/home/home_unlocked_today.dart';
-import 'package:sagahelper/notification_services.dart';
+import 'package:sagahelper/core/notification_services.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
 import 'package:sagahelper/providers/server_provider.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
@@ -13,46 +13,31 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/providers/ui_provider.dart';
-import 'package:sagahelper/global_data.dart'
+import 'package:sagahelper/core/global_data.dart'
     show NavigationService, firstTimeCheck, checkForUpdatesFlag;
 import 'package:sagahelper/utils/misc.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  const HomePage({super.key, required this.currentServer});
+  final Servers currentServer;
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
-List computeJsonDecode(List<String?> input) {
-  List<Map?> result = [];
-
-  for (final i in input) {
-    if (i == null) {
-      result.add(null);
-      continue;
-    }
-
-    result.add(jsonDecode(i));
-  }
-
-  return result;
-}
-
 class _HomePageState extends State<HomePage> {
   late DateTime serverCurrentDatetime;
-  late Servers currentServer;
   late Timer timer;
+  late DateTime resetTime;
 
   @override
   void initState() {
     super.initState();
 
-    currentServer =
-        NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer;
+    _getServerTime();
+    resetTime = getResetTime();
 
-    _getTime();
-    timer = Timer.periodic(const Duration(seconds: 1), (Timer t) => _getTime());
+    timer = Timer.periodic(const Duration(seconds: 1), (Timer t) => _getServerTime());
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       checkServer().then((_) {
@@ -75,8 +60,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final resetTime = getResetTime();
-
     final children = [
       HomeMainWidget(
         serverTime: serverCurrentDatetime,
@@ -121,17 +104,18 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _getTime() {
+  void _getServerTime() {
     final DateTime now = DateTime.timestamp();
     DateTime serverDateTime;
 
-    if (currentServer == Servers.cn) {
-      serverDateTime = now.add(const Duration(hours: 8)); // shanghai UTC+8
-    } else if (currentServer == Servers.en) {
-      serverDateTime = now.subtract(const Duration(hours: 7)); // UTC-7
-    } else {
-      // jp / kr
-      serverDateTime = now.add(const Duration(hours: 9)); // tokyo UTC+9
+    switch (widget.currentServer) {
+      case Servers.cn:
+        serverDateTime = now.add(const Duration(hours: 8)); // shanghai UTC+8
+      case Servers.en:
+        serverDateTime = now.subtract(const Duration(hours: 7)); // UTC-7
+      default:
+        // jp / kr
+        serverDateTime = now.add(const Duration(hours: 9)); // tokyo UTC+9
     }
 
     // day changes on 4:00am on all servers, not when 12:00am
@@ -153,22 +137,43 @@ class _HomePageState extends State<HomePage> {
     // formula to get reset time in utc is
     // 4 (server reset) - [server offset]
 
-    if (currentServer == Servers.cn) {
-      // 4 - 8 = -4
-      serverDateTime = now.subtract(const Duration(hours: 4)); // shanghai UTC+8
-    } else if (currentServer == Servers.en) {
-      // 4 - (-7) = 11
-      serverDateTime = now.add(const Duration(hours: 11)); // UTC-7
-    } else {
-      // jp / kr
-      // 4 - 9 = -5
-      serverDateTime = now.subtract(const Duration(hours: 5)); // tokyo UTC+9
+    switch (widget.currentServer) {
+      case Servers.cn:
+        // 4 - 8 = -4
+        serverDateTime = now.subtract(const Duration(hours: 4)); // shanghai UTC+8
+      case Servers.en:
+        // 4 - (-7) = 11
+        serverDateTime = now.add(const Duration(hours: 11)); // UTC-7
+      default:
+        // jp / kr
+        // 4 - 9 = -5
+        serverDateTime = now.subtract(const Duration(hours: 5)); // tokyo UTC+9
     }
 
     return serverDateTime;
   }
 
   void _cacheDependencies() async {
+    if (NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedStageTable !=
+        null) {
+      return;
+    }
+
+    List computeJsonDecode(List<String?> input) {
+      List<Map?> result = [];
+
+      for (final i in input) {
+        if (i == null) {
+          result.add(null);
+          continue;
+        }
+
+        result.add(jsonDecode(i));
+      }
+
+      return result;
+    }
+
     List<String?> files = [];
     final server =
         NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer;

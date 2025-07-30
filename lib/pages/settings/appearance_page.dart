@@ -6,7 +6,7 @@ import 'package:sagahelper/components/theme_preview.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
 import 'package:sagahelper/providers/ui_provider.dart';
-import 'package:sagahelper/themes.dart';
+import 'package:sagahelper/core/themes.dart';
 
 class AppearanceSettings extends StatefulWidget {
   const AppearanceSettings({super.key});

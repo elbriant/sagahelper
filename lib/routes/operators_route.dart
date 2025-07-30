@@ -6,7 +6,7 @@ import 'package:sagahelper/components/operator_route/op_route_filters_popup.dart
 import 'package:sagahelper/components/operator_route/op_route_loading.dart';
 import 'package:sagahelper/components/operator_route/op_route_search_not_found.dart';
 import 'package:sagahelper/components/operator_info_page/operator_container.dart';
-import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/core/global_data.dart';
 import 'package:sagahelper/models/filters.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/providers/cache_provider.dart';

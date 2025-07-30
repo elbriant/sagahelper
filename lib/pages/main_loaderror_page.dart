@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/core/global_data.dart';
 
 class ErrorScreen extends StatelessWidget {
   final Object error;

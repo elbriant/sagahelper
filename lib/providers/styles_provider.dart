@@ -2,7 +2,7 @@ import 'dart:developer' as dev;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sagahelper/components/popup_dialog.dart';
-import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/core/global_data.dart';
 import 'package:sagahelper/models/styled_text_arknights_info_tag.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';

@@ -8,7 +8,7 @@ import 'package:sagahelper/components/range_tile.dart';
 import 'package:sagahelper/components/shimmer_loading_mask.dart';
 import 'package:sagahelper/components/stat_tile.dart';
 import 'package:sagahelper/components/styled_buttons.dart';
-import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/core/global_data.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
 import 'package:sagahelper/providers/op_info_provider.dart';

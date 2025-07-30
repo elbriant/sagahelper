@@ -1,6 +1,6 @@
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
 import 'package:sagahelper/components/stored_image.dart';
-import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/core/global_data.dart';
 import 'package:sagahelper/models/filters.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/pages/operator/skeleton.dart';

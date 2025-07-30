@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sagahelper/themes.dart';
-import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/core/themes.dart';
+import 'package:sagahelper/core/global_data.dart';
 
 final listAllThemeModes = [ThemeMode.system, ThemeMode.light, ThemeMode.dark];
 
@@ -19,7 +19,7 @@ enum UiProviderKeys {
 }
 
 class UiProvider extends ChangeNotifier {
-  static final Map<UiProviderKeys, dynamic> _defaultValues = {
+  static const Map<UiProviderKeys, dynamic> _defaultValues = {
     UiProviderKeys.currentTheme: 0,
     UiProviderKeys.themeMode: 0,
     UiProviderKeys.isUsingPureDark: false,

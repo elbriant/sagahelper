@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:provider/provider.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
-import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/core/global_data.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
 import 'package:sagahelper/providers/server_provider.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
@@ -111,6 +111,7 @@ class ServerTile extends StatelessWidget {
 
     void changeServer(Servers server) {
       context.read<SettingsProvider>().changeServer(server);
+      NavigationService.navigatorKey.currentContext!.read<CacheProvider>().unCacheAll();
       Navigator.pop(context);
     }
 

@@ -7,7 +7,7 @@ import 'package:sagahelper/components/operator_info_page/operator_container.dart
 import 'package:sagahelper/components/range_tile.dart';
 import 'package:sagahelper/components/stat_tile.dart';
 import 'package:sagahelper/components/stored_image.dart';
-import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/core/global_data.dart';
 import 'package:sagahelper/models/entity.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
 import 'package:sagahelper/providers/styles_provider.dart';

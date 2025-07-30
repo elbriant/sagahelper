@@ -3,7 +3,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
-import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/core/global_data.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
 
 class IconButtonStyled extends StatelessWidget {

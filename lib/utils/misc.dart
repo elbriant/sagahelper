@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sagahelper/components/popup_dialog.dart';
-import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/core/global_data.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 

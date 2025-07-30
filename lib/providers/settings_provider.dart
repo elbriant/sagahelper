@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:sagahelper/models/filters.dart';
 import 'package:sagahelper/providers/server_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/core/global_data.dart';
 
 enum DisplayList {
   avatar,

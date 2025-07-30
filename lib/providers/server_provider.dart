@@ -5,7 +5,7 @@ import 'package:sagahelper/models/dir_stat.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
 import 'package:flowder/flowder.dart';
 import 'package:flutter/material.dart';
-import 'package:sagahelper/global_data.dart';
+import 'package:sagahelper/core/global_data.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
