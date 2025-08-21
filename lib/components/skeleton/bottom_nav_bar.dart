@@ -1,29 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:sagahelper/core/global_data.dart';
-import 'package:sagahelper/providers/ui_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sagahelper/components/traslucent_ui.dart';
+import 'package:sagahelper/providers/config_provider.dart';
 
-class BottomNavBar extends StatelessWidget {
-  final double opacity;
+class BottomNavBar extends ConsumerWidget {
+  final int selectedIndex;
+  final ValueChanged<int?> onDestinationSelected;
 
   const BottomNavBar({
     super.key,
-    this.opacity = 1.0,
+    required this.selectedIndex,
+    required this.onDestinationSelected,
   });
 
-  void setNavBB(int index) {
-    NavigationService.navigatorKey.currentContext!.read<UiProvider>().currentHomePageIndx = index;
-  }
-
   @override
-  Widget build(BuildContext context) {
-    final selectedIndex =
-        context.select<UiProvider, int>((uiProvider) => uiProvider.currentHomePageIndx);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final translucentUi = ref.watch(configProvider.select((p) => p.useTranslucentUi));
 
-    return NavigationBar(
-      backgroundColor: Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: opacity),
+    final child = NavigationBar(
+      backgroundColor:
+          Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: translucentUi ? 0.5 : 1),
       labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
-      onDestinationSelected: setNavBB,
+      onDestinationSelected: onDestinationSelected,
       selectedIndex: selectedIndex,
       destinations: const [
         NavigationDestination(
@@ -53,5 +51,12 @@ class BottomNavBar extends StatelessWidget {
         ),
       ],
     );
+
+    return translucentUi
+        ? TranslucentWidget(
+            sigma: 3,
+            child: child,
+          )
+        : child;
   }
 }

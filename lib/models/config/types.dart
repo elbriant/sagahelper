@@ -1,0 +1,4 @@
+enum OperatorDisplayMode {
+  avatar,
+  portrait;
+}

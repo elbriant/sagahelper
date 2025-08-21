@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
-
-import 'package:sagahelper/providers/settings_provider.dart';
+import 'package:sagahelper/models/config/persistent_settings.dart';
+import 'package:sagahelper/providers/config_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
 
-class HomeMainWidget extends StatelessWidget {
+class HomeMainWidget extends ConsumerWidget {
   const HomeMainWidget({
     super.key,
     required this.serverTime,
@@ -15,29 +15,28 @@ class HomeMainWidget extends StatelessWidget {
   final DateTime serverTime;
   final DateTime serverResetTime;
 
-  String getTimeUntilReset() {
+  String getTimeUntilReset(PersistentSettings settings) {
     final now = DateTime.now();
 
     final Duration difference = serverResetTime.toLocal().difference(now).isNegative
         ? serverResetTime.toLocal().add(const Duration(days: 1)).difference(now)
         : serverResetTime.toLocal().difference(now);
 
-    return difference.asRemainingTime();
+    return difference.asRemainingTime(settings.homeShowSeconds);
   }
 
   @override
-  Widget build(BuildContext context) {
-    final compactMode = context.read<SettingsProvider>().homeCompactMode;
-    final currentServer = context.read<SettingsProvider>().currentServerString;
-    final hour12 = context.read<SettingsProvider>().homeHour12Format;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.read(configProvider);
+    final compactMode = settings.homeCompactMode;
+    final currentServer = settings.currentServer.serverString;
 
-    final String localResetTime = hour12
+    final String localResetTime = settings.homeHour12Format
         ? DateFormat('h:mm a').format(serverResetTime.toLocal())
         : DateFormat('HH:mm').format(serverResetTime.toLocal());
 
-    final String serverCurrentTime = serverTime.formatHome();
-
-    final String timeUntilReset = getTimeUntilReset();
+    final String serverCurrentTime = serverTime.formatHome(settings);
+    final String timeUntilReset = getTimeUntilReset(settings);
 
     return SizedBox(
       height: !compactMode ? 150 : 75,

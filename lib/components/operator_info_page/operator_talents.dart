@@ -9,7 +9,7 @@ import 'package:sagahelper/components/range_tile.dart';
 import 'package:sagahelper/components/styled_buttons.dart';
 import 'package:sagahelper/models/entity.dart';
 import 'package:sagahelper/models/operator.dart';
-import 'package:sagahelper/providers/styles_provider.dart';
+import 'package:sagahelper/providers/style_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
 
 class OperatorTalents extends StatefulWidget {

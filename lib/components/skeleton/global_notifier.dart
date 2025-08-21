@@ -1,14 +1,17 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:sagahelper/providers/settings_provider.dart';
+import 'dart:math';
 
-class GlobalNotifier extends StatelessWidget {
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sagahelper/providers/tasker_provider.dart';
+
+const randomWords = ['Natto gohan...', 'Aburage...', 'Completed...', 'Working...'];
+
+class GlobalNotifier extends ConsumerWidget {
   const GlobalNotifier({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final isShowingNotify = context.select<SettingsProvider, bool>((p) => p.showNotifier);
-    final notifyString = context.select<SettingsProvider, String>((p) => p.loadingString);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tasker = ref.watch(taskerProvider);
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 600),
@@ -19,7 +22,7 @@ class GlobalNotifier extends StatelessWidget {
         20,
         2.0,
       ),
-      height: isShowingNotify ? (MediaQuery.of(context).padding.top + 24) : 0,
+      height: tasker.isActive ? (MediaQuery.of(context).padding.top + 24) : 0,
       color: Theme.of(context).colorScheme.primary,
       constraints: BoxConstraints.loose(MediaQuery.sizeOf(context)),
       child: Row(
@@ -36,7 +39,8 @@ class GlobalNotifier extends StatelessWidget {
           const SizedBox(width: 20),
           Flexible(
             child: Text(
-              notifyString,
+              tasker.taskQueue.lastOrNull?.message ??
+                  randomWords[Random().nextInt(randomWords.length)],
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onPrimary,
                 overflow: TextOverflow.ellipsis,

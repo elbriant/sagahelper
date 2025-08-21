@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
-import 'package:sagahelper/core/global_data.dart';
-import 'package:sagahelper/providers/settings_provider.dart';
+import 'package:sagahelper/models/config/persistent_settings.dart';
 
 // Original character  Escaped character
 // ------------------  -----------------
@@ -98,10 +96,9 @@ extension StringExtension on String {
     return parsed;
   }
 
-  String nicknameParser() {
-    final nick = NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().nickname;
-    if (nick != null) {
-      return replaceAll('{@nickname}', nick);
+  String nicknameParser({String? nickname}) {
+    if (nickname != null) {
+      return replaceAll('{@nickname}', nickname);
     } else {
       return replaceAll(RegExp(r'(Dr.)?(\s)?{@nickname}'), 'Doctor');
     }
@@ -129,9 +126,8 @@ extension StringExtension on String {
 }
 
 extension DateTimeExtension on DateTime {
-  String formatHome() {
+  String formatHome(PersistentSettings settings) {
     List<String> result = [];
-    final settings = NavigationService.navigatorKey.currentContext!.read<SettingsProvider>();
 
     // date
     if (settings.homeShowDate) {
@@ -161,7 +157,7 @@ extension DateTimeExtension on DateTime {
 }
 
 extension DurationExtension on Duration {
-  String asRemainingTime() {
+  String asRemainingTime(bool showSeconds) {
     List<String> result = [];
 
     //days
@@ -185,7 +181,7 @@ extension DurationExtension on Duration {
     }
 
     // seconds
-    if (NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().homeShowSeconds) {
+    if (showSeconds) {
       if (inSeconds.remainder(60) > 1) {
         result.add('${inSeconds.remainder(60)} seconds');
       } else if (inSeconds.remainder(60) == 1) {
@@ -194,5 +190,15 @@ extension DurationExtension on Duration {
     }
 
     return result.join(' ');
+  }
+}
+
+extension NullableExtension<T> on T? {
+  bool get isNull {
+    return this == null;
+  }
+
+  bool get isNotNull {
+    return this != null;
   }
 }

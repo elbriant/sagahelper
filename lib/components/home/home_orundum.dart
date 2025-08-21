@@ -1,9 +1,12 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:glass_kit/glass_kit.dart';
+import 'package:sagahelper/models/config/persistent_settings.dart';
+import 'package:sagahelper/providers/config_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
 
-class HomeOrundum extends StatelessWidget {
+class HomeOrundum extends ConsumerWidget {
   const HomeOrundum({
     super.key,
     required this.serverTime,
@@ -13,7 +16,7 @@ class HomeOrundum extends StatelessWidget {
   final DateTime serverTime;
   final DateTime serverResetTime;
 
-  String getOrundumResetTime() {
+  String getOrundumResetTime(PersistentSettings settings) {
     final now = DateTime.now();
     final serverResetMondayTime = serverResetTime.add(Duration(days: 1 - serverResetTime.weekday));
 
@@ -21,12 +24,13 @@ class HomeOrundum extends StatelessWidget {
         ? serverResetMondayTime.toLocal().add(const Duration(days: 7)).difference(now)
         : serverResetMondayTime.toLocal().difference(now);
 
-    return difference.asRemainingTime();
+    return difference.asRemainingTime(settings.homeShowSeconds);
   }
 
   @override
-  Widget build(BuildContext context) {
-    final String orundumResetTime = getOrundumResetTime();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.read(configProvider);
+    final String orundumResetTime = getOrundumResetTime(settings);
 
     return GlassContainer.clearGlass(
       height: 120,

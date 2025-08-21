@@ -15,7 +15,7 @@ import 'package:sagahelper/core/global_data.dart';
 import 'package:sagahelper/models/entity.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
-import 'package:sagahelper/providers/styles_provider.dart';
+import 'package:sagahelper/providers/style_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
 
 /// returns SkillDetails of this operator

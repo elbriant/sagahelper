@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:sagahelper/providers/ui_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sagahelper/providers/config_provider.dart';
 
 class TranslucentWidget extends StatelessWidget {
   final Widget child;
@@ -20,12 +20,13 @@ class TranslucentWidget extends StatelessWidget {
   }
 }
 
-class SystemNavBar extends StatelessWidget {
+class SystemNavBar extends ConsumerWidget {
   const SystemNavBar({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    if (context.read<UiProvider>().useTranslucentUi) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final useTranslucent = ref.watch(configProvider.select((p) => p.useTranslucentUi));
+    if (useTranslucent) {
       return TranslucentWidget(
         child: Container(
           height: MediaQuery.paddingOf(context).bottom,

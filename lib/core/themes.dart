@@ -6,10 +6,7 @@ import 'package:system_theme/system_theme.dart';
 const pdsurfaceContainer = Color(0xFF0C0C0C);
 const pdsurfaceContainerHigh = Color(0xFF131313);
 const pdsurfaceContainerHighest = Color(0xFF1B1B1B);
-
-TextTheme? currentTextTheme;
-
-PageTransitionsTheme customPageTransition = const PageTransitionsTheme(
+const customPageTransition = PageTransitionsTheme(
   builders: <TargetPlatform, PageTransitionsBuilder>{
     TargetPlatform.android: SharedAxisPageTransitionsBuilder(
       transitionType: SharedAxisTransitionType.horizontal,
@@ -17,71 +14,69 @@ PageTransitionsTheme customPageTransition = const PageTransitionsTheme(
   },
 );
 
+TextTheme createTextTheme(
+  TextTheme baseTheme,
+  String? bodyFontString,
+  String? displayFontString,
+) {
+  TextTheme? bodyTextTheme =
+      bodyFontString != null ? GoogleFonts.getTextTheme(bodyFontString, baseTheme) : null;
+  TextTheme? displayTextTheme =
+      displayFontString != null ? GoogleFonts.getTextTheme(displayFontString, baseTheme) : null;
+  TextTheme textTheme = displayTextTheme?.copyWith(
+        bodyLarge: bodyTextTheme?.bodyLarge,
+        bodyMedium: bodyTextTheme?.bodyMedium,
+        bodySmall: bodyTextTheme?.bodySmall,
+        labelLarge: bodyTextTheme?.labelLarge,
+        labelMedium: bodyTextTheme?.labelMedium,
+        labelSmall: bodyTextTheme?.labelSmall,
+      ) ??
+      baseTheme.copyWith(
+        bodyLarge: bodyTextTheme?.bodyLarge,
+        bodyMedium: bodyTextTheme?.bodyMedium,
+        bodySmall: bodyTextTheme?.bodySmall,
+        labelLarge: bodyTextTheme?.labelLarge,
+        labelMedium: bodyTextTheme?.labelMedium,
+        labelSmall: bodyTextTheme?.labelSmall,
+      );
+  return textTheme;
+}
+
 class CustomTheme {
   final String? bodyFontString;
   final String? displayFontString;
-  final ThemeData light_;
-  final ThemeData dark_;
+  final ThemeData rawLight;
+  final ThemeData rawDark;
   final String name;
 
   // tachoymi, i kinda copied your code for the themes XD
-
   CustomTheme({
-    required this.light_,
-    required this.dark_,
+    required this.rawLight,
+    required this.rawDark,
     required this.name,
     this.bodyFontString,
     this.displayFontString,
   });
 
-  ThemeData get colorLight {
-    return light_.copyWith(
+  ThemeData get themeLight {
+    return rawLight.copyWith(
       pageTransitionsTheme: customPageTransition,
       brightness: Brightness.light,
-      textTheme: textLight,
+      textTheme: createTextTheme(rawLight.textTheme, bodyFontString, displayFontString),
     );
   }
 
-  ThemeData get colorDark {
-    return dark_.copyWith(
+  ThemeData get themeDark {
+    return rawDark.copyWith(
       pageTransitionsTheme: customPageTransition,
       brightness: Brightness.dark,
-      textTheme: textDark,
+      textTheme: createTextTheme(rawDark.textTheme, bodyFontString, displayFontString),
     );
   }
 
-  TextTheme get textLight {
-    if (bodyFontString == null || displayFontString == null) {
-      return light_.textTheme;
-    } else {
-      return createTextTheme(
-        light_.textTheme,
-        bodyFontString!,
-        displayFontString!,
-      );
-    }
-  }
-
-  TextTheme get textDark {
-    if (bodyFontString == null || displayFontString == null) {
-      return dark_.textTheme;
-    } else {
-      return createTextTheme(
-        dark_.textTheme,
-        bodyFontString!,
-        displayFontString!,
-      );
-    }
-  }
-
-  ThemeData getDarkMode(bool providerValue) {
-    if (providerValue == false) return colorDark;
-    // else pure dark
-    return ThemeData(
-      pageTransitionsTheme: customPageTransition,
-      brightness: Brightness.dark,
-      textTheme: colorDark.textTheme,
-      colorScheme: dark_.colorScheme.copyWith(
+  ThemeData get themePureDark {
+    return themeDark.copyWith(
+      colorScheme: themeDark.colorScheme.copyWith(
         surface: Colors.black,
         onSurface: Colors.white,
         surfaceContainerLowest: pdsurfaceContainer,
@@ -93,17 +88,26 @@ class CustomTheme {
     );
   }
 
+  ThemeData getDarkMode(bool pureDark) {
+    return pureDark ? themePureDark : themeDark;
+  }
+
+  /// just light or dark, pure dark gets ignored
+  ThemeData fromBrightness(Brightness brightness) {
+    return brightness == Brightness.light ? themeLight : themeDark;
+  }
+
   factory CustomTheme.fast(Color color) {
     return CustomTheme(
       name: 'Fast',
-      light_: ThemeData(
+      rawLight: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: color,
           brightness: Brightness.light,
           dynamicSchemeVariant: DynamicSchemeVariant.vibrant,
         ),
       ),
-      dark_: ThemeData(
+      rawDark: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: color,
           brightness: Brightness.dark,
@@ -114,34 +118,16 @@ class CustomTheme {
   }
 }
 
-TextTheme createTextTheme(
-  TextTheme baseColor,
-  String bodyFontString,
-  String displayFontString,
-) {
-  TextTheme bodyTextTheme = GoogleFonts.getTextTheme(bodyFontString, baseColor);
-  TextTheme displayTextTheme = GoogleFonts.getTextTheme(displayFontString, baseColor);
-  TextTheme textTheme = displayTextTheme.copyWith(
-    bodyLarge: bodyTextTheme.bodyLarge,
-    bodyMedium: bodyTextTheme.bodyMedium,
-    bodySmall: bodyTextTheme.bodySmall,
-    labelLarge: bodyTextTheme.labelLarge,
-    labelMedium: bodyTextTheme.labelMedium,
-    labelSmall: bodyTextTheme.labelSmall,
-  );
-  return textTheme;
-}
-
-CustomTheme dynamicTheme = CustomTheme(
+final CustomTheme dynamicTheme = CustomTheme(
   name: 'System dynamic',
-  light_: ThemeData(
+  rawLight: ThemeData(
     colorScheme: ColorScheme.fromSeed(
       seedColor: SystemTheme.accentColor.accent,
       brightness: Brightness.light,
       dynamicSchemeVariant: DynamicSchemeVariant.vibrant,
     ),
   ),
-  dark_: ThemeData(
+  rawDark: ThemeData(
     colorScheme: ColorScheme.fromSeed(
       seedColor: SystemTheme.accentColor.accent,
       brightness: Brightness.dark,
@@ -152,15 +138,15 @@ CustomTheme dynamicTheme = CustomTheme(
   displayFontString: "Noto Sans",
 );
 
-CustomTheme deepOrangeTheme = CustomTheme(
+final CustomTheme deepOrangeTheme = CustomTheme(
   name: 'Deep Orange',
-  light_: ThemeData(
+  rawLight: ThemeData(
     colorScheme: ColorScheme.fromSeed(
       seedColor: Colors.deepOrange,
       brightness: Brightness.light,
     ),
   ),
-  dark_: ThemeData(
+  rawDark: ThemeData(
     colorScheme: ColorScheme.fromSeed(
       seedColor: Colors.deepOrange,
       brightness: Brightness.dark,
@@ -170,15 +156,15 @@ CustomTheme deepOrangeTheme = CustomTheme(
   displayFontString: "Noto Sans",
 );
 
-CustomTheme mizukiTheme = CustomTheme(
+final CustomTheme mizukiTheme = CustomTheme(
   name: 'Mizuki',
-  light_: ThemeData(
+  rawLight: ThemeData(
     colorScheme: ColorScheme.fromSeed(
       seedColor: Colors.blue[900]!,
       brightness: Brightness.light,
     ),
   ),
-  dark_: ThemeData(
+  rawDark: ThemeData(
     colorScheme: ColorScheme.fromSeed(
       seedColor: Colors.blue[900]!,
       brightness: Brightness.dark,
@@ -188,16 +174,16 @@ CustomTheme mizukiTheme = CustomTheme(
   displayFontString: "Noto Sans",
 );
 
-CustomTheme ggTheme = CustomTheme(
+final CustomTheme ggTheme = CustomTheme(
   name: 'Golden Glow',
-  light_: ThemeData(
+  rawLight: ThemeData(
     colorScheme: ColorScheme.fromSeed(
       seedColor: Colors.pink[200]!,
       brightness: Brightness.light,
       dynamicSchemeVariant: DynamicSchemeVariant.tonalSpot,
     ),
   ),
-  dark_: ThemeData(
+  rawDark: ThemeData(
     colorScheme: ColorScheme.fromSeed(
       seedColor: Colors.pink[200]!,
       brightness: Brightness.dark,
@@ -208,9 +194,9 @@ CustomTheme ggTheme = CustomTheme(
   displayFontString: "Noto Sans",
 );
 
-CustomTheme wTheme = CustomTheme(
+final CustomTheme wTheme = CustomTheme(
   name: 'W',
-  light_: ThemeData(
+  rawLight: ThemeData(
     colorScheme: const ColorScheme.light(
       primary: Color(0xFFFF0000),
       onPrimary: Color(0xFFFFFFFF),
@@ -238,7 +224,7 @@ CustomTheme wTheme = CustomTheme(
       outline: Color(0xFFFF0000),
     ),
   ),
-  dark_: ThemeData(
+  rawDark: ThemeData(
     colorScheme: const ColorScheme.dark(
       primary: Color(0xFFFF0000),
       onPrimary: Color(0xFFFAFAFA),
@@ -266,7 +252,7 @@ CustomTheme wTheme = CustomTheme(
   displayFontString: "Noto Sans",
 );
 
-List<CustomTheme> allCustomThemesList = [
+final List<CustomTheme> allCustomThemes = [
   dynamicTheme,
   deepOrangeTheme,
   mizukiTheme,

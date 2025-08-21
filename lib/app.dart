@@ -1,40 +1,66 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:sagahelper/pages/main_loaderror_page.dart';
-import 'package:sagahelper/pages/main_skeleton_page.dart';
-import 'package:sagahelper/providers/cache_provider.dart';
-import 'package:sagahelper/providers/server_provider.dart';
-import 'package:sagahelper/providers/settings_provider.dart';
-import 'package:sagahelper/providers/styles_provider.dart';
-import 'package:sagahelper/providers/ui_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sagahelper/components/skeleton/bottom_nav_bar.dart';
+import 'package:sagahelper/components/skeleton/global_notifier.dart';
+import 'package:sagahelper/core/global_data.dart';
+import 'package:sagahelper/providers/config_provider.dart';
+import 'package:sagahelper/routes/home_route.dart';
+import 'package:sagahelper/routes/info_route.dart';
+import 'package:sagahelper/routes/operators_route.dart';
+import 'package:sagahelper/routes/settings_route.dart';
+import 'package:sagahelper/routes/tools_route.dart';
 
-class App extends StatelessWidget {
-  final Map configs;
-  final Object? hasError;
-  const App({super.key, required this.configs, required this.hasError});
+class App extends ConsumerStatefulWidget {
+  const App({super.key});
+
+  @override
+  ConsumerState<App> createState() => _AppState();
+}
+
+class _AppState extends ConsumerState<App> {
+  int currentDestinationIndex = 0;
+
+  final List pages = const [
+    HomePage(),
+    OperatorsPage(),
+    InfoPage(),
+    ToolsPage(),
+    SettingsPage(),
+  ];
+
+  void onDestinationChanged(int? index) {
+    setState(() {
+      currentDestinationIndex = index ?? 0;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(
-          create: (context) => UiProvider.fromConfig(configs),
+    final currentTheme = ref.watch(configProvider.select((p) => p.customTheme));
+    final pureDark = ref.watch(configProvider.select((p) => p.usePureDarkTheme));
+    final themeMode = ref.watch(configProvider.select((p) => p.themeMode));
+
+    return MaterialApp(
+      theme: currentTheme.themeLight,
+      darkTheme: currentTheme.getDarkMode(pureDark),
+      themeMode: themeMode,
+      navigatorKey: NavigationService.navigatorKey,
+      home: Scaffold(
+        extendBody: true,
+        body: Column(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            const GlobalNotifier(),
+            Expanded(
+              child: pages[currentDestinationIndex],
+            ),
+          ],
         ),
-        ChangeNotifierProvider(
-          create: (context) => SettingsProvider.fromConfig(configs),
+        bottomNavigationBar: BottomNavBar(
+          selectedIndex: currentDestinationIndex,
+          onDestinationSelected: onDestinationChanged,
         ),
-        ChangeNotifierProvider(
-          create: (context) => ServerProvider.fromConfig(configs),
-        ),
-        ChangeNotifierProvider(create: (context) => CacheProvider()),
-        ChangeNotifierProvider(create: (context) => StyleProvider()),
-      ],
-      builder: (context, child) {
-        if (hasError != null) {
-          return ErrorScreen(error: hasError!);
-        }
-        return const Skeleton();
-      },
+      ),
     );
   }
 }

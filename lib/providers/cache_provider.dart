@@ -1,98 +1,44 @@
-import 'package:provider/provider.dart';
-import 'package:sagahelper/core/global_data.dart';
-import 'package:sagahelper/models/operator.dart';
-import 'package:flutter/material.dart';
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sagahelper/models/cache_data.dart';
+import 'package:sagahelper/providers/config_provider.dart';
 import 'package:sagahelper/providers/server_provider.dart';
-import 'package:sagahelper/providers/settings_provider.dart';
+import 'package:sagahelper/utils/extensions.dart';
 
-class CacheProvider extends ChangeNotifier {
-  List<Operator>? cachedListOperator;
-  Servers? cachedListOperatorServer;
-  String? cachedListOperatorVersion;
-  Map<String, dynamic>? cachedRangeTable;
-  Map<String, dynamic>? cachedSkillTable;
-  Map<String, dynamic>? cachedModInfoTable;
-  Map<String, dynamic>? cachedModStatsTable;
-  Map<String, dynamic>? cachedBaseSkillTable;
-  Map<String, dynamic>? cachedTeamTable;
-  Map<String, dynamic>? cachedCharPatch;
-  Map<String, dynamic>? cachedCharMeta;
-  Map<String, dynamic>? cachedGamedataConst;
-  Map<String, dynamic>? cachedCharTable;
-  Map<String, dynamic>? cachedGachaTable;
+List computeJsonDecode(List<String?> input) {
+  List<Map?> result = [];
 
-  /// just to know if variables are cached
-  /// if you want to know if is cached last version/current server
-  /// consider doing it with the other providers too
-  bool operatorsDataCached = false;
-
-  void operatorsDataCache({
-    required List<Operator> listOperator,
-    required Servers listOperatorServer,
-    required String listOperatorVersion,
-    required Map<String, dynamic> rangeTable,
-    required Map<String, dynamic> skillTable,
-    required Map<String, dynamic> modTable,
-    required Map<String, dynamic> baseSkillTable,
-    required Map<String, dynamic> modStatsTable,
-    required Map<String, dynamic> teamTable,
-    required Map<String, dynamic> charPatch,
-    required Map<String, dynamic> charMeta,
-    required Map<String, dynamic> gamedataConst,
-    required Map<String, dynamic> charTable,
-    required Map<String, dynamic> gachaTable,
-  }) {
-    cachedListOperator = listOperator;
-    cachedListOperatorServer = listOperatorServer;
-    cachedListOperatorVersion = listOperatorVersion;
-    cachedRangeTable = rangeTable;
-    cachedSkillTable = skillTable;
-    cachedModInfoTable = modTable;
-    cachedBaseSkillTable = baseSkillTable;
-    cachedModStatsTable = modStatsTable;
-    cachedTeamTable = teamTable;
-    cachedCharPatch = charPatch;
-    cachedCharMeta = charMeta;
-    cachedGamedataConst = gamedataConst;
-    cachedCharTable = charTable;
-    cachedGachaTable = gachaTable;
-
-    operatorsDataCached = true;
-    notifyListeners();
+  for (final i in input) {
+    result.add(i.isNotNull ? jsonDecode(i!) : i);
   }
 
-  void operatorDataUnCache() {
-    cachedListOperator = null;
-    cachedListOperatorServer = null;
-    cachedListOperatorVersion = null;
-    cachedRangeTable = null;
-    cachedSkillTable = null;
-    cachedModInfoTable = null;
-    cachedBaseSkillTable = null;
-    cachedModStatsTable = null;
-    cachedTeamTable = null;
-    cachedCharPatch = null;
-    cachedCharMeta = null;
-    cachedGamedataConst = null;
-    cachedCharTable = null;
-    cachedGachaTable = null;
+  return result;
+}
 
-    if (NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().opFetched == true) {
-      NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setOpFetched(false);
+final cacheProvider = NotifierProvider<CacheNotifier, CacheData>(CacheNotifier.new);
+
+class CacheNotifier extends Notifier<CacheData> {
+  @override
+  build() {
+    return const CacheData();
+  }
+
+  Future<void> cacheHomeDependecies() async {
+    List<String?> files = [];
+    final server = ref.watch(configProvider).currentServer;
+
+    for (String filepath in kHomeFiles) {
+      files.add(
+        await ref.watch(serverProvider(server).notifier).tryGetFile(filepath),
+      );
     }
 
-    operatorsDataCached = false;
-    notifyListeners();
-  }
+    final decoded = await compute(computeJsonDecode, files);
 
-  void unCacheAll() {
-    operatorDataUnCache();
-    setStageTable(null);
-  }
-
-  Map<String, dynamic>? cachedStageTable;
-  void setStageTable(Map<String, dynamic>? response) {
-    cachedStageTable = response;
-    notifyListeners();
+    state = state.copyWith(
+      cachedStageTable: decoded[0] as Map<String, String>?,
+    );
   }
 }

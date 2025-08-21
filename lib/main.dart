@@ -3,28 +3,15 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sagahelper/app.dart';
-import 'package:sagahelper/core/global_data.dart';
-import 'package:sagahelper/core/notification_services.dart';
-import 'package:sagahelper/providers/server_provider.dart';
-import 'package:sagahelper/providers/settings_provider.dart';
-import 'package:sagahelper/providers/ui_provider.dart';
+import 'package:sagahelper/core/notification_service.dart';
+import 'package:sagahelper/models/config/local_data_manager.dart' show LocalDataManager;
+import 'package:sagahelper/providers/config_provider.dart';
+import 'package:sagahelper/providers/context_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:system_theme/system_theme.dart';
 import 'package:flutter_logs/flutter_logs.dart';
-
-Future<Map<String, dynamic>> loadConfigs() async {
-  var firstcheck = await LocalDataManager.existConfig();
-
-  Map<String, dynamic> loadedConfigs = {};
-
-  if (firstcheck) {
-    loadedConfigs.addAll(await UiProvider.loadValues());
-    loadedConfigs.addAll(await SettingsProvider.loadValues());
-    loadedConfigs.addAll(await ServerProvider.loadValues());
-  }
-
-  return loadedConfigs;
-}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -89,17 +76,34 @@ void main() async {
     };
   }
 
-  await initNotifications();
-  await SettingsProvider.sharedPreferencesInit();
-  await LocalDataManager.initDirectories();
+  // app configurations
+  final sharedPreferences = await SharedPreferencesWithCache.create(
+    cacheOptions: const SharedPreferencesWithCacheOptions(),
+  );
 
-  Object? hasError;
-  Map configs = {};
-  try {
-    configs = await loadConfigs();
-  } catch (e) {
-    hasError = e;
-  }
+  // local files
+  await LocalDataManager.init();
 
-  runApp(App(configs: configs, hasError: hasError));
+  final providerContainer = ProviderContainer(
+    overrides: [
+      sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+    ],
+  );
+
+  final notificationService = providerContainer.read(notificationProvider);
+  await notificationService.initNotifications();
+
+  WidgetsBinding.instance.platformDispatcher.onPlatformBrightnessChanged = () {
+    WidgetsBinding.instance.handlePlatformBrightnessChanged();
+    providerContainer.read(contextProvider.notifier).update(
+          ContextData(brightness: WidgetsBinding.instance.platformDispatcher.platformBrightness),
+        );
+  };
+
+  runApp(
+    UncontrolledProviderScope(
+      container: providerContainer,
+      child: const App(),
+    ),
+  );
 }

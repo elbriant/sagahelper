@@ -1,25 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:sagahelper/models/filters.dart';
 
-class OrderTypeTile extends StatelessWidget {
-  const OrderTypeTile({
+class OperatorSortingTile extends StatelessWidget {
+  const OperatorSortingTile({
     super.key,
-    required this.orderType,
+    required this.operatorSorting,
     required this.label,
     required this.callback,
     required this.currentSortingType,
     required this.currentSortingReversed,
   });
-  final OrderType orderType;
+  final OperatorSortingType operatorSorting;
   final String label;
-  final ValueSetter<OrderType> callback;
-  final OrderType currentSortingType;
+  final ValueSetter<OperatorSortingType> callback;
+  final OperatorSortingType currentSortingType;
   final bool currentSortingReversed;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: currentSortingType == orderType
+      leading: currentSortingType == operatorSorting
           ? currentSortingReversed
               ? const Icon(Icons.arrow_upward)
               : const Icon(Icons.arrow_downward)
@@ -28,7 +28,7 @@ class OrderTypeTile extends StatelessWidget {
               color: Colors.transparent,
             ),
       title: Text(label),
-      onTap: () => callback(orderType),
+      onTap: () => callback(operatorSorting),
     );
   }
 }

@@ -7,7 +7,7 @@ import 'package:sagahelper/core/global_data.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
 import 'package:sagahelper/providers/op_info_provider.dart';
-import 'package:sagahelper/providers/styles_provider.dart';
+import 'package:sagahelper/providers/style_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
 import 'package:styled_text/styled_text.dart';
 

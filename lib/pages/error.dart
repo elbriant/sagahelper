@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:sagahelper/core/global_data.dart';
 
 class ErrorScreen extends StatelessWidget {
   final Object error;
@@ -7,8 +6,6 @@ class ErrorScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    LocalDataManager.resetConfig();
-
     return MaterialApp(
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(

@@ -1,4 +1,3 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 class FilterDetail {
   final String key;
   FilterMode mode;
@@ -27,15 +26,10 @@ class FilterTag {
   });
 }
 
-enum OrderType {
+enum OperatorSortingType {
   alphabetical,
   rarity,
-  creation;
-
-  const OrderType();
-
-  int toJson() => index;
-  static OrderType? fromJson(int? index) => index != null ? OrderType.values[index] : null;
+  creation,
 }
 
 enum FilterType {

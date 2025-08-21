@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:network_to_file_image/network_to_file_image.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sagahelper/components/operator_info_page/operator_container.dart';
 import 'package:sagahelper/components/popup_dialog.dart';
+import 'package:sagahelper/components/stored_image.dart';
 import 'package:sagahelper/core/global_data.dart';
+import 'package:sagahelper/providers/style_provider.dart';
+import 'package:sagahelper/models/config/local_data_manager.dart';
 
 import 'package:sagahelper/models/entity.dart';
 import 'package:sagahelper/providers/op_info_provider.dart';
-import 'package:sagahelper/providers/styles_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
 import 'package:styled_text/styled_text.dart';
-import 'package:transparent_image/transparent_image.dart';
 
-class EntityCard extends StatelessWidget {
+class EntityCard extends ConsumerWidget {
   const EntityCard({
     super.key,
     required this.entity,
@@ -21,7 +21,10 @@ class EntityCard extends StatelessWidget {
   final Entity entity;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final opInfo = ref.watch(opInfoProvider);
+    final tagsAsArknights = ref.watch(styleProvider).tagsAsArknights;
+
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8.0),
@@ -42,11 +45,11 @@ class EntityCard extends StatelessWidget {
             context: context,
             entity: Entity.fromId(
               id: entity.id,
-              elite: entity.elite ?? context.read<OpInfoProvider?>()?.elite,
-              lv: entity.level ?? context.read<OpInfoProvider?>()?.level.toInt(),
-              pot: entity.potential ?? context.read<OpInfoProvider?>()?.potential,
-              selectedSkill: entity.selectedSkill ?? context.read<OpInfoProvider?>()?.selectedSkill,
-              skillLevel: entity.selectedSkillLv ?? context.read<OpInfoProvider?>()?.skillLevel,
+              elite: entity.elite ?? opInfo.elite,
+              lv: entity.level ?? opInfo.level.toInt(),
+              pot: entity.potential ?? opInfo.potential,
+              selectedSkill: entity.selectedSkill ?? opInfo.selectedSkill,
+              skillLevel: entity.selectedSkillLv ?? opInfo.skillLevel,
             ),
           ),
           splashColor: rarityColors[0].withValues(alpha: 0.4),
@@ -65,24 +68,12 @@ class EntityCard extends StatelessWidget {
                   ),
                   color: HSLColor.fromColor(rarityColors[0]).withLightness(0.10).toColor(),
                 ),
-                child: FadeInImage(
-                  image: NetworkToFileImage(
-                    url: '$kTokenAvatarRepo/${entity.id}.png'.githubEncode(),
-                    file: LocalDataManager.localCacheFileSync('entityAvatar/${entity.id}.png'),
-                  ),
-                  filterQuality: FilterQuality.high,
-                  placeholder: MemoryImage(kTransparentImage),
+                child: StoredFadeInImage(
+                  filename: '${entity.id}.png',
+                  type: CacheType.operatorAvatar,
+                  imageUrl: '$kTokenAvatarRepo/${entity.id}.png'.githubEncode(),
                   width: 60,
                   height: 60,
-                  imageErrorBuilder: (context, error, stackTrace) => const SizedBox.square(
-                    dimension: 60,
-                    child: Center(
-                      child: Icon(
-                        Icons.error,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
                 ),
               ),
               const SizedBox(
@@ -118,7 +109,7 @@ class EntityCard extends StatelessWidget {
                           color: Colors.white,
                           shadows: [Shadow(color: Color.fromARGB(157, 0, 0, 0), blurRadius: 6)],
                         ),
-                        tags: context.read<StyleProvider>().tagsAsArknights(context: context),
+                        tags: tagsAsArknights,
                       ),
                     ],
                   ),

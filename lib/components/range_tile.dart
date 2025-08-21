@@ -1,32 +1,34 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:sagahelper/core/global_data.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
 
-class RangeTile extends StatelessWidget {
-  const RangeTile({super.key, required this.rangeGrids, this.isSmall = false});
-  final List rangeGrids;
+class RangeTile extends ConsumerWidget {
+  const RangeTile({super.key, this.rangeGrids, this.isSmall = false, this.rangeId})
+      : assert(rangeGrids != null || (rangeGrids == null && rangeId != null));
+  final List? rangeGrids;
   final bool isSmall;
+  final String? rangeId;
 
   factory RangeTile.smol(String rangeId) {
     return RangeTile(
-      rangeGrids: NavigationService.navigatorKey.currentContext!
-          .read<CacheProvider>()
-          .cachedRangeTable![rangeId]["grids"],
+      rangeId: rangeId,
       isSmall: true,
     );
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final rangeGridsNotNull =
+        rangeGrids ?? ref.watch(cacheProvider).cachedRangeTable![rangeId]["grids"];
+
     int maxRowPos = 0;
     int maxColPos = 0;
     int maxRowNeg = 0; // Row offset
     int maxColNeg = 0; // Col offset
 
-    for (Map tile in rangeGrids) {
+    for (Map tile in rangeGridsNotNull) {
       if (tile['row'] > maxRowPos) maxRowPos = tile['row'];
       if (tile['row'] < maxRowNeg) maxRowNeg = tile['row'];
       if (tile['col'] > maxColPos) maxColPos = tile['col'];
@@ -43,7 +45,7 @@ class RangeTile extends StatelessWidget {
     List<Widget> finishedRange = List.generate(
       cols * rows, (index) => const SizedBox.square(dimension: 2), // void
     );
-    for (Map tile in rangeGrids) {
+    for (Map tile in rangeGridsNotNull) {
       int position = cols * ((tile['row'] as int) + tileRowOffset - 1) +
           ((tile['col'] as int) + tileColOffset);
       finishedRange[position - 1] = SizedBox.square(

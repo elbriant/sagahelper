@@ -1,33 +1,58 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:developer' as dev;
+
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:sagahelper/components/popup_dialog.dart';
-import 'package:sagahelper/core/global_data.dart';
-import 'package:sagahelper/models/styled_text_arknights_info_tag.dart';
-import 'package:sagahelper/providers/cache_provider.dart';
-import 'package:sagahelper/utils/extensions.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sagahelper/providers/config_provider.dart';
 import 'package:styled_text/styled_text.dart';
 
-class StyleProvider extends ChangeNotifier {
-  BuildContext get navContext => NavigationService.navigatorKey.currentContext!;
+import 'package:sagahelper/components/popup_dialog.dart';
+import 'package:sagahelper/core/static_colors.dart';
+import 'package:sagahelper/models/styled_text_arknights_info_tag.dart';
+import 'package:sagahelper/providers/cache_provider.dart';
+import 'package:sagahelper/providers/context_provider.dart';
+import 'package:sagahelper/utils/extensions.dart';
 
-  Map<String, TextStyle> richTextStyles({BuildContext? context}) => {
+final styleProvider = Provider<Style>((ref) {
+  final brightness = ref.watch(contextProvider.select((p) => p.brightness));
+  final gamedata = ref.watch(cacheProvider.select((p) => p.cachedGamedataConst));
+  final currentTheme = ref.watch(configProvider.select((p) => p.customTheme));
+
+  return Style(
+    colors: StaticColors.fromBrightness(brightness),
+    gamedata: gamedata,
+    theme: currentTheme.fromBrightness(brightness),
+  );
+});
+
+class Style {
+  final Map<String, dynamic>? gamedata;
+  final ThemeData theme;
+  final StaticColors colors;
+
+  Style({
+    required this.gamedata,
+    required this.colors,
+    required this.theme,
+  });
+
+  Map<String, TextStyle> get richTextStyles => {
         "mission.levelname": const TextStyle(color: Color(0xFFFFDE00)),
         "mission.number": const TextStyle(color: Color(0xFFFFDE00)),
-        "tu.kw": TextStyle(color: StaticColors.fromBrightness(context).akAttrUp),
+        "tu.kw": TextStyle(color: colors.akAttrUp),
         "tu.imp": const TextStyle(color: Color(0xFFFF0000)),
-        "cc.vup": TextStyle(color: StaticColors.fromBrightness(context).akAttrUp),
-        "cc.vdown": TextStyle(color: StaticColors.fromBrightness(context).akAttrDown),
+        "cc.vup": TextStyle(color: colors.akAttrUp),
+        "cc.vdown": TextStyle(color: colors.akAttrDown),
         "cc.rem": const TextStyle(color: Color(0xFFF49800)),
-        "cc.kw": TextStyle(color: StaticColors.fromBrightness(context).akKeyword),
+        "cc.kw": TextStyle(color: colors.akKeyword),
         "cc.pn": const TextStyle(fontStyle: FontStyle.italic),
         "cc.talpu": const TextStyle(fontStyle: FontStyle.normal),
-        "ba.vup": TextStyle(color: StaticColors.fromBrightness(context).akAttrUp),
-        "ba.vdown": TextStyle(color: StaticColors.fromBrightness(context).akAttrDown),
+        "ba.vup": TextStyle(color: colors.akAttrUp),
+        "ba.vdown": TextStyle(color: colors.akAttrDown),
         "ba.rem": const TextStyle(color: Color(0xFFF49800)),
-        "ba.kw": TextStyle(color: StaticColors.fromBrightness(context).akKeyword),
+        "ba.kw": TextStyle(color: colors.akKeyword),
         "ba.pn": const TextStyle(fontStyle: FontStyle.italic),
-        "ba.talpu": TextStyle(color: StaticColors.fromBrightness(context).akAttrUp),
+        "ba.talpu": TextStyle(color: colors.akAttrUp),
         "ba.xa": const TextStyle(color: Color(0xFFFF0000)),
         "ba.xb": const TextStyle(color: Color(0xFFFF7D00)),
         "ba.xc": const TextStyle(color: Color(0xFFFFFF00)),
@@ -37,13 +62,13 @@ class StyleProvider extends ChangeNotifier {
         "ba.xg": const TextStyle(color: Color(0xFFFF00FF)),
         "eb.key": const TextStyle(color: Color(0xFF00FFFF)),
         "eb.danger": const TextStyle(color: Color(0xFFFF0000)),
-        "ro.get": TextStyle(color: StaticColors.fromBrightness(context).akAttrUp),
+        "ro.get": TextStyle(color: colors.akAttrUp),
         "ro.lose": const TextStyle(color: Color(0xFFC82A36)),
         "rolv.rem": const TextStyle(color: Color(0xFFFF4C22)),
         "lv.description": const TextStyle(color: Color(0xFFd8d769)),
         "lv.extrades": const TextStyle(color: Color(0xFFd8d769)),
-        "lv.item": TextStyle(color: StaticColors.fromBrightness(context).orangeVariant),
-        "lv.rem": TextStyle(color: StaticColors.fromBrightness(context).orangeVariant),
+        "lv.item": TextStyle(color: colors.orangeVariant),
+        "lv.rem": TextStyle(color: colors.orangeVariant),
         "lv.fs": const TextStyle(color: Color(0xFFFF0000)),
         "lv.sp": const TextStyle(color: Color(0xFFfd4600)),
         "lv.ez": const TextStyle(color: Color(0xFF0098dc)),
@@ -62,11 +87,11 @@ class StyleProvider extends ChangeNotifier {
         "ro3.greent": const TextStyle(color: Color(0xFF4ffaa5)),
         "ro3.bluet": const TextStyle(color: Color(0xFF0085ff)),
         "ro3.bosst": const TextStyle(color: Color(0xFFffffff)),
-        "rc.title": TextStyle(color: StaticColors.fromBrightness(context).orangeVariant),
+        "rc.title": TextStyle(color: colors.orangeVariant),
         "rc.subtitle": const TextStyle(color: Color(0xFFFFC90E)),
         "rc.em": const TextStyle(color: Color(0xFFFF7F27)),
         "rc.eml": const TextStyle(color: Color(0xFF32CD32)),
-        "ga.title": TextStyle(color: StaticColors.fromBrightness(context).orangeVariant),
+        "ga.title": TextStyle(color: colors.orangeVariant),
         "ga.subtitle": const TextStyle(color: Color(0xFFFFC90E)),
         "ga.up": const TextStyle(color: Color(0xFFFF7F27)),
         "ga.adgacha": const TextStyle(color: Color(0xFF00C8FF)),
@@ -80,7 +105,7 @@ class StyleProvider extends ChangeNotifier {
         "attainga.attention": const TextStyle(color: Color(0xFFE1322C)),
         "linkagega.charname": const TextStyle(color: Color(0xFFFFF6A9)),
         "linkagega.title": const TextStyle(color: Color(0xFFFF8A00)),
-        "limtedga.title": TextStyle(color: StaticColors.fromBrightness(context).orangeVariant),
+        "limtedga.title": TextStyle(color: colors.orangeVariant),
         "limtedga.subtitle": const TextStyle(color: Color(0xFFFFC90E)),
         "limtedga.up": const TextStyle(color: Color(0xFFFF7F27)),
         "limtedga.21": const TextStyle(color: Color(0xFFD7BCFF)),
@@ -88,7 +113,7 @@ class StyleProvider extends ChangeNotifier {
         "limtedga.attention": const TextStyle(color: Color(0xFFE1322C)),
         "limtedga.lattention": const TextStyle(color: Color(0xFFFF9E58)),
         "vc.newyear10": const TextStyle(color: Color(0xFFFF3823)),
-        "vc.adgacha": TextStyle(color: StaticColors.fromBrightness(context).akAttrUp),
+        "vc.adgacha": TextStyle(color: colors.akAttrUp),
         "vc.attention": const TextStyle(color: Color(0xFFFFD800)),
         "act.missiontips": const TextStyle(color: Color(0xFFd9bd6a)),
         "lv.hdbg": const TextStyle(color: Color(0xFF7ba61f)),
@@ -108,113 +133,111 @@ class StyleProvider extends ChangeNotifier {
         "vc.endtime": const TextStyle(color: Color(0xFFff0327)),
       };
 
-  Map<String, TextStyle> statsStyles({BuildContext? context}) => {
+  Map<String, TextStyle> get statsStyles => {
         'HP': TextStyle(
-          color: StaticColors.fromBrightness(context).sHp,
+          color: colors.sHp,
         ),
         'ATK': TextStyle(
-          color: StaticColors.fromBrightness(context).sAtk,
+          color: colors.sAtk,
         ),
         'DPCost': TextStyle(
-          color: StaticColors.fromBrightness(context).sCost,
+          color: colors.sCost,
         ),
         'Redeploy': TextStyle(
-          color: StaticColors.fromBrightness(context).sRedeploy,
+          color: colors.sRedeploy,
         ),
         'DEF': TextStyle(
-          color: StaticColors.fromBrightness(context).sDef,
+          color: colors.sDef,
         ),
         'RES': TextStyle(
-          color: StaticColors.fromBrightness(context).sRes,
+          color: colors.sRes,
         ),
         'Block': TextStyle(
-          color: StaticColors.fromBrightness(context).sBlock,
+          color: colors.sBlock,
         ),
         'ASPD': TextStyle(
-          color: StaticColors.fromBrightness(context).sAspd,
+          color: colors.sAspd,
         ),
         'ASPD%': TextStyle(
-          color: StaticColors.fromBrightness(context).sAspdPercent,
+          color: colors.sAspdPercent,
         ),
       };
 
-  Map<String, StyledTextTagBase> tagsAsHtml({BuildContext? context}) => {
-        'b': const StyledTextTag(style: TextStyle(fontWeight: FontWeight.bold)),
-        'i': const StyledTextTag(style: TextStyle(fontStyle: FontStyle.italic)),
-      };
+  final Map<String, StyledTextTagBase> tagsAsHtml = const {
+    'b': StyledTextTag(style: TextStyle(fontWeight: FontWeight.bold)),
+    'i': StyledTextTag(style: TextStyle(fontStyle: FontStyle.italic)),
+  };
 
-  Map<String, StyledTextTagBase> tagsAsStats({BuildContext? context}) => {
+  Map<String, StyledTextTagBase> get tagsAsStats => {
         'color': StyledTextCustomTag(
           parse: (baseStyle, attrs) {
-            return statsStyles()[attrs['stat']];
+            return statsStyles[attrs['stat']];
           },
         ),
         'icon-HP': StyledTextWidgetTag(
           ImageIcon(
             const AssetImage('assets/sortIcon/hp.png'),
-            color: statsStyles()['HP']!.color,
+            color: statsStyles['HP']!.color,
           ),
         ),
         'icon-ATK': StyledTextWidgetTag(
           ImageIcon(
             const AssetImage('assets/sortIcon/atk.png'),
-            color: statsStyles()['ATK']!.color,
+            color: statsStyles['ATK']!.color,
           ),
         ),
         'icon-DPCost': StyledTextWidgetTag(
           ImageIcon(
             const AssetImage('assets/sortIcon/cost.png'),
-            color: statsStyles()['DPCost']!.color,
+            color: statsStyles['DPCost']!.color,
           ),
         ),
         'icon-Redeploy': StyledTextWidgetTag(
           ImageIcon(
             const AssetImage('assets/sortIcon/redeploy.png'),
-            color: statsStyles()['Redeploy']!.color,
+            color: statsStyles['Redeploy']!.color,
           ),
         ),
         'icon-DEF': StyledTextWidgetTag(
           ImageIcon(
             const AssetImage('assets/sortIcon/def.png'),
-            color: statsStyles()['DEF']!.color,
+            color: statsStyles['DEF']!.color,
           ),
         ),
         'icon-RES': StyledTextWidgetTag(
           ImageIcon(
             const AssetImage('assets/sortIcon/res.png'),
-            color: statsStyles()['RES']!.color,
+            color: statsStyles['RES']!.color,
           ),
         ),
         'icon-Block': StyledTextWidgetTag(
           ImageIcon(
             const AssetImage('assets/sortIcon/block.png'),
-            color: statsStyles()['Block']!.color,
+            color: statsStyles['Block']!.color,
           ),
         ),
         'icon-ASPD': StyledTextWidgetTag(
           ImageIcon(
             const AssetImage('assets/sortIcon/atkspeed.png'),
-            color: statsStyles()['ASPD']!.color,
+            color: statsStyles['ASPD']!.color,
           ),
         ),
         'icon-ASPD%': StyledTextWidgetTag(
           ImageIcon(
             const AssetImage('assets/sortIcon/atkspeed.png'),
-            color: statsStyles()['ASPD%']!.color,
+            color: statsStyles['ASPD%']!.color,
           ),
         ),
-        'bonusCol':
-            StyledTextTag(style: TextStyle(color: StaticColors.fromBrightness(context).sBonus)),
+        'bonusCol': StyledTextTag(style: TextStyle(color: colors.sBonus)),
       };
 
-  Map<String, StyledTextTagBase> tagsAsArknights({BuildContext? context}) => {
+  Map<String, StyledTextTagBase> get tagsAsArknights => {
         'b': const StyledTextTag(style: TextStyle(fontWeight: FontWeight.bold)),
         'i': const StyledTextTag(style: TextStyle(fontStyle: FontStyle.italic)),
         'i-sub': StyledTextTag(
           style: TextStyle(
             fontStyle: FontStyle.italic,
-            color:
-                Theme.of(context ?? navContext).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+            color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
           ),
         ),
         'color': StyledTextCustomTag(
@@ -233,7 +256,7 @@ class StyleProvider extends ChangeNotifier {
                 return baseStyle!.copyWith(color: color);
               } else {
                 return baseStyle!.copyWith(
-                  color: Theme.of(context ?? navContext).colorScheme.secondary,
+                  color: theme.colorScheme.secondary,
                 );
               }
             } else {
@@ -246,7 +269,7 @@ class StyleProvider extends ChangeNotifier {
           parse: (baseStyle, attributes) {
             if (attributes.containsKey('custom')) {
               final String richtext = attributes['custom']!;
-              final TextStyle customStyle = richTextStyles()[richtext] ?? baseStyle!;
+              final TextStyle customStyle = richTextStyles[richtext] ?? baseStyle!;
               return baseStyle?.copyWith(
                 color: customStyle.color ?? baseStyle.color,
                 fontStyle: customStyle.fontStyle ?? baseStyle.fontStyle,
@@ -260,23 +283,13 @@ class StyleProvider extends ChangeNotifier {
           (String? text, Map<String?, String?> attrs) {
             dev.log('selected ${attrs.toString()}');
 
-            final navContext = NavigationService.navigatorKey.currentContext!;
-            final contx = context ?? navContext;
-            final gamedataConst = contx.read<CacheProvider>().cachedGamedataConst!;
+            if (gamedata == null) return;
 
-            if (!(gamedataConst["termDescriptionDict"] as Map).containsKey(attrs['custom'])) return;
+            if (!(gamedata!["termDescriptionDict"] as Map).containsKey(attrs['custom'])) return;
 
-            final termDict = (gamedataConst["termDescriptionDict"] as Map)[attrs['custom']] as Map;
+            final termDict = (gamedata!["termDescriptionDict"] as Map)[attrs['custom']] as Map;
 
-            PopupDialog.dictionary(
-              context: contx,
-              term: Text(termDict["termName"]),
-              definition: StyledText(
-                text: (termDict["description"] as String).akRichTextParser(),
-                tags: contx.read<StyleProvider>().tagsAsArknights(context: contx),
-                async: true,
-              ),
-            );
+            openDictionaryPopup(termDict);
           },
           style: const TextStyle(decoration: TextDecoration.underline),
         ),
@@ -290,19 +303,19 @@ class StyleProvider extends ChangeNotifier {
         }),
         'diffInsert': StyledTextTag(
           style: TextStyle(
-            color: StaticColors.fromBrightness(context).sBonusText,
+            color: colors.sBonusText,
           ),
         ),
         'add-icon': StyledTextIconTag(
           Icons.add,
-          color: StaticColors.fromBrightness(context).sBonus,
+          color: colors.sBonus,
         ),
         'info-v2': StyledTextArknightsInfoTag(
           baseStyle: const TextStyle(fontStyle: FontStyle.normal),
           parse: (baseStyle, attributes) {
             if (attributes.containsKey('custom') && !attributes.containsKey('selectable')) {
               final String richtext = attributes['custom']!;
-              final TextStyle customStyle = richTextStyles()[richtext] ?? baseStyle!;
+              final TextStyle customStyle = richTextStyles[richtext] ?? baseStyle!;
               return baseStyle?.copyWith(
                 color: customStyle.color ?? baseStyle.color,
                 fontStyle: customStyle.fontStyle ?? baseStyle.fontStyle,
@@ -319,29 +332,28 @@ class StyleProvider extends ChangeNotifier {
             return (String? text, Map<String?, String?> attrs) {
               dev.log('selected ${attrs.toString()}');
 
-              final navContext = NavigationService.navigatorKey.currentContext!;
-              final contx = context ?? navContext;
-              final gamedataConst = contx.read<CacheProvider>().cachedGamedataConst!;
+              if (gamedata == null) return;
 
-              if (!(gamedataConst["termDescriptionDict"] as Map).containsKey(attrs['custom'])) {
+              if (!(gamedata!["termDescriptionDict"] as Map).containsKey(attrs['custom'])) {
                 return;
               }
 
-              final termDict =
-                  (gamedataConst["termDescriptionDict"] as Map)[attrs['custom']] as Map;
+              final termDict = (gamedata!["termDescriptionDict"] as Map)[attrs['custom']] as Map;
 
-              PopupDialog.dictionary(
-                context: contx,
-                term: Text(termDict["termName"]),
-                definition: StyledText(
-                  text: (termDict["description"] as String).akRichTextParser(),
-                  tags: contx.read<StyleProvider>().tagsAsArknights(context: contx),
-                  async: true,
-                ),
-              );
+              openDictionaryPopup(termDict);
             };
           },
         ),
       };
-  // input example <@ba.vup>{cost}</> where
+
+  void openDictionaryPopup(Map termDict) {
+    PopupDialog.dictionary(
+      term: Text(termDict["termName"]),
+      definition: StyledText(
+        text: (termDict["description"] as String).akRichTextParser(),
+        tags: tagsAsArknights,
+        async: true,
+      ),
+    );
+  }
 }

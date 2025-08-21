@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
-import 'package:provider/provider.dart';
 import 'package:sagahelper/components/home/home_title.dart';
 import 'package:sagahelper/components/popup_dialog.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
-import 'package:sagahelper/providers/styles_provider.dart';
+import 'package:sagahelper/providers/style_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
 import 'package:styled_text/styled_text.dart';
 
+/// this may change one day
+/// but by the time it happens ill update manually
+/// better than having to cache an entire file
+/// just to get the stages available on the weekly open stages
 const List<MapEntry<String, Map<String, dynamic>>> stages = [
   MapEntry("weekly_1", {
     "name": "Solid Defense",
@@ -112,7 +116,7 @@ const List<MapEntry<String, Map<String, dynamic>>> stages = [
   }),
 ];
 
-class HomeUnlockedToday extends StatelessWidget {
+class HomeUnlockedToday extends ConsumerWidget {
   const HomeUnlockedToday({
     super.key,
     required this.serverTime,
@@ -135,9 +139,8 @@ class HomeUnlockedToday extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    final stageTable =
-        context.select<CacheProvider, Map<String, dynamic>?>((p) => p.cachedStageTable);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final stageTable = ref.read(cacheProvider).cachedStageTable;
     final bool specialOpen = getSpecialOpen(stageTable);
 
     return Column(
@@ -185,14 +188,14 @@ class HomeUnlockedToday extends StatelessWidget {
   }
 }
 
-class _StageCards extends StatelessWidget {
+class _StageCards extends ConsumerWidget {
   const _StageCards({required this.weekly, required this.speciallyOpen});
 
   final MapEntry weekly;
   final bool speciallyOpen;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Ink(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
@@ -225,7 +228,7 @@ class _StageCards extends StatelessWidget {
           title: Text(weekly.value["name"]),
           content: StyledText(
             text: (weekly.value["desc"] as String).akRichTextParser(),
-            tags: context.read<StyleProvider>().tagsAsArknights(context: context),
+            tags: ref.read(styleProvider).tagsAsArknights,
           ),
         ),
         borderRadius: BorderRadius.circular(6),

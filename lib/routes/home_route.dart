@@ -1,31 +1,29 @@
 import 'dart:async';
-import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sagahelper/components/home/home_main_widget.dart';
 import 'package:sagahelper/components/home/home_orundum.dart';
 import 'package:sagahelper/components/home/home_unlocked_today.dart';
-import 'package:sagahelper/core/notification_services.dart';
+import 'package:sagahelper/core/notification_service.dart';
+import 'package:sagahelper/models/config/config_manager.dart';
+import 'package:sagahelper/models/server_state.dart' show DataState;
 import 'package:sagahelper/providers/cache_provider.dart';
+import 'package:sagahelper/providers/config_provider.dart';
 import 'package:sagahelper/providers/server_provider.dart';
-import 'package:sagahelper/providers/settings_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
-import 'package:sagahelper/providers/ui_provider.dart';
-import 'package:sagahelper/core/global_data.dart'
-    show NavigationService, firstTimeCheck, checkForUpdatesFlag;
+import 'package:sagahelper/core/global_data.dart' show flagFirstTimeCheck, flagCheckForAppUpdates;
+import 'package:sagahelper/utils/extensions.dart';
 import 'package:sagahelper/utils/misc.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key, required this.currentServer});
-  final Servers currentServer;
+class HomePage extends ConsumerStatefulWidget {
+  const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends ConsumerState<HomePage> {
   late DateTime serverCurrentDatetime;
   late Timer timer;
   late DateTime resetTime;
@@ -46,7 +44,7 @@ class _HomePageState extends State<HomePage> {
 
       requestNotification();
 
-      if (!checkForUpdatesFlag) {
+      if (!flagCheckForAppUpdates) {
         checkForUpdates();
       }
     });
@@ -60,6 +58,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final translucentUi = ref.watch(configProvider.select((p) => p.useTranslucentUi));
+
     final children = [
       HomeMainWidget(
         serverTime: serverCurrentDatetime,
@@ -79,14 +79,14 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('News'),
-        flexibleSpace: context.read<UiProvider>().useTranslucentUi == true
+        title: const Text('news'),
+        flexibleSpace: translucentUi
             ? TranslucentWidget(
                 sigma: 3,
                 child: Container(color: Colors.transparent),
               )
             : null,
-        backgroundColor: context.read<UiProvider>().useTranslucentUi == true
+        backgroundColor: translucentUi
             ? Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.5)
             : null,
         elevation: 0,
@@ -108,10 +108,10 @@ class _HomePageState extends State<HomePage> {
     final DateTime now = DateTime.timestamp();
     DateTime serverDateTime;
 
-    switch (widget.currentServer) {
-      case Servers.cn:
+    switch (ref.read(configProvider).currentServer) {
+      case Server.cn:
         serverDateTime = now.add(const Duration(hours: 8)); // shanghai UTC+8
-      case Servers.en:
+      case Server.en:
         serverDateTime = now.subtract(const Duration(hours: 7)); // UTC-7
       default:
         // jp / kr
@@ -137,11 +137,11 @@ class _HomePageState extends State<HomePage> {
     // formula to get reset time in utc is
     // 4 (server reset) - [server offset]
 
-    switch (widget.currentServer) {
-      case Servers.cn:
+    switch (ref.read(configProvider).currentServer) {
+      case Server.cn:
         // 4 - 8 = -4
         serverDateTime = now.subtract(const Duration(hours: 4)); // shanghai UTC+8
-      case Servers.en:
+      case Server.en:
         // 4 - (-7) = 11
         serverDateTime = now.add(const Duration(hours: 11)); // UTC-7
       default:
@@ -154,143 +154,92 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _cacheDependencies() async {
-    if (NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedStageTable !=
-        null) {
+    if (ref.read(cacheProvider).cachedStageTable.isNotNull) {
       return;
     }
-
-    List computeJsonDecode(List<String?> input) {
-      List<Map?> result = [];
-
-      for (final i in input) {
-        if (i == null) {
-          result.add(null);
-          continue;
-        }
-
-        result.add(jsonDecode(i));
-      }
-
-      return result;
-    }
-
-    List<String?> files = [];
-    final server =
-        NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer;
-
-    for (String filepath in ServerProvider.homeFiles) {
-      files.add(
-        await NavigationService.navigatorKey.currentContext!
-            .read<ServerProvider>()
-            .tryGetFile(filepath, server),
-      );
-    }
-
-    final decode = await compute(computeJsonDecode, files);
-
-    NavigationService.navigatorKey.currentContext!
-        .read<CacheProvider>()
-        .setStageTable(decode[0] as Map<String, dynamic>?);
+    ref.read(cacheProvider.notifier).cacheHomeDependecies();
   }
 
   void requestNotification() async {
-    if (!NavigationService.navigatorKey.currentContext!
-        .read<SettingsProvider>()
-        .prefs[PrefsFlags.homeNotificationRequest]) {
+    if (!ref.read(configProvider).homeNotificationRequestAccepted) {
       FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
           FlutterLocalNotificationsPlugin();
       final res = await flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
           ?.requestNotificationsPermission();
-      NavigationService.navigatorKey.currentContext!
-          .read<SettingsProvider>()
-          .setAndSaveBoolPref(PrefsFlags.homeNotificationRequest, res ?? false);
+      ref
+          .read(configProvider.notifier)
+          .updateSettings(ConfigKeys.homeNotificationRequestAccepted, res ?? false);
     }
   }
 
   Future<void> checkServer() async {
-    if (firstTimeCheck) return;
+    if (flagFirstTimeCheck) return;
+    flagFirstTimeCheck = true;
 
-    firstTimeCheck = true;
-
+    /* TODO: tasker
     NavigationService.navigatorKey.currentContext!
         .read<SettingsProvider>()
         .setLoadingString('checking gamedata...');
 
     NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setIsLoadingHome(true);
 
-    await Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(const Duration(seconds: 1)); */
 
-    bool hasAllFiles =
-        await NavigationService.navigatorKey.currentContext!.read<ServerProvider>().checkAllFiles(
-              NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer,
-            );
+    final hasAllFiles = await ref.read(currentServerNotifierProvider).existFiles();
 
-    if (NavigationService.navigatorKey.currentContext!.read<ServerProvider>().versionOf(
-                  NavigationService.navigatorKey.currentContext!
-                      .read<SettingsProvider>()
-                      .currentServer,
-                ) ==
-            '' ||
-        !hasAllFiles) {
+    final server = ref.read(currentServerStateProvider).value!;
+
+    if (server.version.isNotNull || !hasAllFiles) {
+      /* TODO: tasker
       NavigationService.navigatorKey.currentContext!
           .read<SettingsProvider>()
           .setLoadingString('downloading gamedata...');
-      NavigationService.navigatorKey.currentContext!.read<ServerProvider>().downloadLastest(
-            NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer,
-          );
       NavigationService.navigatorKey.currentContext!
           .read<SettingsProvider>()
-          .setIsLoadingHome(false);
+          .setIsLoadingHome(false); */
+      await ref.read(currentServerNotifierProvider).downloadLastest();
     } else {
+      /* TODO: tasker
       NavigationService.navigatorKey.currentContext!
           .read<SettingsProvider>()
-          .setLoadingString('checking gamedata updates...');
-      bool lastAvailable = await NavigationService.navigatorKey.currentContext!
-          .read<ServerProvider>()
-          .checkUpdateOf(
-            NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer,
-          );
+          .setLoadingString('checking gamedata updates...'); */
+      await ref.read(currentServerNotifierProvider).checkUpdate();
+      bool lastAvailable = ref.read(currentServerStateProvider).value!.state == DataState.hasUpdate;
       if (lastAvailable) {
         // ask if update
+        final currentVersion = ref.read(currentServerStateProvider).value!.version;
+        final lastestVersion = await ref.read(currentServerNotifierProvider).fetchLastestVersion();
 
-        final currentVersion = NavigationService.navigatorKey.currentContext!
-            .read<ServerProvider>()
-            .versionOf(
-              NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer,
-            );
-        final lastestVersion = await NavigationService.navigatorKey.currentContext!
-            .read<ServerProvider>()
-            .fetchLastestVersion(
-              NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().currentServer,
-            );
-
+        /* TODO: tasker
         NavigationService.navigatorKey.currentContext!
             .read<SettingsProvider>()
-            .setLoadingString('There is a game data update...');
-        showNotification(
-          title: 'Game data update',
-          body: 'Current version: $currentVersion / Last version: $lastestVersion',
-          payload: 'doUpdateServer',
-        );
+            .setLoadingString('There is a game data update...'); */
+        ref.read(notificationProvider).showNotification(
+              title: 'Game data update',
+              body: 'Current version: $currentVersion / Last version: $lastestVersion',
+              payload: 'doUpdateServer',
+            );
+        /* TODO: tasker
         await Future.delayed(const Duration(seconds: 3));
         NavigationService.navigatorKey.currentContext!
             .read<SettingsProvider>()
-            .setIsLoadingHome(false);
+            .setIsLoadingHome(false); */
       } else {
+        /* TODO: tasker
         NavigationService.navigatorKey.currentContext!
             .read<SettingsProvider>()
             .setLoadingString('All good!');
         await Future.delayed(const Duration(seconds: 2));
         NavigationService.navigatorKey.currentContext!
             .read<SettingsProvider>()
-            .setIsLoadingHome(false);
+            .setIsLoadingHome(false); */
       }
     }
   }
 
   Future<void> checkForUpdates() async {
-    checkForUpdatesFlag = true;
+    flagCheckForAppUpdates = true;
     fetchUpdateAndAlert();
   }
 }

@@ -1,89 +1,23 @@
-import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:provider/provider.dart';
-import 'package:sagahelper/core/global_data.dart';
-import 'package:sagahelper/providers/styles_provider.dart';
+import 'package:sagahelper/providers/style_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:sagahelper/providers/config_provider.dart';
+import 'package:sagahelper/utils/audio_player_manager.dart';
 import 'package:sagahelper/utils/extensions.dart';
-import 'package:sagahelper/providers/ui_provider.dart';
 import 'package:styled_text/styled_text.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
-import 'package:rxdart/rxdart.dart';
 
-class AudioPlayerManager {
-  final player = AudioPlayer();
-  Stream<DurationState>? durationState;
-
-  void init(String url, [String? fallbackUrl]) async {
-    durationState = Rx.combineLatest2<Duration, PlaybackEvent, DurationState>(
-      player.positionStream,
-      player.playbackEventStream,
-      (position, playbackEvent) => DurationState(
-        progress: position,
-        buffered: playbackEvent.bufferedPosition,
-        total: playbackEvent.duration,
-      ),
-    );
-    try {
-      await player.setUrl(url);
-      player.play();
-    } on PlayerException {
-      if (fallbackUrl != null) {
-        await player.setUrl(fallbackUrl);
-        player.play();
-        ShowSnackBar.showSnackBar(
-          "Audio source doesn't exist for selected language, fallback to japanese",
-        );
-      } else {
-        rethrow;
-      }
-    } on PlayerInterruptedException {
-      // ignore interrumptions
-    } on PlatformException {
-      // ignore interrumptions
-    } catch (e) {
-      // Fallback for all other errors
-      ShowSnackBar.showSnackBar('An error occured: $e');
-    }
-  }
-
-  void play() {
-    player.play();
-  }
-
-  void pause() {
-    player.pause();
-  }
-
-  void stop() {
-    player.stop();
-  }
-
-  void dispose() async {
-    await player.stop();
-    player.dispose();
-  }
-}
-
-class DurationState {
-  const DurationState({
-    required this.progress,
-    required this.buffered,
-    this.total,
-  });
-  final Duration progress;
-  final Duration buffered;
-  final Duration? total;
-}
-
-class DialogBox extends StatelessWidget {
+class DialogBox extends ConsumerWidget {
   final String? title;
   final String body;
   const DialogBox({super.key, this.title, required this.body});
 
   @override
-  Widget build(BuildContext context) {
-    bool combineWithTheme = context.select<UiProvider, bool>((p) => p.combineWithTheme);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final useClassicDialogBox = ref.watch(configProvider.select((p) => p.useClassicDialogBox));
+    final tagsAsArknights = ref.watch(styleProvider).tagsAsHtml;
+
     return Stack(
       children: [
         Container(
@@ -97,17 +31,15 @@ class DialogBox extends StatelessWidget {
                 blurRadius: 12.0,
               ),
             ],
-            color: combineWithTheme
-                ? Color.lerp(
+            color: useClassicDialogBox
+                ? const Color.fromARGB(190, 85, 85, 85)
+                : Color.lerp(
                     Theme.of(context).brightness == Brightness.light
                         ? const Color.fromARGB(166, 85, 85, 85)
                         : const Color.fromARGB(166, 0, 0, 0),
                     Theme.of(context).colorScheme.primaryContainer,
                     0.35,
-                  )
-                : Theme.of(context).brightness == Brightness.light
-                    ? const Color.fromARGB(166, 85, 85, 85)
-                    : const Color(0xa6000000),
+                  ),
           ),
           child: StyledText(
             text: body,
@@ -116,7 +48,7 @@ class DialogBox extends StatelessWidget {
               fontFamily: 'Noto Sans',
               fontWeight: FontWeight.w700,
             ),
-            tags: context.read<StyleProvider>().tagsAsHtml(context: context),
+            tags: tagsAsArknights,
             async: true,
           ),
         ),
@@ -154,7 +86,7 @@ class DialogBox extends StatelessWidget {
   }
 }
 
-class InkWellDialogBox extends StatelessWidget {
+class InkWellDialogBox extends ConsumerWidget {
   final String? title;
   final String body;
   final Function()? inkwellFun;
@@ -166,8 +98,10 @@ class InkWellDialogBox extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    bool combineWithTheme = context.select<UiProvider, bool>((p) => p.combineWithTheme);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final useClassicDialogBox = ref.watch(configProvider.select((p) => p.useClassicDialogBox));
+    final tagsAsArknights = ref.watch(styleProvider).tagsAsHtml;
+
     return Stack(
       children: [
         Stack(
@@ -184,17 +118,15 @@ class InkWellDialogBox extends StatelessWidget {
                     blurRadius: 12.0,
                   ),
                 ],
-                color: combineWithTheme
-                    ? Color.lerp(
+                color: useClassicDialogBox
+                    ? const Color.fromARGB(190, 85, 85, 85)
+                    : Color.lerp(
                         Theme.of(context).brightness == Brightness.light
                             ? const Color.fromARGB(166, 85, 85, 85)
                             : const Color.fromARGB(166, 0, 0, 0),
                         Theme.of(context).colorScheme.primaryContainer,
-                        0.65,
-                      )
-                    : Theme.of(context).brightness == Brightness.light
-                        ? const Color.fromARGB(166, 85, 85, 85)
-                        : const Color(0xa6000000),
+                        0.35,
+                      ),
               ),
               child: Row(
                 children: [
@@ -206,7 +138,7 @@ class InkWellDialogBox extends StatelessWidget {
                         fontFamily: 'Noto Sans',
                         fontWeight: FontWeight.w700,
                       ),
-                      tags: context.read<StyleProvider>().tagsAsHtml(context: context),
+                      tags: tagsAsArknights,
                       async: true,
                     ),
                   ),
@@ -272,7 +204,7 @@ class InkWellDialogBox extends StatelessWidget {
   }
 }
 
-class AudioDialogBox extends StatelessWidget {
+class AudioDialogBox extends ConsumerWidget {
   final String? title;
   final String body;
   final Function()? fun;
@@ -315,8 +247,9 @@ class AudioDialogBox extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
-    bool combineWithTheme = context.select<UiProvider, bool>((p) => p.combineWithTheme);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final useClassicDialogBox = ref.watch(configProvider.select((p) => p.useClassicDialogBox));
+    final tagsAsArknights = ref.watch(styleProvider).tagsAsHtml;
 
     return Stack(
       children: [
@@ -331,17 +264,15 @@ class AudioDialogBox extends StatelessWidget {
                 blurRadius: 12.0,
               ),
             ],
-            color: combineWithTheme
-                ? Color.lerp(
+            color: useClassicDialogBox
+                ? const Color.fromARGB(190, 85, 85, 85)
+                : Color.lerp(
                     Theme.of(context).brightness == Brightness.light
                         ? const Color.fromARGB(166, 85, 85, 85)
                         : const Color.fromARGB(166, 0, 0, 0),
                     Theme.of(context).colorScheme.primaryContainer,
                     0.35,
-                  )
-                : Theme.of(context).brightness == Brightness.light
-                    ? const Color.fromARGB(166, 85, 85, 85)
-                    : const Color(0xa6000000),
+                  ),
           ),
           child: Stack(
             children: [
@@ -360,7 +291,7 @@ class AudioDialogBox extends StatelessWidget {
                           fontFamily: 'Noto Sans',
                           fontWeight: FontWeight.w700,
                         ),
-                        tags: context.read<StyleProvider>().tagsAsHtml(context: context),
+                        tags: tagsAsArknights,
                         async: true,
                       ),
                     ),
