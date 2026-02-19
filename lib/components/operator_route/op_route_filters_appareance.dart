@@ -1,16 +1,20 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:sagahelper/providers/settings_provider.dart';
+import 'package:sagahelper/models/config/config_manager.dart';
+import 'package:sagahelper/models/config/types.dart';
+import 'package:sagahelper/providers/config_provider.dart';
 
-class OpRouteFiltersAppareance extends StatelessWidget {
+class OpRouteFiltersAppareance extends ConsumerWidget {
   const OpRouteFiltersAppareance({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final currentSearchDelegate =
-        context.select<SettingsProvider, int>((prov) => prov.operatorSearchDelegate);
-    final currentSearchDisplay =
-        context.select<SettingsProvider, DisplayList>((prov) => prov.operatorDisplay);
+  Widget build(BuildContext context, WidgetRef ref) {
+    void setDisplayMode(OperatorDisplayMode mode) {
+      ref.read(configProvider.notifier).updateSettings(ConfigKeys.operatorDisplayMode, mode);
+    }
+
+    final currentSearchDelegate = ref.watch(configProvider.select((p) => p.operatorSearchDelegate));
+    final currentSearchDisplay = ref.watch(configProvider.select((p) => p.operatorDisplayMode));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -25,15 +29,13 @@ class OpRouteFiltersAppareance extends StatelessWidget {
             children: [
               ChoiceChip(
                 label: const Text('Avatar'),
-                selected: currentSearchDisplay == DisplayList.avatar,
-                onSelected: (_) =>
-                    context.read<SettingsProvider>().setDisplayChip(DisplayList.avatar),
+                selected: currentSearchDisplay == OperatorDisplayMode.avatar,
+                onSelected: (_) => setDisplayMode(OperatorDisplayMode.avatar),
               ),
               ChoiceChip(
                 label: const Text('Portrait'),
-                selected: currentSearchDisplay == DisplayList.portrait,
-                onSelected: (_) =>
-                    context.read<SettingsProvider>().setDisplayChip(DisplayList.portrait),
+                selected: currentSearchDisplay == OperatorDisplayMode.portrait,
+                onSelected: (_) => setDisplayMode(OperatorDisplayMode.portrait),
               ),
             ],
           ),
@@ -55,7 +57,9 @@ class OpRouteFiltersAppareance extends StatelessWidget {
                   value: currentSearchDelegate.toDouble(),
                   label: currentSearchDelegate.toString(),
                   onChanged: (value) {
-                    context.read<SettingsProvider>().operatorSearchDelegate = value.round().toInt();
+                    ref
+                        .read(configProvider.notifier)
+                        .updateSettings(ConfigKeys.operatorSearchDelegate, value);
                   },
                   allowedInteraction: SliderInteraction.tapAndSlide,
                 ),

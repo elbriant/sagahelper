@@ -1,20 +1,19 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:sagahelper/components/potentials_tile.dart';
 import 'package:sagahelper/components/range_tile.dart';
 import 'package:sagahelper/components/shimmer_loading_mask.dart';
 import 'package:sagahelper/components/stat_tile.dart';
 import 'package:sagahelper/components/styled_buttons.dart';
-import 'package:sagahelper/core/global_data.dart';
+import 'package:sagahelper/core/snack_bar_service.dart';
 import 'package:sagahelper/models/operator.dart';
-import 'package:sagahelper/providers/cache_provider.dart';
-import 'package:sagahelper/providers/op_info_provider.dart';
+import 'package:sagahelper/providers/operator_context_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
 
-class OperatorStats extends StatefulWidget {
+class OperatorStats extends ConsumerStatefulWidget {
   const OperatorStats({
     super.key,
     required this.operator,
@@ -23,10 +22,10 @@ class OperatorStats extends StatefulWidget {
   final Operator operator;
 
   @override
-  State<OperatorStats> createState() => _OperatorStatsState();
+  ConsumerState<OperatorStats> createState() => _OperatorStatsState();
 }
 
-class _OperatorStatsState extends State<OperatorStats> {
+class _OperatorStatsState extends ConsumerState<OperatorStats> {
   double trust = 0.0;
   bool maxTrustFlag = true;
   bool changingLevel = false;
@@ -73,7 +72,7 @@ class _OperatorStatsState extends State<OperatorStats> {
         };
 
         if (name == 'unknown') {
-          ShowSnackBar.showSnackBar(
+          SnackBarService.showSnackBar(
             'Error: pot not loaded ${(potDetail["buff"]["attributes"]["attributeModifiers"] as List).first["attributeType"]}',
           );
         }
@@ -199,8 +198,9 @@ class _OperatorStatsState extends State<OperatorStats> {
 
   void setElite(int value) {
     if (currentElite == value) return;
-    context
-        .read<OpInfoProvider>()
+    // wont require setState as build depends on this so it will rebuild anyways
+    ref
+        .read(operatorContextProvider.notifier)
         .setElite(value, (widget.operator.phases[value]["maxLevel"] as int).toDouble());
   }
 
@@ -222,7 +222,9 @@ class _OperatorStatsState extends State<OperatorStats> {
 
     // do not require setState as context.read().setPotential
     // will rebuild anyways
-    context.read<OpInfoProvider>().setPotential(pot);
+    ref.read(operatorContextProvider.notifier).update(
+          (state) => state.copyWith(potential: pot),
+        );
   }
 
   void toggleTrustFlag() {
@@ -233,13 +235,13 @@ class _OperatorStatsState extends State<OperatorStats> {
 
   @override
   Widget build(BuildContext context) {
-    currentElite = context.select<OpInfoProvider, int>((p) => p.elite);
+    currentElite = ref.watch(operatorContextProvider.select((p) => p.elite));
     if (!changingLevel) {
-      currentLevel = context.select<OpInfoProvider, double>((p) => p.level);
+      currentLevel = ref.watch(operatorContextProvider.select((p) => p.level));
     }
-    maxLevel = context.select<OpInfoProvider, double>((p) => p.maxLevel);
-    modAttributesBuffs = context.select<OpInfoProvider, Map<String, double>>((p) => p.modAttrBuffs);
-    currentPot = context.select<OpInfoProvider, int>((p) => p.potential);
+    maxLevel = ref.watch(operatorContextProvider.select((p) => p.maxLevel));
+    modAttributesBuffs = ref.watch(operatorContextProvider.select((p) => p.modAttrBuffs));
+    currentPot = ref.watch(operatorContextProvider.select((p) => p.potential));
 
     return AnimatedSize(
       duration: const Duration(milliseconds: 250),
@@ -285,8 +287,7 @@ class _OperatorStatsState extends State<OperatorStats> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           RangeTile(
-                            rangeGrids: context.read<CacheProvider>().cachedRangeTable![
-                                widget.operator.phases[currentElite]["rangeId"]]["grids"],
+                            rangeId: widget.operator.phases[currentElite]["rangeId"],
                           ),
                           Row(
                             children: [
@@ -382,7 +383,9 @@ class _OperatorStatsState extends State<OperatorStats> {
                           onChanged: (value) => setLevel(value.roundToDouble()),
                           onChangeEnd: (value) {
                             changingLevel = false;
-                            context.read<OpInfoProvider>().setLevel(value.roundToDouble());
+                            ref.read(operatorContextProvider.notifier).update(
+                                  (s) => s.copyWith(level: value.roundToDouble()),
+                                );
                           },
                         ),
                       ),

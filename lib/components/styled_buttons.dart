@@ -1,9 +1,8 @@
-library;
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:sagahelper/core/static_colors.dart';
+import 'package:sagahelper/providers/config_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
-import 'package:sagahelper/core/global_data.dart';
-import 'package:sagahelper/providers/settings_provider.dart';
 
 class IconButtonStyled extends StatelessWidget {
   const IconButtonStyled({
@@ -221,7 +220,7 @@ class LilButton extends StatelessWidget {
   }
 }
 
-class DiffChip extends StatelessWidget {
+class DiffChip extends ConsumerWidget {
   const DiffChip({
     super.key,
     required this.label,
@@ -265,12 +264,12 @@ class DiffChip extends StatelessWidget {
   final BorderRadius? radius;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final lBGColor = backgroundColor ?? Theme.of(context).colorScheme.surfaceContainerHighest;
     final lColor = color ?? Theme.of(context).colorScheme.onSurface;
     final lColorDiff = isPositive
-        ? StaticColors.fromBrightness(context).greenVariant
-        : StaticColors.fromBrightness(context).redVariant;
+        ? StaticColors.fromBrightness(Theme.brightnessOf(context)).greenVariant
+        : StaticColors.fromBrightness(Theme.brightnessOf(context)).redVariant;
     final lsize = size ?? Size(MediaQuery.sizeOf(context).width, 24);
     final Widget? lDiffIcon = switch (axis) {
       AxisDirection.up => Icon(
@@ -288,7 +287,7 @@ class DiffChip extends StatelessWidget {
     };
     final lRad = radius ?? BorderRadius.circular(6.0);
 
-    final bool advancedMode = context.watch<SettingsProvider>().prefs[PrefsFlags.menuShowAdvanced];
+    final bool advancedMode = ref.watch(configProvider.select((p) => p.opInfoMenuShowAdvanced));
 
     return Container(
       decoration: BoxDecoration(

@@ -18,4 +18,10 @@ class RandomFaceGenerator {
   static String happyFace() {
     return happyFaces[random.nextInt(happyFaces.length)];
   }
+
+  static String anyFace() {
+    final allFaces = [...surpriseFaces, ...sadFaces, ...happyFaces];
+
+    return allFaces[random.nextInt(allFaces.length)];
+  }
 }

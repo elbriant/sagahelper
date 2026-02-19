@@ -8,6 +8,7 @@ import 'package:sagahelper/models/server_state.dart';
 import 'package:sagahelper/providers/config_provider.dart';
 import 'package:flowder/flowder.dart';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as p;
 
 enum Server {
   en('enVersion', 'en_US', 'en'),
@@ -77,12 +78,15 @@ final currentServerStateProvider = Provider<AsyncValue<ServerState>>((ref) {
   return ref.watch(serverProvider(currentServer));
 });
 
-class ServerNotifier extends FamilyAsyncNotifier<ServerState, Server> {
+class ServerNotifier extends AsyncNotifier<ServerState> {
   String get serverlink =>
-      switch (arg) { Server.cn => chServerlink, _ => yostarrepo(arg.repoString) };
+      switch (server) { Server.cn => chServerlink, _ => yostarrepo(server.repoString) };
+
+  ServerNotifier(this.server);
+  final Server server;
 
   @override
-  ServerState build(Server server) {
+  ServerState build() {
     final prefs = ref.watch(sharedPreferencesProvider);
 
     return ServerState(version: prefs.getString(server.key));
@@ -90,7 +94,7 @@ class ServerNotifier extends FamilyAsyncNotifier<ServerState, Server> {
 
   Future<void> setVersion(String? version) async {
     final prefs = ref.watch(sharedPreferencesProvider);
-    await prefs.setString(arg.key, version ?? '');
+    await prefs.setString(server.key, version ?? '');
 
     final prevState = await future;
 
@@ -99,10 +103,10 @@ class ServerNotifier extends FamilyAsyncNotifier<ServerState, Server> {
 
   /// [filePaths] null means all files
   Future<bool> existFiles([List<String>? filesPaths]) async {
-    String serverLocalPath = await LocalDataManager.localpathServer(arg.folderLabel);
+    String serverLocalPath = LocalDataManager.localpathServer(server);
 
     for (var file in (filesPaths ?? kFiles)) {
-      bool fileExist = await File('$serverLocalPath$file').exists();
+      bool fileExist = await File(p.join(serverLocalPath, file)).exists();
 
       if (!fileExist) {
         return false;
@@ -113,14 +117,14 @@ class ServerNotifier extends FamilyAsyncNotifier<ServerState, Server> {
   }
 
   Future<String> getFile(String filepath) async {
-    String serverLocalPath = await LocalDataManager.localpathServer(arg.folderLabel);
-    return File('$serverLocalPath$filepath').readAsString();
+    String serverLocalPath = LocalDataManager.localpathServer(server);
+    return File(p.join(serverLocalPath, filepath)).readAsString();
   }
 
   Future<String?> tryGetFile(String filepath) async {
-    String serverLocalPath = await LocalDataManager.localpathServer(arg.folderLabel);
-    if ((await File('$serverLocalPath$filepath').exists())) {
-      return await File('$serverLocalPath$filepath').readAsString();
+    String serverLocalPath = LocalDataManager.localpathServer(server);
+    if ((await File(p.join(serverLocalPath, filepath)).exists())) {
+      return await File(p.join(serverLocalPath, filepath)).readAsString();
     } else {
       return null;
     }
@@ -179,7 +183,7 @@ class ServerNotifier extends FamilyAsyncNotifier<ServerState, Server> {
   }
 
   Future<void> updateFolderSize() async {
-    String serverLocalPath = await LocalDataManager.localpathServer(arg.folderLabel);
+    String serverLocalPath = LocalDataManager.localpathServer(server);
 
     String serverSize = await DirStat.getDirStat(serverLocalPath).then((dirStat) {
       return dirStat.totalSizeString;
@@ -242,7 +246,7 @@ class ServerNotifier extends FamilyAsyncNotifier<ServerState, Server> {
       ),
     );
 
-    String serverLocalPath = await LocalDataManager.localpathServer(arg.folderLabel);
+    String serverLocalPath = LocalDataManager.localpathServer(server);
 
     for (var file in kFiles) {
       bool fileExist = await File('$serverLocalPath$file').exists();
@@ -304,7 +308,7 @@ class ServerNotifier extends FamilyAsyncNotifier<ServerState, Server> {
   }
 
   Future<void> deleteServer() async {
-    String serverLocalPath = await LocalDataManager.localpathServer(arg.folderLabel);
+    String serverLocalPath = LocalDataManager.localpathServer(server);
 
     if (await Directory(serverLocalPath).exists()) {
       await Directory(serverLocalPath).delete(recursive: true);

@@ -25,7 +25,10 @@ enum CacheType {
   operatorArt('opart'),
 
   /// operator (or entity) art avatar
-  operatorAvatar('opicon');
+  operatorAvatar('opicon'),
+
+  /// operator faction logo
+  operatorLogo('logo');
 
   final String folderLabel;
   const CacheType(this.folderLabel);

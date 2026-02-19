@@ -1,10 +1,10 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:sagahelper/components/filter_tile.dart';
 import 'package:sagahelper/models/filters.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
-import 'package:sagahelper/providers/settings_provider.dart';
+import 'package:sagahelper/providers/operator_search_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
 
 const List<String> professionList = [
@@ -18,15 +18,13 @@ const List<String> professionList = [
   'warrior',
 ];
 
-class OpRouteFiltersFiltering extends StatelessWidget {
+class OpRouteFiltersFiltering extends ConsumerWidget {
   const OpRouteFiltersFiltering({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final currentFilters =
-        context.select<SettingsProvider, Map<String, FilterDetail>>((prov) => prov.operatorFilters);
-
-    final cacheProv = context.read<CacheProvider>();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentFilters = ref.watch(operatorSearchProvider.select((p) => p.operatorFilters));
+    final cacheProv = ref.watch(cacheProvider);
 
     final List<FilterChip> rarityFilters = List.generate(6, (index) {
       final String rarityString = "${FilterType.rarity.prefix}_${(index + 1).toString()}";
@@ -42,7 +40,7 @@ class OpRouteFiltersFiltering extends StatelessWidget {
                     : Icons.block,
               )
             : null,
-        onSelected: (_) => context.read<SettingsProvider>().toggleOperatorFilter(
+        onSelected: (_) => ref.read(operatorSearchProvider.notifier).toggleOperatorFilter(
               FilterTag(
                 id: rarityString,
                 key: rarity,
@@ -63,7 +61,7 @@ class OpRouteFiltersFiltering extends StatelessWidget {
                 currentFilters[id]!.mode == FilterMode.whitelist ? Icons.check : Icons.block,
               )
             : null,
-        onSelected: (_) => context.read<SettingsProvider>().toggleOperatorFilter(
+        onSelected: (_) => ref.read(operatorSearchProvider.notifier).toggleOperatorFilter(
               FilterTag(
                 id: id,
                 key: professionList[index],
@@ -94,7 +92,7 @@ class OpRouteFiltersFiltering extends StatelessWidget {
                     currentFilters[id]!.mode == FilterMode.whitelist ? Icons.check : Icons.block,
                   )
                 : null,
-            onSelected: (_) => context.read<SettingsProvider>().toggleOperatorFilter(
+            onSelected: (_) => ref.read(operatorSearchProvider.notifier).toggleOperatorFilter(
                   FilterTag(
                     id: id,
                     key: subclass.key,
@@ -126,7 +124,7 @@ class OpRouteFiltersFiltering extends StatelessWidget {
                     currentFilters[id]!.mode == FilterMode.whitelist ? Icons.check : Icons.block,
                   )
                 : null,
-            onSelected: (_) => context.read<SettingsProvider>().toggleOperatorFilter(
+            onSelected: (_) => ref.read(operatorSearchProvider.notifier).toggleOperatorFilter(
                   FilterTag(
                     id: id,
                     key: (faction.value["powerId"] as String).toLowerCase(),
@@ -152,7 +150,7 @@ class OpRouteFiltersFiltering extends StatelessWidget {
                     : Icons.block,
               )
             : null,
-        onSelected: (_) => context.read<SettingsProvider>().toggleOperatorFilter(
+        onSelected: (_) => ref.read(operatorSearchProvider.notifier).toggleOperatorFilter(
               FilterTag(
                 id: '${FilterType.extra.prefix}_has_module',
                 key: 'has_module',
@@ -183,7 +181,7 @@ class OpRouteFiltersFiltering extends StatelessWidget {
                     currentFilters[id]!.mode == FilterMode.whitelist ? Icons.check : Icons.block,
                   )
                 : null,
-            onSelected: (_) => context.read<SettingsProvider>().toggleOperatorFilter(
+            onSelected: (_) => ref.read(operatorSearchProvider.notifier).toggleOperatorFilter(
                   FilterTag(
                     id: id,
                     key: (tag["tagName"] as String).toLowerCase(),
@@ -214,7 +212,7 @@ class OpRouteFiltersFiltering extends StatelessWidget {
                     currentFilters[id]!.mode == FilterMode.whitelist ? Icons.check : Icons.block,
                   )
                 : null,
-            onSelected: (_) => context.read<SettingsProvider>().toggleOperatorFilter(
+            onSelected: (_) => ref.read(operatorSearchProvider.notifier).toggleOperatorFilter(
                   FilterTag(
                     id: id,
                     key: pos.toLowerCase(),
@@ -235,7 +233,7 @@ class OpRouteFiltersFiltering extends StatelessWidget {
         Center(
           child: OutlinedButton(
             onPressed: currentFilters.isNotEmpty
-                ? context.read<SettingsProvider>().clearOperatorFilters
+                ? ref.read(operatorSearchProvider.notifier).clearOperatorFilters
                 : null,
             child: const Text('Clear filters'),
           ),

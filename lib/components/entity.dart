@@ -1,9 +1,7 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
-import 'package:provider/provider.dart';
-
-import 'package:sagahelper/core/global_data.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sagahelper/models/errors.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
+import 'package:sagahelper/utils/extensions.dart';
 
 class Entity {
   final String id;
@@ -58,18 +56,20 @@ class Entity {
 
   factory Entity.fromId({
     required String id,
+    required WidgetRef ref,
     int? lv,
     int? elite,
     int? pot,
     int? selectedSkill,
     int? skillLevel,
   }) {
-    if (!NavigationService.navigatorKey.currentContext!.read<CacheProvider>().operatorsDataCached) {
+    final cachedCharTable = ref.read(cacheProvider).cachedCharTable;
+
+    if (cachedCharTable.isNull) {
       throw NoCacheException(error: 'no cache trying to create an entity from id');
     }
-    final cacheCharTable =
-        NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedCharTable!;
-    final Map entity = cacheCharTable[id];
+
+    final Map entity = cachedCharTable![id];
 
     return Entity(
       name: entity["name"],

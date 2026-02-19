@@ -1,17 +1,18 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:sagahelper/components/shimmer_loading_mask.dart';
 import 'package:sagahelper/components/stored_image.dart';
 import 'package:sagahelper/components/styled_buttons.dart';
 import 'package:sagahelper/core/global_data.dart';
+import 'package:sagahelper/models/config/local_data_manager.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
-import 'package:sagahelper/providers/op_info_provider.dart';
+import 'package:sagahelper/providers/operator_context_provider.dart';
 import 'package:sagahelper/providers/style_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
 import 'package:styled_text/styled_text.dart';
 
-class OperatorBaseSkill extends StatefulWidget {
+class OperatorBaseSkill extends ConsumerStatefulWidget {
   const OperatorBaseSkill({
     super.key,
     required this.operator,
@@ -20,10 +21,10 @@ class OperatorBaseSkill extends StatefulWidget {
   final Operator operator;
 
   @override
-  State<OperatorBaseSkill> createState() => _OperatorBaseSkillState();
+  ConsumerState<OperatorBaseSkill> createState() => _OperatorBaseSkillState();
 }
 
-class _OperatorBaseSkillState extends State<OperatorBaseSkill> {
+class _OperatorBaseSkillState extends ConsumerState<OperatorBaseSkill> {
   int? localElite;
   int? localLevel;
   bool loaded = false;
@@ -40,12 +41,13 @@ class _OperatorBaseSkillState extends State<OperatorBaseSkill> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final info = ref.read(operatorContextProvider);
 
-    if (localElite != context.read<OpInfoProvider>().elite && localElite != null) {
+    if (localElite != info.elite && localElite != null) {
       localElite = null;
     }
 
-    if (localLevel != context.read<OpInfoProvider>().level.toInt() && localLevel != null) {
+    if (localLevel != info.level.toInt() && localLevel != null) {
       localLevel = null;
     }
   }
@@ -113,8 +115,10 @@ class _OperatorBaseSkillState extends State<OperatorBaseSkill> {
         ),
       );
     } else {
-      final currentElite = context.select<OpInfoProvider, int>((p) => p.elite);
-      final currentLevel = context.select<OpInfoProvider, double>((p) => p.level).toInt();
+      final currentElite = ref.watch(operatorContextProvider.select((p) => p.elite));
+      final currentLevel = ref.watch(operatorContextProvider.select((p) => p.level)).toInt();
+      final cachedTable = ref.watch(cacheProvider.select((p) => p.cachedBaseSkillTable));
+      final tagsAsArknights = ref.watch(styleProvider).tagsAsArknights;
 
       int minElite = baseElites.lastWhere(
         (e) => e <= currentElite,
@@ -213,8 +217,9 @@ class _OperatorBaseSkillState extends State<OperatorBaseSkill> {
                   (widget.operator.baseSkills["buffChar"][index - 1]["buffData"] as List)
                       .first["cond"]["level"];
 
-              final cachedTable = context
-                  .select<CacheProvider, Map<String, dynamic>>((p) => p.cachedBaseSkillTable!);
+              if (cachedTable == null) {
+                return null;
+              }
 
               final Color? bgColor =
                   unlocked ? (cachedTable[buffId]["buffColor"] as String).parseAsHex() : null;
@@ -270,20 +275,18 @@ class _OperatorBaseSkillState extends State<OperatorBaseSkill> {
                               ),
                               child: Padding(
                                 padding: const EdgeInsets.all(2.0),
-                                child: StoredImage(
-                                  colorBlendMode: BlendMode.modulate,
+                                child: StoredCustomImage(
+                                  placeholderColorBlendMode: BlendMode.modulate,
                                   imageUrl:
                                       '$kBaseSkillRepo/${cachedTable[buffId]["skillIcon"]}.png'
                                           .githubEncode(),
-                                  filePath: 'baseicon/${cachedTable[buffId]["skillIcon"]}.png',
+                                  filename: '${cachedTable[buffId]["skillIcon"]}.png',
+                                  type: CacheType.baseSkill,
                                   scale: 1.3,
                                   color: unlocked ? null : Colors.transparent,
-                                  placeholder: Image.asset(
-                                    'assets/placeholders/baseskill.png',
-                                    colorBlendMode: BlendMode.modulate,
-                                    color: Colors.transparent,
-                                    scale: 1.3,
-                                  ),
+                                  placeholder:
+                                      const AssetImage('assets/placeholders/baseskill.png'),
+                                  placeholderColor: Colors.transparent,
                                 ),
                               ),
                             ),
@@ -300,7 +303,7 @@ class _OperatorBaseSkillState extends State<OperatorBaseSkill> {
                                 ? ((cachedTable[buffId]["description"] ?? '') as String)
                                     .akRichTextParser()
                                 : '<icon src="assets/sortIcon/lock.png"/> Unlocks at Elite ${textelite.toString()} lv${textlv.toString()}',
-                            tags: context.read<StyleProvider>().tagsAsArknights(context: context),
+                            tags: tagsAsArknights,
                             textAlign: TextAlign.start,
                             async: true,
                           ),

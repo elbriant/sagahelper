@@ -97,6 +97,11 @@ class CustomTheme {
     return brightness == Brightness.light ? themeLight : themeDark;
   }
 
+  /// just light or dark or pure dark
+  ThemeData fromBrightnessAndPureDark(Brightness brightness, bool pureDark) {
+    return brightness == Brightness.light ? themeLight : getDarkMode(pureDark);
+  }
+
   factory CustomTheme.fast(Color color) {
     return CustomTheme(
       name: 'Fast',

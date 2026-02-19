@@ -7,8 +7,8 @@ import 'package:sagahelper/core/global_data.dart';
 import 'package:sagahelper/providers/style_provider.dart';
 import 'package:sagahelper/models/config/local_data_manager.dart';
 
-import 'package:sagahelper/models/entity.dart';
-import 'package:sagahelper/providers/op_info_provider.dart';
+import 'package:sagahelper/components/entity.dart';
+import 'package:sagahelper/providers/operator_context_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
 import 'package:styled_text/styled_text.dart';
 
@@ -22,7 +22,7 @@ class EntityCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final opInfo = ref.watch(opInfoProvider);
+    final opInfo = ref.watch(operatorContextProvider);
     final tagsAsArknights = ref.watch(styleProvider).tagsAsArknights;
 
     return Container(
@@ -45,6 +45,7 @@ class EntityCard extends ConsumerWidget {
             context: context,
             entity: Entity.fromId(
               id: entity.id,
+              ref: ref,
               elite: entity.elite ?? opInfo.elite,
               lv: entity.level ?? opInfo.level.toInt(),
               pot: entity.potential ?? opInfo.potential,

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:network_to_file_image/network_to_file_image.dart';
 import 'package:sagahelper/core/global_data.dart';
+import 'package:sagahelper/models/config/local_data_manager.dart';
+import 'package:sagahelper/models/config/types.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/pages/operator/skeleton.dart';
 import 'package:sagahelper/components/operator_info_page/operator_container.dart';
-import 'package:sagahelper/providers/settings_provider.dart';
 
 class OperatorLilCard extends StatelessWidget {
   const OperatorLilCard({super.key, required this.operator});
@@ -25,30 +26,6 @@ class OperatorLilCard extends StatelessWidget {
     final String imgLink =
         '$kAvatarRepo/${operator.id}${opIdMustHaveE2avatar.contains(operator.id) ? '_2' : ''}.png';
 
-    Widget classImg(ImageProvider avatar) {
-      return DecoratedBox(
-        decoration: BoxDecoration(
-          color: HSLColor.fromColor(Theme.of(context).colorScheme.primary)
-              .withLightness(0.10)
-              .toColor(),
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: Theme.of(context).colorScheme.outline,
-          ),
-        ),
-        child: SizedBox.square(
-          dimension: 40,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Image(
-              image: avatar,
-              fit: BoxFit.scaleDown,
-            ),
-          ),
-        ),
-      );
-    }
-
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8.0),
@@ -66,8 +43,9 @@ class OperatorLilCard extends StatelessWidget {
           decoration: BoxDecoration(
             image: DecorationImage(
               image: NetworkToFileImage(
-                file: LocalDataManager.localCacheFileSync(
-                  'images/${operator.id}_dl${DisplayList.avatar.index.toString()}.png',
+                file: LocalDataManager.localCacheFile(
+                  '${operator.id}_dl${OperatorDisplayMode.avatar.index.toString()}.png',
+                  CacheType.operatorAvatar,
                 ),
                 url: imgLink,
               ),
@@ -111,12 +89,12 @@ class OperatorLilCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8.0),
-                  classImg(
+                  _DecoratedClassImage(
                     AssetImage(
                       'assets/classes/class_${operator.profession.toLowerCase()}.png',
                     ),
                   ),
-                  classImg(
+                  _DecoratedClassImage(
                     AssetImage(
                       'assets/subclasses/sub_${operator.subProfessionId.toLowerCase()}_icon.png',
                     ),
@@ -124,6 +102,35 @@ class OperatorLilCard extends StatelessWidget {
                 ],
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DecoratedClassImage extends StatelessWidget {
+  const _DecoratedClassImage(this.image);
+  final ImageProvider image;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color:
+            HSLColor.fromColor(Theme.of(context).colorScheme.primary).withLightness(0.10).toColor(),
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Theme.of(context).colorScheme.outline,
+        ),
+      ),
+      child: SizedBox.square(
+        dimension: 40,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Image(
+            image: image,
+            fit: BoxFit.scaleDown,
           ),
         ),
       ),

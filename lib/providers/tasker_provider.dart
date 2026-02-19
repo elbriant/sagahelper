@@ -1,58 +1,8 @@
-import 'package:flutter/foundation.dart' show immutable;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sagahelper/models/task.dart';
+import 'package:sagahelper/models/tasker.dart';
 
 final taskerProvider = NotifierProvider<TaskerNotifier, Tasker>(TaskerNotifier.new);
-
-@immutable
-class Task {
-  final String id;
-  final String message;
-
-  const Task({
-    required this.id,
-    required this.message,
-  });
-
-  Task copyWith({
-    String? id,
-    String? message,
-  }) {
-    return Task(
-      id: id ?? this.id,
-      message: message ?? this.message,
-    );
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is Task && other.id == id;
-  }
-
-  @override
-  int get hashCode => id.hashCode;
-}
-
-@immutable
-class Tasker {
-  final List<Task> taskQueue;
-
-  bool get isActive => taskQueue.isNotEmpty;
-
-  const Tasker({
-    this.taskQueue = const [],
-  });
-
-  Tasker copyWith({
-    bool? isDownloading,
-    bool? isUpdating,
-    List<Task>? taskQueue,
-  }) {
-    return Tasker(
-      taskQueue: taskQueue ?? this.taskQueue,
-    );
-  }
-}
 
 class TaskerNotifier extends Notifier<Tasker> {
   @override

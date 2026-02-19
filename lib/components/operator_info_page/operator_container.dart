@@ -1,12 +1,15 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:gradient_borders/box_borders/gradient_box_border.dart';
 import 'package:sagahelper/components/stored_image.dart';
 import 'package:sagahelper/core/global_data.dart';
+import 'package:sagahelper/models/config/local_data_manager.dart';
+import 'package:sagahelper/models/config/types.dart' show OperatorDisplayMode;
 import 'package:sagahelper/models/filters.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/pages/operator/skeleton.dart';
-import 'package:sagahelper/providers/settings_provider.dart';
+import 'package:sagahelper/providers/config_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:sagahelper/providers/operator_search_provider.dart';
 
 const List<Color> rarityColors = [
   Color.fromARGB(255, 69, 69, 69), // entities
@@ -27,37 +30,29 @@ const List<String> opIdMustHaveE2Portrait = [
   'char_1037_amiya3',
 ];
 
-class OperatorContainer extends StatefulWidget {
-  final Operator operator;
+class OperatorContainer extends ConsumerWidget {
+  final Operator op;
   final int index;
 
   const OperatorContainer({
     super.key,
     required this.index,
-    required this.operator,
+    required this.op,
   });
 
   @override
-  State<OperatorContainer> createState() => _OperatorContainerState();
-}
-
-class _OperatorContainerState extends State<OperatorContainer> with AutomaticKeepAliveClientMixin {
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-
+  Widget build(BuildContext context, WidgetRef ref) {
     final String ghAvatarLink =
-        '$kAvatarRepo/${widget.operator.id}${opIdMustHaveE2avatar.contains(widget.operator.id) ? '_2' : ''}.png';
+        '$kAvatarRepo/${op.id}${opIdMustHaveE2avatar.contains(op.id) ? '_2' : ''}.png';
     final String ghPotraitLink =
-        '$kPortraitRepo/${widget.operator.id}${opIdMustHaveE2Portrait.contains(widget.operator.id) ? '_2' : '_1'}.png';
+        '$kPortraitRepo/${op.id}${opIdMustHaveE2Portrait.contains(op.id) ? '_2' : '_1'}.png';
 
-    final opDisplay = context.select<SettingsProvider, DisplayList>((prov) => prov.operatorDisplay);
-    final searchDelegate =
-        context.select<SettingsProvider, int>((prov) => prov.operatorSearchDelegate);
+    final opDisplay = ref.watch(configProvider.select((p) => p.operatorDisplayMode));
+    final searchDelegate = ref.watch(configProvider.select((p) => p.operatorSearchDelegate));
 
     String imgLink = switch (opDisplay) {
-      DisplayList.avatar => ghAvatarLink,
-      DisplayList.portrait => ghPotraitLink,
+      OperatorDisplayMode.avatar => ghAvatarLink,
+      OperatorDisplayMode.portrait => ghPotraitLink,
     };
 
     void openOperatorInfo(Operator currOp) async {
@@ -69,19 +64,16 @@ class _OperatorContainerState extends State<OperatorContainer> with AutomaticKee
         ),
       );
       if (filter != null) {
-        NavigationService.navigatorKey.currentContext!
-            .read<SettingsProvider>()
-            .clearOperatorFilters();
-        NavigationService.navigatorKey.currentContext!
-            .read<SettingsProvider>()
-            .addOperatorFilter(filter);
+        ref.read(operatorSearchProvider.notifier)
+          ..clearOperatorFilters()
+          ..addOperatorFilter(filter);
       }
     }
 
     return Container(
       margin: const EdgeInsets.all(4.0),
       decoration: BoxDecoration(
-        border: widget.operator.rarity == 6
+        border: op.rarity == 6
             ? const GradientBoxBorder(
                 gradient: LinearGradient(
                   colors: [
@@ -95,11 +87,11 @@ class _OperatorContainerState extends State<OperatorContainer> with AutomaticKee
                 ),
                 width: 1.0,
               )
-            : Border.all(color: rarityColors[widget.operator.rarity]),
+            : Border.all(color: rarityColors[op.rarity]),
         borderRadius: BorderRadius.circular(10.0),
         gradient: LinearGradient(
           colors: [
-            rarityColors[widget.operator.rarity].withAlpha(125),
+            rarityColors[op.rarity].withAlpha(125),
             Colors.transparent,
           ],
           stops: const [0, 1],
@@ -120,11 +112,14 @@ class _OperatorContainerState extends State<OperatorContainer> with AutomaticKee
         child: Stack(
           alignment: Alignment.bottomCenter,
           children: [
-            StoredImage(
-              filePath: 'images/${widget.operator.id}_dl${opDisplay.index.toString()}.png',
-              imageUrl: imgLink,
-              fit: BoxFit.fitWidth,
-              heroTag: widget.operator.id,
+            Hero(
+              tag: op.id,
+              child: StoredCustomImage(
+                filename: '${op.id}_dl${opDisplay.index.toString()}.png',
+                type: CacheType.operatorAvatar,
+                imageUrl: imgLink,
+                fit: BoxFit.fitWidth,
+              ),
             ),
             Positioned.fill(
               child: Visibility(
@@ -146,16 +141,16 @@ class _OperatorContainerState extends State<OperatorContainer> with AutomaticKee
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 1.5, left: 4, right: 4),
                       child: Text(
-                        widget.operator.name,
+                        op.name,
                         overflow: TextOverflow.ellipsis,
                         maxLines: 2,
                         textAlign: TextAlign.center,
-                        textScaler: widget.operator.name.length > 7
+                        textScaler: op.name.length > 7
                             // ignore: deprecated_member_use
                             ? TextScaler.linear(
                                 // ignore: deprecated_member_use
                                 (MediaQuery.textScalerOf(context).textScaleFactor -
-                                        (widget.operator.name.length - 7) / 100) *
+                                        (op.name.length - 7) / 100) *
                                     (3 / searchDelegate),
                               )
                             // ignore: deprecated_member_use
@@ -178,9 +173,9 @@ class _OperatorContainerState extends State<OperatorContainer> with AutomaticKee
               child: Material(
                 type: MaterialType.transparency,
                 child: InkWell(
-                  splashColor: rarityColors[widget.operator.rarity].withAlpha(45),
-                  highlightColor: rarityColors[widget.operator.rarity].withAlpha(35),
-                  onTap: () => openOperatorInfo(widget.operator),
+                  splashColor: rarityColors[op.rarity].withAlpha(45),
+                  highlightColor: rarityColors[op.rarity].withAlpha(35),
+                  onTap: () => openOperatorInfo(op),
                 ),
               ),
             ),
@@ -189,7 +184,4 @@ class _OperatorContainerState extends State<OperatorContainer> with AutomaticKee
       ),
     );
   }
-
-  @override
-  bool get wantKeepAlive => true;
 }

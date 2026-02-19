@@ -1,9 +1,12 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:sagahelper/components/shimmer_loading_mask.dart';
+import 'package:sagahelper/models/config/local_data_manager.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
-import 'package:sagahelper/providers/op_info_provider.dart';
+import 'package:sagahelper/providers/config_provider.dart';
+import 'package:sagahelper/providers/operator_context_provider.dart';
+import 'package:sagahelper/utils/operator_calc.dart';
 import 'package:styled_text/styled_text.dart';
 
 import 'package:sagahelper/components/entity_card.dart';
@@ -12,9 +15,8 @@ import 'package:sagahelper/components/slider_selector.dart';
 import 'package:sagahelper/components/stored_image.dart';
 import 'package:sagahelper/components/styled_buttons.dart';
 import 'package:sagahelper/core/global_data.dart';
-import 'package:sagahelper/models/entity.dart';
+import 'package:sagahelper/components/entity.dart';
 import 'package:sagahelper/models/operator.dart';
-import 'package:sagahelper/providers/settings_provider.dart';
 import 'package:sagahelper/providers/style_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
 
@@ -37,7 +39,7 @@ List<Map<String, dynamic>> computeSkills(List input) {
   return s;
 }
 
-class OperatorSkill extends StatefulWidget {
+class OperatorSkill extends ConsumerStatefulWidget {
   const OperatorSkill({
     super.key,
     required this.operator,
@@ -46,10 +48,10 @@ class OperatorSkill extends StatefulWidget {
   final Operator operator;
 
   @override
-  State<OperatorSkill> createState() => _OperatorSkillState();
+  ConsumerState<OperatorSkill> createState() => _OperatorSkillState();
 }
 
-class _OperatorSkillState extends State<OperatorSkill> {
+class _OperatorSkillState extends ConsumerState<OperatorSkill> {
   late Future<List<Map<String, dynamic>>> skillDetails;
   late int skill;
   late int skillLevel;
@@ -61,7 +63,7 @@ class _OperatorSkillState extends State<OperatorSkill> {
       computeSkills,
       [
         widget.operator,
-        context.read<CacheProvider>().cachedSkillTable,
+        ref.read(cacheProvider).cachedSkillTable!,
       ],
     );
   }
@@ -79,10 +81,10 @@ class _OperatorSkillState extends State<OperatorSkill> {
             width: 72,
             margin: lRightPadding,
             decoration: BoxDecoration(
-              color: StaticColors.fromBrightness(context).green,
+              color: ref.read(styleProvider).colors.green,
               borderRadius: BorderRadius.circular(8.0),
               border: Border.all(
-                color: StaticColors.fromBrightness(context).green,
+                color: ref.read(styleProvider).colors.green,
                 strokeAlign: BorderSide.strokeAlignInside,
                 width: 2.0,
               ),
@@ -94,7 +96,7 @@ class _OperatorSkillState extends State<OperatorSkill> {
               textAlign: TextAlign.center,
               textScaler: TextScaler.linear(textScale),
               style: TextStyle(
-                color: StaticColors.fromBrightness(context).onGreen,
+                color: ref.read(styleProvider).colors.onGreen,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -104,10 +106,10 @@ class _OperatorSkillState extends State<OperatorSkill> {
             width: 72,
             margin: lRightPadding,
             decoration: BoxDecoration(
-              color: StaticColors.fromBrightness(context).red,
+              color: ref.read(styleProvider).colors.red,
               borderRadius: BorderRadius.circular(8.0),
               border: Border.all(
-                color: StaticColors.fromBrightness(context).red,
+                color: ref.read(styleProvider).colors.red,
                 strokeAlign: BorderSide.strokeAlignInside,
                 width: 2.0,
               ),
@@ -119,7 +121,7 @@ class _OperatorSkillState extends State<OperatorSkill> {
               textAlign: TextAlign.center,
               textScaler: TextScaler.linear(textScale),
               style: TextStyle(
-                color: StaticColors.fromBrightness(context).onRed,
+                color: ref.read(styleProvider).colors.onRed,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -129,10 +131,10 @@ class _OperatorSkillState extends State<OperatorSkill> {
             width: 72,
             margin: lRightPadding,
             decoration: BoxDecoration(
-              color: StaticColors.fromBrightness(context).yellow,
+              color: ref.read(styleProvider).colors.yellow,
               borderRadius: BorderRadius.circular(8.0),
               border: Border.all(
-                color: StaticColors.fromBrightness(context).yellow,
+                color: ref.read(styleProvider).colors.yellow,
                 strokeAlign: BorderSide.strokeAlignInside,
                 width: 2.0,
               ),
@@ -144,7 +146,7 @@ class _OperatorSkillState extends State<OperatorSkill> {
               textAlign: TextAlign.center,
               textScaler: TextScaler.linear(textScale),
               style: TextStyle(
-                color: StaticColors.fromBrightness(context).onYellow,
+                color: ref.read(styleProvider).colors.onYellow,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -252,7 +254,7 @@ class _OperatorSkillState extends State<OperatorSkill> {
         backgroundColor: contrastColor,
         axis: skillLevel == 0
             ? AxisDirection.left
-            : Calc.valueDifference(
+            : OperatorCalc.valueDifference(
                 skillDetail["levels"][skillLevel]["spData"]["spCost"],
                 skillDetail["levels"][skillLevel - 1]["spData"]["spCost"],
               ),
@@ -269,7 +271,7 @@ class _OperatorSkillState extends State<OperatorSkill> {
         backgroundColor: contrastColor,
         axis: skillLevel == 0
             ? AxisDirection.left
-            : Calc.valueDifference(
+            : OperatorCalc.valueDifference(
                 skillDetail["levels"][skillLevel]["spData"]["initSp"],
                 skillDetail["levels"][skillLevel - 1]["spData"]["initSp"],
               ),
@@ -290,7 +292,7 @@ class _OperatorSkillState extends State<OperatorSkill> {
                 backgroundColor: contrastColor,
                 axis: skillLevel == 0
                     ? AxisDirection.left
-                    : Calc.valueDifference(
+                    : OperatorCalc.valueDifference(
                         skillDetail["levels"][skillLevel]["duration"],
                         skillDetail["levels"][skillLevel - 1]["duration"],
                       ),
@@ -313,7 +315,7 @@ class _OperatorSkillState extends State<OperatorSkill> {
                 backgroundColor: contrastColor,
                 axis: skillLevel == 0
                     ? AxisDirection.left
-                    : Calc.valueDifference(
+                    : OperatorCalc.valueDifference(
                         ((skillDetail["levels"][skillLevel]["blackboard"] as List).lastWhere(
                           (i) => ((i as Map)["key"] as String).endsWith("trigger_time"),
                         ) as Map)["value"],
@@ -348,7 +350,7 @@ class _OperatorSkillState extends State<OperatorSkill> {
           backgroundColor: contrastColor,
           axis: skillLevel == 0
               ? AxisDirection.left
-              : Calc.valueDifference(
+              : OperatorCalc.valueDifference(
                   skillDetail["levels"][skillLevel]["blackboard"][index]["value"],
                   skillDetail["levels"][skillLevel - 1]["blackboard"][index]["value"],
                 ),
@@ -381,8 +383,12 @@ class _OperatorSkillState extends State<OperatorSkill> {
                   ),
                 );
               }
-              skill = context.select<OpInfoProvider, int>((p) => p.selectedSkill);
-              skillLevel = context.select<OpInfoProvider, int>((p) => p.skillLevel);
+
+              skill = ref.watch(operatorContextProvider.select((p) => p.selectedSkill));
+              skillLevel = ref.watch(operatorContextProvider.select((p) => p.skillLevel));
+              final tagsAsArknights = ref.watch(styleProvider).tagsAsArknights;
+              final showAdvancedData =
+                  ref.watch(configProvider.select((p) => p.opInfoMenuShowAdvanced));
 
               Map selectedSkillDetailLv = snapshot.data![skill]["levels"][skillLevel];
               Map selectedSkillDetail = snapshot.data![skill];
@@ -447,12 +453,13 @@ class _OperatorSkillState extends State<OperatorSkill> {
                                     ),
                                     child: ClipRRect(
                                       borderRadius: BorderRadius.circular(4.0),
-                                      child: StoredImage(
+                                      child: StoredCustomImage(
                                         imageUrl:
                                             '$kSkillRepo/skill_icon_${snapshot.data![index]["iconId"] ?? snapshot.data![index]["skillId"]}.png'
                                                 .githubEncode(),
-                                        filePath:
-                                            'skillicon/${snapshot.data![index]["iconId"] ?? snapshot.data![index]["skillId"]}.png',
+                                        filename:
+                                            '${snapshot.data![index]["iconId"] ?? snapshot.data![index]["skillId"]}.png',
+                                        type: CacheType.skillIcon,
                                         color: !selected
                                             ? const Color.fromARGB(255, 134, 134, 134)
                                             : null,
@@ -466,7 +473,9 @@ class _OperatorSkillState extends State<OperatorSkill> {
                                       child: InkWell(
                                         onTap: () {
                                           if (selected) return;
-                                          context.read<OpInfoProvider>().setSelectedSkill(index);
+                                          ref.read(operatorContextProvider.notifier).update(
+                                                (state) => state.copyWith(selectedSkill: index),
+                                              );
                                         },
                                       ),
                                     ),
@@ -542,7 +551,10 @@ class _OperatorSkillState extends State<OperatorSkill> {
                                     SliderSelector(
                                       length: (selectedSkillDetail["levels"] as List).length,
                                       currentIndex: skillLevel,
-                                      onValueChanged: context.read<OpInfoProvider>().setSkillLevel,
+                                      onValueChanged: (level) =>
+                                          ref.read(operatorContextProvider.notifier).update(
+                                                (state) => state.copyWith(skillLevel: level),
+                                              ),
                                       builder: (index, context) {
                                         String label = (index < 7)
                                             ? (index + 1).toString()
@@ -603,7 +615,7 @@ class _OperatorSkillState extends State<OperatorSkill> {
                               text: (selectedSkillDetailLv["description"] as String)
                                   .akRichTextParser()
                                   .varParser(selectedSkillDetailLv["blackboard"]),
-                              tags: context.read<StyleProvider>().tagsAsArknights(context: context),
+                              tags: tagsAsArknights,
                               async: true,
                             ),
                           ),
@@ -611,9 +623,7 @@ class _OperatorSkillState extends State<OperatorSkill> {
                             duration: const Duration(milliseconds: 250),
                             curve: Curves.ease,
                             child: SizedBox(
-                              child: context
-                                      .watch<SettingsProvider>()
-                                      .prefs[PrefsFlags.menuShowAdvanced]
+                              child: showAdvancedData
                                   ? Padding(
                                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                                       child: Wrap(
@@ -642,6 +652,7 @@ class _OperatorSkillState extends State<OperatorSkill> {
                                     child: EntityCard(
                                       entity: Entity.fromId(
                                         id: selectedSkill["overrideTokenKey"],
+                                        ref: ref,
                                       ),
                                     ),
                                   ),

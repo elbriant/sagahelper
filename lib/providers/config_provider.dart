@@ -12,6 +12,10 @@ final configManagerProvider = Provider<ConfigManager>((ref) {
   return ConfigManager(prefs);
 });
 
+final configProvider = NotifierProvider<ConfigNotifier, PersistentSettings>(
+  ConfigNotifier.new,
+);
+
 class ConfigNotifier extends Notifier<PersistentSettings> {
   @override
   PersistentSettings build() {
@@ -19,13 +23,9 @@ class ConfigNotifier extends Notifier<PersistentSettings> {
     return manager.loadSettings();
   }
 
-  Future<PersistentSettings> updateSettings<T>(ConfigKeys config, T value) async {
+  Future<void> updateSettings<T>(ConfigKeys config, T value) async {
     final manager = ref.read(configManagerProvider);
     await manager.saveSetting<T>(config, value);
-    return manager.loadSettings();
+    state = manager.loadSettings();
   }
 }
-
-final configProvider = NotifierProvider<ConfigNotifier, PersistentSettings>(
-  ConfigNotifier.new,
-);

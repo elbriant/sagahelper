@@ -6,6 +6,10 @@ import 'package:sagahelper/models/filters.dart' show OperatorSortingType;
 import 'package:sagahelper/providers/server_provider.dart' show Server;
 import 'package:shared_preferences/shared_preferences.dart';
 
+bool isSaveableType(Type type) {
+  return type is Enum;
+}
+
 enum ConfigKeys {
   currentServer('currentServerIndex'),
   homeHour12Format('homeHour12Format'),
@@ -67,6 +71,8 @@ class ConfigManager {
 
   Future<void> saveSetting<T>(ConfigKeys config, T value) async {
     switch (T) {
+      case const (Enum):
+        return await _prefs.setInt(config.key, (value as Enum).index);
       case const (int):
         return await _prefs.setInt(config.key, value as int);
       case const (double):

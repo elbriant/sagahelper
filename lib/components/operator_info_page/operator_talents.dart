@@ -1,18 +1,18 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:sagahelper/providers/op_info_provider.dart';
+import 'package:sagahelper/providers/operator_context_provider.dart';
 import 'package:styled_text/styled_text.dart';
 
 import 'package:sagahelper/components/entity_card.dart';
 import 'package:sagahelper/components/range_tile.dart';
 import 'package:sagahelper/components/styled_buttons.dart';
-import 'package:sagahelper/models/entity.dart';
+import 'package:sagahelper/components/entity.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/providers/style_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
 
-class OperatorTalents extends StatefulWidget {
+class OperatorTalents extends ConsumerStatefulWidget {
   const OperatorTalents({
     super.key,
     required this.operator,
@@ -20,10 +20,10 @@ class OperatorTalents extends StatefulWidget {
   final Operator operator;
 
   @override
-  State<OperatorTalents> createState() => _OperatorTalentsState();
+  ConsumerState<OperatorTalents> createState() => _OperatorTalentsState();
 }
 
-class _OperatorTalentsState extends State<OperatorTalents> {
+class _OperatorTalentsState extends ConsumerState<OperatorTalents> {
   int? localElite;
   int? localPotential;
   List<int> talentElites = [];
@@ -35,8 +35,8 @@ class _OperatorTalentsState extends State<OperatorTalents> {
   @override
   void initState() {
     super.initState();
-    currentElite = context.read<OpInfoProvider>().elite;
-    currentPotential = context.read<OpInfoProvider>().potential;
+    currentElite = ref.read(operatorContextProvider).elite;
+    currentPotential = ref.read(operatorContextProvider).potential;
 
     for (Map talent in widget.operator.talents) {
       for (Map candidate in talent["candidates"]) {
@@ -61,10 +61,10 @@ class _OperatorTalentsState extends State<OperatorTalents> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    if (currentElite != context.read<OpInfoProvider>().elite && localElite != null) {
+    if (currentElite != ref.read(operatorContextProvider).elite && localElite != null) {
       localElite = null;
     }
-    if (currentPotential != context.read<OpInfoProvider>().potential && localPotential != null) {
+    if (currentPotential != ref.read(operatorContextProvider).potential && localPotential != null) {
       localPotential = null;
     }
   }
@@ -83,8 +83,9 @@ class _OperatorTalentsState extends State<OperatorTalents> {
 
   @override
   Widget build(BuildContext context) {
-    currentElite = context.select<OpInfoProvider, int>((p) => p.elite);
-    currentPotential = context.select<OpInfoProvider, int>((p) => p.potential);
+    currentElite = ref.watch(operatorContextProvider.select((p) => p.elite));
+    currentPotential = ref.watch(operatorContextProvider.select((p) => p.potential));
+    final tagsAsArknights = ref.watch(styleProvider).tagsAsArknights;
 
     int minElite = talentElites.lastWhere(
       (e) => e <= currentElite,
@@ -200,7 +201,7 @@ class _OperatorTalentsState extends State<OperatorTalents> {
                           text: unlocked
                               ? talentText ?? ''
                               : '<icon src="assets/sortIcon/lock.png"/> Unlocks at Elite $index',
-                          tags: context.read<StyleProvider>().tagsAsArknights(context: context),
+                          tags: tagsAsArknights,
                           textAlign: TextAlign.start,
                           async: true,
                         ),
@@ -229,6 +230,7 @@ class _OperatorTalentsState extends State<OperatorTalents> {
                               child: EntityCard(
                                 entity: Entity.fromId(
                                   id: candidate!["tokenKey"],
+                                  ref: ref,
                                   elite: localElite ?? currentElite,
                                   pot: localPotential ?? currentPotential,
                                 ),

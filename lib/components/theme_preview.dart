@@ -1,11 +1,11 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math';
 
-import 'package:sagahelper/providers/ui_provider.dart';
 import 'package:sagahelper/core/themes.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:sagahelper/providers/config_provider.dart';
 
-class ThemePreview extends StatelessWidget {
+class ThemePreview extends ConsumerWidget {
   final CustomTheme previewedTheme;
   final int selfIndex;
   final bool thisSelected;
@@ -19,7 +19,12 @@ class ThemePreview extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final usePureDark = ref.watch(configProvider.select((p) => p.usePureDarkTheme));
+    final brightness = Theme.of(context).brightness;
+    final colorScheme =
+        previewedTheme.fromBrightnessAndPureDark(brightness, usePureDark).colorScheme;
+
     return Container(
       margin: const EdgeInsets.fromLTRB(5, 10, 15, 5),
       child: Column(
@@ -37,23 +42,7 @@ class ThemePreview extends StatelessWidget {
                 border: Border.all(
                   strokeAlign: BorderSide.strokeAlignOutside,
                   width: 6,
-                  color: thisSelected
-                      ? (Theme.of(context).brightness == Brightness.light
-                          ? previewedTheme.colorLight.colorScheme.primary
-                          : previewedTheme
-                              .getDarkMode(
-                                context.read<UiProvider>().isUsingPureDark,
-                              )
-                              .colorScheme
-                              .primary)
-                      : ((Theme.of(context).brightness == Brightness.light
-                          ? previewedTheme.colorLight.colorScheme.surfaceContainerHighest
-                          : previewedTheme
-                              .getDarkMode(
-                                context.read<UiProvider>().isUsingPureDark,
-                              )
-                              .colorScheme
-                              .surfaceContainerHighest)),
+                  color: thisSelected ? colorScheme.primary : colorScheme.surfaceContainerHighest,
                 ),
               ),
               child: Stack(
@@ -76,9 +65,7 @@ class ThemePreview extends StatelessWidget {
             child: Text(
               previewedTheme.name,
               style: TextStyle(
-                color: Theme.of(context).brightness == Brightness.light
-                    ? (previewedTheme.colorLight.colorScheme.secondary)
-                    : (previewedTheme.colorDark.colorScheme.secondary),
+                color: colorScheme.secondary,
               ),
             ),
           ),
@@ -88,7 +75,7 @@ class ThemePreview extends StatelessWidget {
   }
 }
 
-class InnerCard extends StatelessWidget {
+class InnerCard extends ConsumerWidget {
   const InnerCard({
     super.key,
     required this.previewedTheme,
@@ -98,21 +85,12 @@ class InnerCard extends StatelessWidget {
   final bool thisSelected;
 
   @override
-  Widget build(BuildContext context) {
-    bool getCurrentBrightness() {
-      return Theme.of(context).brightness == Brightness.light;
-    }
-
-    bool usingPureDark() {
-      return context.read<UiProvider>().isUsingPureDark;
-    }
-
-    bool usingTraslucent() {
-      return context.read<UiProvider>().useTranslucentUi;
-    }
-
-    ColorScheme lightColorScheme = previewedTheme.colorLight.colorScheme;
-    ColorScheme darkColorScheme = previewedTheme.getDarkMode(usingPureDark()).colorScheme;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final usePureDark = ref.watch(configProvider.select((p) => p.usePureDarkTheme));
+    final useTranslucentUi = ref.watch(configProvider.select((p) => p.useTranslucentUi));
+    final brightness = Theme.of(context).brightness;
+    final colorScheme =
+        previewedTheme.fromBrightnessAndPureDark(brightness, usePureDark).colorScheme;
 
     return Flex(
       direction: Axis.vertical,
@@ -124,17 +102,12 @@ class InnerCard extends StatelessWidget {
             alignment: Alignment.center,
             children: [
               Container(
-                color:
-                    getCurrentBrightness() ? (lightColorScheme.surface) : (darkColorScheme.surface),
+                color: colorScheme.surface,
               ),
               Container(
-                color: getCurrentBrightness()
-                    ? (usingTraslucent()
-                        ? lightColorScheme.surfaceContainer.withValues(alpha: 0.5)
-                        : lightColorScheme.surfaceContainer)
-                    : (usingTraslucent()
-                        ? darkColorScheme.surfaceContainer.withValues(alpha: 0.5)
-                        : darkColorScheme.surfaceContainer),
+                color: useTranslucentUi
+                    ? colorScheme.surfaceContainer.withValues(alpha: 0.5)
+                    : colorScheme.surfaceContainer,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
@@ -142,9 +115,7 @@ class InnerCard extends StatelessWidget {
                     CustomPaint(
                       size: const Size(40, 5),
                       painter: TitleLine(
-                        color: getCurrentBrightness()
-                            ? (lightColorScheme.onPrimaryContainer)
-                            : (darkColorScheme.onPrimaryContainer),
+                        color: colorScheme.onPrimaryContainer,
                       ),
                     ),
                     const SizedBox(width: 5),
@@ -152,9 +123,7 @@ class InnerCard extends StatelessWidget {
                         ? Icon(
                             Icons.check_circle,
                             size: 20,
-                            color: getCurrentBrightness()
-                                ? (lightColorScheme.primary)
-                                : (darkColorScheme.primary),
+                            color: colorScheme.primary,
                           )
                         : Container(),
                   ],
@@ -166,7 +135,7 @@ class InnerCard extends StatelessWidget {
         Expanded(
           flex: 9,
           child: Container(
-            color: getCurrentBrightness() ? (lightColorScheme.surface) : (darkColorScheme.surface),
+            color: colorScheme.surface,
             child: Column(
               mainAxisSize: MainAxisSize.max,
               children: [
@@ -176,18 +145,14 @@ class InnerCard extends StatelessWidget {
                   child: CustomPaint(
                     size: const Size(double.maxFinite, 5),
                     painter: TitleLine(
-                      color: getCurrentBrightness()
-                          ? (lightColorScheme.primary)
-                          : (darkColorScheme.primary),
+                      color: colorScheme.primary,
                     ),
                   ),
                 ),
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(8.0),
-                    color: getCurrentBrightness()
-                        ? (lightColorScheme.primaryContainer)
-                        : (darkColorScheme.primaryContainer),
+                    color: colorScheme.primaryContainer,
                   ),
                   margin: const EdgeInsets.fromLTRB(6, 2, 6, 10),
                   child: Padding(
@@ -195,9 +160,7 @@ class InnerCard extends StatelessWidget {
                     child: CustomPaint(
                       size: const Size(double.maxFinite, 5),
                       painter: TitleLine(
-                        color: getCurrentBrightness()
-                            ? (lightColorScheme.onPrimaryContainer)
-                            : (darkColorScheme.onPrimaryContainer),
+                        color: colorScheme.onPrimaryContainer,
                       ),
                     ),
                   ),
@@ -207,9 +170,7 @@ class InnerCard extends StatelessWidget {
                   child: CustomPaint(
                     size: const Size(double.maxFinite, 5),
                     painter: TitleLine(
-                      color: getCurrentBrightness()
-                          ? (lightColorScheme.onSurface)
-                          : (darkColorScheme.onSurface),
+                      color: colorScheme.onSurface,
                     ),
                   ),
                 ),
@@ -224,17 +185,12 @@ class InnerCard extends StatelessWidget {
             alignment: Alignment.center,
             children: [
               Container(
-                color:
-                    getCurrentBrightness() ? (lightColorScheme.surface) : (darkColorScheme.surface),
+                color: colorScheme.surface,
               ),
               Container(
-                color: getCurrentBrightness()
-                    ? (usingTraslucent()
-                        ? lightColorScheme.surfaceContainer.withValues(alpha: 0.5)
-                        : lightColorScheme.surfaceContainer)
-                    : (usingTraslucent()
-                        ? darkColorScheme.surfaceContainer.withValues(alpha: 0.5)
-                        : darkColorScheme.surfaceContainer),
+                color: useTranslucentUi
+                    ? colorScheme.surfaceContainer.withValues(alpha: 0.5)
+                    : colorScheme.surfaceContainer,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -244,9 +200,7 @@ class InnerCard extends StatelessWidget {
                         margin: const EdgeInsets.fromLTRB(8, 2, 0, 2),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: getCurrentBrightness()
-                              ? (lightColorScheme.primary)
-                              : (darkColorScheme.primary),
+                          color: colorScheme.primary,
                         ),
                       ),
                     ),
@@ -258,9 +212,7 @@ class InnerCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
                           shape: BoxShape.rectangle,
-                          color: getCurrentBrightness()
-                              ? (lightColorScheme.outline)
-                              : (darkColorScheme.outline),
+                          color: colorScheme.outline,
                         ),
                       ),
                     ),

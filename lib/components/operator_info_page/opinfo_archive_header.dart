@@ -1,14 +1,13 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:network_to_file_image/network_to_file_image.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sagahelper/components/stored_image.dart';
 import 'package:sagahelper/core/global_data.dart';
+import 'package:sagahelper/models/config/local_data_manager.dart';
+import 'package:sagahelper/models/config/types.dart';
 import 'package:sagahelper/models/filters.dart';
 import 'package:sagahelper/models/operator.dart';
-import 'package:sagahelper/providers/settings_provider.dart';
+import 'package:sagahelper/providers/style_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
-import 'package:transparent_image/transparent_image.dart';
 
 class OpinfoArchiveHeader extends StatefulWidget {
   const OpinfoArchiveHeader({super.key, required this.operator, required this.relatedOps});
@@ -34,7 +33,11 @@ class _OpinfoArchiveHeaderState extends State<OpinfoArchiveHeader>
   late final Animation<Matrix4> _animationTransform = OpinfoArchiveHeader.photoTween
       .animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
-  late final Future<File> _logoFile;
+  /// my lazy ass didnt lowercased when uploading on the api again 😩
+  final Map<String, String> logoNameExceptions = {
+    "laterano": "Laterano",
+    "leithanien": "Leithanien",
+  };
 
   @override
   void initState() {
@@ -46,13 +49,6 @@ class _OpinfoArchiveHeaderState extends State<OpinfoArchiveHeader>
         }
       });
     });
-
-    String? logo = widget.operator.teamId ?? widget.operator.groupId ?? widget.operator.nationId;
-    if (logo == 'laterano' || logo == 'leithanien') {
-      logo = logo?.replaceFirst('l', 'L');
-    }
-
-    _logoFile = LocalDataManager.localCacheFile('logo/$logo.png', true);
   }
 
   @override
@@ -69,12 +65,8 @@ class _OpinfoArchiveHeaderState extends State<OpinfoArchiveHeader>
 
     final String ghAvatarLink = '$kAvatarRepo/${widget.operator.id}.png';
     String? logo = widget.operator.teamId ?? widget.operator.groupId ?? widget.operator.nationId;
-    if (logo == 'laterano' || logo == 'leithanien') {
-      logo = logo?.replaceFirst('l', 'L');
-    }
-    final String ghLogoLink = logo == 'laios' || logo == 'rainbow'
-        ? '$kLogoRepo/linkage/logo_$logo.png'
-        : '$kLogoRepo/logo_$logo.png';
+    if (logoNameExceptions.containsKey(logo)) logo = logoNameExceptions[logo];
+    final String ghLogoLink = '$kLogoRepo/logo_$logo.png'.githubEncode();
 
     return Container(
       padding: const EdgeInsets.all(16.0),
@@ -97,22 +89,13 @@ class _OpinfoArchiveHeaderState extends State<OpinfoArchiveHeader>
                         ),
                       ],
                     ),
-                    child: FutureBuilder(
-                      future: _logoFile,
-                      builder: (context, snapshot) {
-                        if (!snapshot.hasData) return const SizedBox.shrink();
-
-                        return FadeInImage(
-                          placeholder: MemoryImage(kTransparentImage),
-                          image: NetworkToFileImage(
-                            file: snapshot.data!,
-                            url: ghLogoLink,
-                            scale: 2.5,
-                          ),
-                          colorBlendMode: BlendMode.modulate,
-                          color: const Color.fromARGB(150, 255, 255, 255),
-                        );
-                      },
+                    child: StoredCustomImage(
+                      filename: '$logo.png',
+                      imageUrl: ghLogoLink,
+                      type: CacheType.operatorLogo,
+                      scale: 2.5,
+                      color: const Color.fromARGB(150, 255, 255, 255),
+                      colorBlendMode: BlendMode.modulate,
                     ),
                   ),
                 )
@@ -153,23 +136,19 @@ class _OpinfoArchiveHeaderState extends State<OpinfoArchiveHeader>
                                 ),
                                 color: const Color.fromARGB(255, 241, 241, 241),
                               ),
-                              child: StoredImage(
+                              child: StoredCustomImage(
                                 colorBlendMode: BlendMode.modulate,
                                 color: const Color.fromARGB(99, 255, 255, 255),
                                 scale: 0.9,
                                 fit: BoxFit.fitWidth,
-                                placeholder: Image.asset(
-                                  'assets/placeholders/avatar.png',
-                                  colorBlendMode: BlendMode.modulate,
-                                  color: Colors.transparent,
-                                  scale: 0.9,
-                                  fit: BoxFit.fitWidth,
-                                ),
+                                placeholderColorBlendMode: BlendMode.modulate,
+                                placeholderColor: Colors.transparent,
+                                placeholderFit: BoxFit.fitWidth,
+                                placeholder: const AssetImage('assets/placeholders/avatar.png'),
                                 imageUrl: ghAvatarLink,
-                                filePath:
-                                    'images/${widget.operator.id}_dl${DisplayList.avatar.index.toString()}.png',
-                                useSync: false,
-                                showProgress: false,
+                                type: CacheType.operatorAvatar,
+                                filename:
+                                    '${widget.operator.id}_dl${OperatorDisplayMode.avatar.index.toString()}.png',
                               ),
                             ),
                           ),
@@ -191,20 +170,19 @@ class _OpinfoArchiveHeaderState extends State<OpinfoArchiveHeader>
                               ),
                               color: const Color.fromARGB(255, 241, 241, 241),
                             ),
-                            child: StoredImage(
-                              heroTag: widget.operator.id,
-                              filePath:
-                                  'images/${widget.operator.id}_dl${DisplayList.avatar.index.toString()}.png',
-                              fit: BoxFit.fitWidth,
-                              placeholder: Image.asset(
-                                'assets/placeholders/avatar.png',
-                                colorBlendMode: BlendMode.modulate,
-                                color: Colors.transparent,
+                            child: Hero(
+                              tag: widget.operator.id,
+                              child: StoredCustomImage(
+                                filename:
+                                    '${widget.operator.id}_dl${OperatorDisplayMode.avatar.index.toString()}.png',
+                                imageUrl: ghAvatarLink,
+                                type: CacheType.operatorAvatar,
                                 fit: BoxFit.fitWidth,
+                                placeholder: const AssetImage('assets/placeholders/avatar.png'),
+                                placeholderColor: Colors.transparent,
+                                placeholderColorBlendMode: BlendMode.modulate,
+                                placeholderFit: BoxFit.fitWidth,
                               ),
-                              imageUrl: ghAvatarLink,
-                              useSync: true,
-                              showProgress: false,
                             ),
                           ),
                         ],
@@ -278,20 +256,23 @@ class _OpinfoArchiveHeaderState extends State<OpinfoArchiveHeader>
                     );
                   }
                   if (index == 2) {
-                    return ActionChip(
-                      label: Text(widget.operator.position.toLowerCase().capitalize()),
-                      side: BorderSide(
-                        color: widget.operator.position == 'RANGED'
-                            ? StaticColors.fromBrightness(context).yellow
-                            : StaticColors.fromBrightness(context).red,
-                      ),
-                      onPressed: () => Navigator.of(context).pop(
-                        FilterTag(
-                          id: "${FilterType.position.prefix}_${widget.operator.position.toLowerCase()}",
-                          key: widget.operator.position.toLowerCase(),
-                          type: FilterType.position,
-                        ),
-                      ),
+                    return Consumer(
+                      builder: (context, ref, child) {
+                        final style = ref.watch(styleProvider).colors;
+                        return ActionChip(
+                          label: Text(widget.operator.position.toLowerCase().capitalize()),
+                          side: BorderSide(
+                            color: widget.operator.position == 'RANGED' ? style.yellow : style.red,
+                          ),
+                          onPressed: () => Navigator.of(context).pop(
+                            FilterTag(
+                              id: "${FilterType.position.prefix}_${widget.operator.position.toLowerCase()}",
+                              key: widget.operator.position.toLowerCase(),
+                              type: FilterType.position,
+                            ),
+                          ),
+                        );
+                      },
                     );
                   }
                   return ActionChip(

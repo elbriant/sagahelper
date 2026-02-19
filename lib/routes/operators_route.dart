@@ -14,8 +14,6 @@ import 'package:sagahelper/providers/server_provider.dart';
 import 'package:sagahelper/providers/settings_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:sagahelper/providers/ui_provider.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/utils/extensions.dart';
 
@@ -494,8 +492,7 @@ class OperatorListView extends StatelessWidget {
           crossAxisCount: searchDelegate,
           childAspectRatio: opDisplay == DisplayList.portrait ? 0.54 : 1.0,
         ),
-        itemBuilder: (context, index) =>
-            OperatorContainer(index: index, operator: operators[index]),
+        itemBuilder: (context, index) => OperatorContainer(index: index, op: operators[index]),
       ),
     );
   }

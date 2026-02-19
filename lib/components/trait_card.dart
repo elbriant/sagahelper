@@ -1,13 +1,13 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:sagahelper/components/shimmer_loading_mask.dart';
-import 'package:sagahelper/providers/op_info_provider.dart';
+import 'package:sagahelper/providers/operator_context_provider.dart';
+import 'package:sagahelper/providers/style_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
 import 'package:styled_text/styled_text.dart';
 import 'package:sagahelper/models/operator.dart';
-import 'package:sagahelper/providers/style_provider.dart';
 
 String computeTraitText(input) {
   // [operator, elite]
@@ -30,7 +30,7 @@ String computeTraitText(input) {
   return result;
 }
 
-class TraitCard extends StatelessWidget {
+class TraitCard extends ConsumerWidget {
   const TraitCard({
     super.key,
     required this.operator,
@@ -38,8 +38,9 @@ class TraitCard extends StatelessWidget {
   final Operator operator;
 
   @override
-  Widget build(BuildContext context) {
-    final elite = context.select<OpInfoProvider, int>((p) => p.elite);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final elite = ref.watch(operatorContextProvider.select((p) => p.elite));
+    final tagsAsArknights = ref.watch(styleProvider).tagsAsArknights;
 
     return FutureBuilder(
       future: compute(computeTraitText, [operator, elite]),
@@ -73,7 +74,7 @@ class TraitCard extends StatelessWidget {
                   )
                 : StyledText(
                     text: snapshot.data!,
-                    tags: context.read<StyleProvider>().tagsAsArknights(context: context),
+                    tags: tagsAsArknights,
                     textAlign: TextAlign.start,
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onSecondaryContainer,

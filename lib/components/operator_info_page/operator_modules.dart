@@ -1,18 +1,19 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:developer';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:network_to_file_image/network_to_file_image.dart';
-import 'package:provider/provider.dart';
 import 'package:sagahelper/components/range_tile.dart';
 import 'package:sagahelper/components/shimmer_loading_mask.dart';
 import 'package:sagahelper/components/stat_tile.dart';
 import 'package:sagahelper/components/stored_image.dart';
 import 'package:sagahelper/components/styled_buttons.dart';
 import 'package:sagahelper/core/global_data.dart';
+import 'package:sagahelper/models/config/local_data_manager.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
-import 'package:sagahelper/providers/op_info_provider.dart';
+import 'package:sagahelper/providers/operator_context_provider.dart';
 import 'package:sagahelper/providers/style_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
 import 'package:styled_text/styled_text.dart';
@@ -79,7 +80,7 @@ List<List<int>> calculatePotsList(List<Map?> modulesStats) {
   return result;
 }
 
-class OperatorModules extends StatefulWidget {
+class OperatorModules extends ConsumerStatefulWidget {
   const OperatorModules({
     super.key,
     required this.operator,
@@ -88,14 +89,21 @@ class OperatorModules extends StatefulWidget {
   final Operator operator;
 
   @override
-  State<OperatorModules> createState() => _OperatorModulesState();
+  ConsumerState<OperatorModules> createState() => _OperatorModulesState();
 }
 
-class _OperatorModulesState extends State<OperatorModules> {
+class _OperatorModulesState extends ConsumerState<OperatorModules> {
   int currentModule = 0;
   int currentStage = 0;
   int? localPotential;
   bool dataLoaded = false;
+
+  /// because my lazy ass didnt put lowercase module names in sagapi 😭
+  static const Map<String, String> moduleNameExceptions = {
+    "trp-d": "TRP-D",
+    "rpr-y": "RPR-Y",
+    "pri-x": "PRI-X",
+  };
 
   late List<Map<String, dynamic>> modulesInfoList;
   late List<Map?> moduleStatList;
@@ -103,8 +111,8 @@ class _OperatorModulesState extends State<OperatorModules> {
   late List<List<int>> modPotsList;
 
   void getModuleData() async {
-    final modulesStatTable = context.read<CacheProvider>().cachedModStatsTable!;
-    final moduleInfoTable = context.read<CacheProvider>().cachedModInfoTable!;
+    final modulesStatTable = ref.read(cacheProvider).cachedModStatsTable!;
+    final moduleInfoTable = ref.read(cacheProvider).cachedModInfoTable!;
 
     modulesInfoList = await compute(calculateModulesInfo, [widget.operator, moduleInfoTable]);
     moduleStatList = await compute(calculateModulesStats, [modulesInfoList, modulesStatTable]);
@@ -127,18 +135,21 @@ class _OperatorModulesState extends State<OperatorModules> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final opInfo = ref.read(operatorContextProvider);
 
-    if (localPotential != context.read<OpInfoProvider>().potential && localPotential != null) {
+    if (localPotential != opInfo.potential && localPotential != null) {
       localPotential = null;
     }
   }
 
-  void calculateChanges() {
+  void calculateOperatorContextChanges() {
     Map<String, double> result = {};
     final Map? selectedModStats = moduleStatList[currentModule];
 
+    final opInfoNotifier = ref.read(operatorContextProvider.notifier);
+
     if (selectedModStats?["phases"][currentStage]["attributeBlackboard"] == null) {
-      context.read<OpInfoProvider>().setModAttrBuffs(result);
+      opInfoNotifier.setModAttrBuffs(result);
       return;
     }
 
@@ -157,7 +168,7 @@ class _OperatorModulesState extends State<OperatorModules> {
         ifAbsent: () => attribute['value'],
       );
     }
-    context.read<OpInfoProvider>().setModAttrBuffs(result);
+    opInfoNotifier.setModAttrBuffs(result);
   }
 
   String joinModName(Map mod) {
@@ -288,8 +299,8 @@ class _OperatorModulesState extends State<OperatorModules> {
                             text: subtitle,
                             style: TextStyle(
                               color: isAdding
-                                  ? StaticColors.fromBrightness(context).greenVariant
-                                  : StaticColors.fromBrightness(context).yellowVariant,
+                                  ? ref.read(styleProvider).colors.greenVariant
+                                  : ref.read(styleProvider).colors.yellowVariant,
                             ),
                           ),
                         ],
@@ -307,7 +318,7 @@ class _OperatorModulesState extends State<OperatorModules> {
                       width: double.maxFinite,
                       child: StyledText(
                         text: changedText.akRichTextParser(),
-                        tags: context.read<StyleProvider>().tagsAsArknights(context: context),
+                        tags: ref.read(styleProvider).tagsAsArknights,
                         textAlign: TextAlign.start,
                       ),
                     ),
@@ -353,16 +364,15 @@ class _OperatorModulesState extends State<OperatorModules> {
                     modulesInfoList[currentModule]["uniEquipDesc"],
                   ),
                   const SizedBox(height: 20),
-                  StoredImage(
+                  StoredCustomImage(
                     imageUrl:
                         '$kModImgRepo/${isAdvanced ? modulesInfoList[currentModule]["uniEquipIcon"] : 'default'}.png',
-                    filePath:
-                        'modart/${isAdvanced ? modulesInfoList[currentModule]["uniEquipIcon"] : 'default'}.png',
-                    placeholder: Image.asset(
-                      'assets/placeholders/module.png',
-                      colorBlendMode: BlendMode.modulate,
-                      color: Colors.transparent,
-                    ),
+                    filename:
+                        '${isAdvanced ? modulesInfoList[currentModule]["uniEquipIcon"] : 'default'}.png',
+                    type: CacheType.moduleArt,
+                    placeholder: const AssetImage('assets/placeholders/module.png'),
+                    placeholderColorBlendMode: BlendMode.modulate,
+                    placeholderColor: Colors.transparent,
                   ),
                 ],
               ),
@@ -384,7 +394,7 @@ class _OperatorModulesState extends State<OperatorModules> {
         localPotential = null;
       }
     });
-    calculateChanges();
+    calculateOperatorContextChanges();
   }
 
   void setStage(int stage) {
@@ -392,7 +402,7 @@ class _OperatorModulesState extends State<OperatorModules> {
     setState(() {
       currentStage = stage;
     });
-    calculateChanges();
+    calculateOperatorContextChanges();
   }
 
   void setPotential(int pot) {
@@ -400,13 +410,14 @@ class _OperatorModulesState extends State<OperatorModules> {
     setState(() {
       localPotential = pot;
     });
-    // calculateChanges();
+    // calculateOperatorContextChanges();
   }
 
   @override
   Widget build(BuildContext context) {
-    final currentElite = context.select<OpInfoProvider, int>((p) => p.elite);
-    final currentPotential = context.select<OpInfoProvider, int>((p) => p.potential);
+    final currentElite = ref.watch(operatorContextProvider.select((p) => p.elite));
+    final currentPotential = ref.watch(operatorContextProvider.select((p) => p.potential));
+    final tagsAsArknights = ref.watch(styleProvider.select((p) => p.tagsAsArknights));
 
     Widget child = const SizedBox.shrink();
 
@@ -414,7 +425,7 @@ class _OperatorModulesState extends State<OperatorModules> {
       child = StyledText(
         key: const Key('e2modules'),
         text: '<icon src="assets/sortIcon/lock.png"/> Module system unlocked at Elite 2',
-        tags: context.read<StyleProvider>().tagsAsArknights(context: context),
+        tags: tagsAsArknights,
       );
     } else if (!dataLoaded) {
       child = ShimmerLoadingMask(
@@ -492,10 +503,11 @@ class _OperatorModulesState extends State<OperatorModules> {
                               image: isThisAdvanced
                                   ? NetworkToFileImage(
                                       url:
-                                          '$kModIconRepo/${(modulesInfoList[index]["typeIcon"] as String).toLowerCase() == 'trp-d' ? 'TRP-D' : (modulesInfoList[index]["typeIcon"] as String).toLowerCase()}.png'
+                                          '$kModIconRepo/${moduleNameExceptions.containsKey((modulesInfoList[index]["typeIcon"] as String).toLowerCase()) ? moduleNameExceptions[(modulesInfoList[index]["typeIcon"] as String).toLowerCase()] : (modulesInfoList[index]["typeIcon"] as String).toLowerCase()}.png'
                                               .githubEncode(),
-                                      file: LocalDataManager.localCacheFileSync(
-                                        'modicon/${modulesInfoList[index]["typeIcon"]}.png',
+                                      file: LocalDataManager.localCacheFile(
+                                        '${modulesInfoList[index]["typeIcon"]}.png',
+                                        CacheType.moduleIcon,
                                       ),
                                     )
                                   : const AssetImage('assets/placeholders/original.png'),
@@ -551,10 +563,11 @@ class _OperatorModulesState extends State<OperatorModules> {
                         image: isAdvanced
                             ? NetworkToFileImage(
                                 url:
-                                    '$kModIconRepo/${modulesInfoList[currentModule]["typeIcon"] == 'trp-d' ? 'TRP-D' : modulesInfoList[currentModule]["typeIcon"]}.png'
+                                    '$kModIconRepo/${moduleNameExceptions.containsKey((modulesInfoList[currentModule]["typeIcon"] as String).toLowerCase()) ? moduleNameExceptions[(modulesInfoList[currentModule]["typeIcon"] as String).toLowerCase()] : (modulesInfoList[currentModule]["typeIcon"] as String).toLowerCase()}.png'
                                         .githubEncode(),
-                                file: LocalDataManager.localCacheFileSync(
-                                  'modicon/${modulesInfoList[currentModule]["typeIcon"]}.png',
+                                file: LocalDataManager.localCacheFile(
+                                  '${modulesInfoList[currentModule]["typeIcon"]}.png',
+                                  CacheType.moduleIcon,
                                 ),
                               )
                             : const AssetImage('assets/placeholders/original.png'),
@@ -664,21 +677,22 @@ class _OperatorModulesState extends State<OperatorModules> {
               height: 80,
               child: Stack(
                 children: [
-                  StoredImage(
+                  StoredCustomImage(
                     imageUrl:
                         '$kModImgRepo/${isAdvanced ? modulesInfoList[currentModule]["uniEquipIcon"] : 'default'}.png',
-                    filePath:
-                        'modart/${isAdvanced ? modulesInfoList[currentModule]["uniEquipIcon"] : 'default'}.png',
+                    filename:
+                        '${isAdvanced ? modulesInfoList[currentModule]["uniEquipIcon"] : 'default'}.png',
+                    type: CacheType.moduleArt,
                     fit: BoxFit.none,
                     width: double.maxFinite,
                     alignment: const Alignment(-0.8, 0),
                     scale: 3.0,
                     colorBlendMode: BlendMode.modulate,
                     color: const Color.fromARGB(129, 255, 255, 255),
-                    placeholder: Image.asset(
+                    placeholderColorBlendMode: BlendMode.modulate,
+                    placeholderColor: Colors.transparent,
+                    placeholder: const AssetImage(
                       'assets/placeholders/module.png',
-                      colorBlendMode: BlendMode.modulate,
-                      color: Colors.transparent,
                     ),
                   ),
                   Align(

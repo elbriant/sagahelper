@@ -1,47 +1,50 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:sagahelper/components/order_type_tile.dart';
+import 'package:sagahelper/components/operator_sorting_tile.dart';
+import 'package:sagahelper/models/config/config_manager.dart';
 import 'package:sagahelper/models/filters.dart';
-import 'package:sagahelper/providers/settings_provider.dart';
+import 'package:sagahelper/providers/config_provider.dart';
 
-class OpRouteFiltersSorting extends StatelessWidget {
+class OpRouteFiltersSorting extends ConsumerWidget {
   const OpRouteFiltersSorting({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final currentSortingType =
-        context.select<SettingsProvider, OrderType>((prov) => prov.sortingOrder);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentSortingType = ref.watch(configProvider.select((p) => p.operatorSortingType));
     final currentSortingReversed =
-        context.select<SettingsProvider, bool>((prov) => prov.sortingReversed);
+        ref.watch(configProvider.select((p) => p.useOperatorSortingReversed));
 
-    void changeSortingType(OrderType newOrder) {
+    void changeSortingType(OperatorSortingType newOrder) {
       if (currentSortingType == newOrder) {
-        context.read<SettingsProvider>().setSortingReverse(!currentSortingReversed);
+        ref
+            .read(configProvider.notifier)
+            .updateSettings(ConfigKeys.useOperatorSortingReversed, !currentSortingReversed);
         return;
       }
-      context.read<SettingsProvider>().setSortingType(newOrder);
-      context.read<SettingsProvider>().setSortingReverse(false);
+      ref.read(configProvider.notifier)
+        ..updateSettings(ConfigKeys.operatorSortingType, newOrder)
+        ..updateSettings(ConfigKeys.useOperatorSortingReversed, false);
     }
 
     return Wrap(
       children: [
-        OrderTypeTile(
+        OperatorSortingTile(
           label: 'Rarity',
-          orderType: OrderType.rarity,
+          operatorSorting: OperatorSortingType.rarity,
           callback: changeSortingType,
           currentSortingType: currentSortingType,
           currentSortingReversed: currentSortingReversed,
         ),
-        OrderTypeTile(
+        OperatorSortingTile(
           label: 'Alphabetical',
-          orderType: OrderType.alphabetical,
+          operatorSorting: OperatorSortingType.alphabetical,
           callback: changeSortingType,
           currentSortingType: currentSortingType,
           currentSortingReversed: currentSortingReversed,
         ),
-        OrderTypeTile(
+        OperatorSortingTile(
           label: 'Creation',
-          orderType: OrderType.creation,
+          operatorSorting: OperatorSortingType.creation,
           callback: changeSortingType,
           currentSortingType: currentSortingType,
           currentSortingReversed: currentSortingReversed,

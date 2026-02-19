@@ -21,7 +21,7 @@ class RangeTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final rangeGridsNotNull =
-        rangeGrids ?? ref.watch(cacheProvider).cachedRangeTable![rangeId]["grids"];
+        rangeGrids ?? ref.read(cacheProvider).cachedRangeTable![rangeId]["grids"];
 
     int maxRowPos = 0;
     int maxColPos = 0;
