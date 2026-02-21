@@ -1,0 +1,145 @@
+[
+  {
+    "level_": 0,
+    "message_": "Start JSON generation. Platform version: 24 min SDK version: arm64-v8a",
+    "file_": "C:\\dev\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\scripts\\CMakeLists.txt",
+    "tag_": "debug|arm64-v8a",
+    "diagnosticCode_": 0,
+    "memoizedIsInitialized": 1,
+    "unknownFields": {
+      "fields": {}
+    },
+    "memoizedSize": -1,
+    "memoizedHashCode": 0
+  },
+  {
+    "level_": 0,
+    "message_": "rebuilding JSON D:\\dev\\sagahelper\\android\\app\\.cxx\\debug\\6h666z3j\\arm64-v8a\\android_gradle_build.json due to:",
+    "file_": "C:\\dev\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\scripts\\CMakeLists.txt",
+    "tag_": "debug|arm64-v8a",
+    "diagnosticCode_": 0,
+    "memoizedIsInitialized": 1,
+    "unknownFields": {
+      "fields": {}
+    },
+    "memoizedSize": -1,
+    "memoizedHashCode": 0
+  },
+  {
+    "level_": 0,
+    "message_": "- no fingerprint file, will remove stale configuration folder",
+    "file_": "C:\\dev\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\scripts\\CMakeLists.txt",
+    "tag_": "debug|arm64-v8a",
+    "diagnosticCode_": 0,
+    "memoizedIsInitialized": 1,
+    "unknownFields": {
+      "fields": {}
+    },
+    "memoizedSize": -1,
+    "memoizedHashCode": 0
+  },
+  {
+    "level_": 0,
+    "message_": "removing stale contents from \u0027D:\\dev\\sagahelper\\android\\app\\.cxx\\debug\\6h666z3j\\arm64-v8a\u0027",
+    "file_": "C:\\dev\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\scripts\\CMakeLists.txt",
+    "tag_": "debug|arm64-v8a",
+    "diagnosticCode_": 0,
+    "memoizedIsInitialized": 1,
+    "unknownFields": {
+      "fields": {}
+    },
+    "memoizedSize": -1,
+    "memoizedHashCode": 0
+  },
+  {
+    "level_": 0,
+    "message_": "created folder \u0027D:\\dev\\sagahelper\\android\\app\\.cxx\\debug\\6h666z3j\\arm64-v8a\u0027",
+    "file_": "C:\\dev\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\scripts\\CMakeLists.txt",
+    "tag_": "debug|arm64-v8a",
+    "diagnosticCode_": 0,
+    "memoizedIsInitialized": 1,
+    "unknownFields": {
+      "fields": {}
+    },
+    "memoizedSize": -1,
+    "memoizedHashCode": 0
+  },
+  {
+    "level_": 0,
+    "message_": "executing cmake @echo off\n\"C:\\\\Users\\\\Vanitarium\\\\AppData\\\\Local\\\\Android\\\\sdk\\\\cmake\\\\3.22.1\\\\bin\\\\cmake.exe\" ^\n  \"-HC:\\\\dev\\\\flutter\\\\packages\\\\flutter_tools\\\\gradle\\\\src\\\\main\\\\scripts\" ^\n  \"-DCMAKE_SYSTEM_NAME\u003dAndroid\" ^\n  \"-DCMAKE_EXPORT_COMPILE_COMMANDS\u003dON\" ^\n  \"-DCMAKE_SYSTEM_VERSION\u003d24\" ^\n  \"-DANDROID_PLATFORM\u003dandroid-24\" ^\n  \"-DANDROID_ABI\u003darm64-v8a\" ^\n  \"-DCMAKE_ANDROID_ARCH_ABI\u003darm64-v8a\" ^\n  \"-DANDROID_NDK\u003dC:\\\\Users\\\\Vanitarium\\\\AppData\\\\Local\\\\Android\\\\sdk\\\\ndk\\\\27.0.12077973\" ^\n  \"-DCMAKE_ANDROID_NDK\u003dC:\\\\Users\\\\Vanitarium\\\\AppData\\\\Local\\\\Android\\\\sdk\\\\ndk\\\\27.0.12077973\" ^\n  \"-DCMAKE_TOOLCHAIN_FILE\u003dC:\\\\Users\\\\Vanitarium\\\\AppData\\\\Local\\\\Android\\\\sdk\\\\ndk\\\\27.0.12077973\\\\build\\\\cmake\\\\android.toolchain.cmake\" ^\n  \"-DCMAKE_MAKE_PROGRAM\u003dC:\\\\Users\\\\Vanitarium\\\\AppData\\\\Local\\\\Android\\\\sdk\\\\cmake\\\\3.22.1\\\\bin\\\\ninja.exe\" ^\n  \"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY\u003dD:\\\\dev\\\\sagahelper\\\\android\\\\app\\\\build\\\\intermediates\\\\cxx\\\\debug\\\\6h666z3j\\\\obj\\\\arm64-v8a\" ^\n  \"-DCMAKE_RUNTIME_OUTPUT_DIRECTORY\u003dD:\\\\dev\\\\sagahelper\\\\android\\\\app\\\\build\\\\intermediates\\\\cxx\\\\debug\\\\6h666z3j\\\\obj\\\\arm64-v8a\" ^\n  \"-BD:\\\\dev\\\\sagahelper\\\\android\\\\app\\\\.cxx\\\\debug\\\\6h666z3j\\\\arm64-v8a\" ^\n  -GNinja ^\n  -Wno-dev ^\n  --no-warn-unused-cli ^\n  \"-DCMAKE_BUILD_TYPE\u003ddebug\"\n",
+    "file_": "C:\\dev\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\scripts\\CMakeLists.txt",
+    "tag_": "debug|arm64-v8a",
+    "diagnosticCode_": 0,
+    "memoizedIsInitialized": 1,
+    "unknownFields": {
+      "fields": {}
+    },
+    "memoizedSize": -1,
+    "memoizedHashCode": 0
+  },
+  {
+    "level_": 0,
+    "message_": "@echo off\n\"C:\\\\Users\\\\Vanitarium\\\\AppData\\\\Local\\\\Android\\\\sdk\\\\cmake\\\\3.22.1\\\\bin\\\\cmake.exe\" ^\n  \"-HC:\\\\dev\\\\flutter\\\\packages\\\\flutter_tools\\\\gradle\\\\src\\\\main\\\\scripts\" ^\n  \"-DCMAKE_SYSTEM_NAME\u003dAndroid\" ^\n  \"-DCMAKE_EXPORT_COMPILE_COMMANDS\u003dON\" ^\n  \"-DCMAKE_SYSTEM_VERSION\u003d24\" ^\n  \"-DANDROID_PLATFORM\u003dandroid-24\" ^\n  \"-DANDROID_ABI\u003darm64-v8a\" ^\n  \"-DCMAKE_ANDROID_ARCH_ABI\u003darm64-v8a\" ^\n  \"-DANDROID_NDK\u003dC:\\\\Users\\\\Vanitarium\\\\AppData\\\\Local\\\\Android\\\\sdk\\\\ndk\\\\27.0.12077973\" ^\n  \"-DCMAKE_ANDROID_NDK\u003dC:\\\\Users\\\\Vanitarium\\\\AppData\\\\Local\\\\Android\\\\sdk\\\\ndk\\\\27.0.12077973\" ^\n  \"-DCMAKE_TOOLCHAIN_FILE\u003dC:\\\\Users\\\\Vanitarium\\\\AppData\\\\Local\\\\Android\\\\sdk\\\\ndk\\\\27.0.12077973\\\\build\\\\cmake\\\\android.toolchain.cmake\" ^\n  \"-DCMAKE_MAKE_PROGRAM\u003dC:\\\\Users\\\\Vanitarium\\\\AppData\\\\Local\\\\Android\\\\sdk\\\\cmake\\\\3.22.1\\\\bin\\\\ninja.exe\" ^\n  \"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY\u003dD:\\\\dev\\\\sagahelper\\\\android\\\\app\\\\build\\\\intermediates\\\\cxx\\\\debug\\\\6h666z3j\\\\obj\\\\arm64-v8a\" ^\n  \"-DCMAKE_RUNTIME_OUTPUT_DIRECTORY\u003dD:\\\\dev\\\\sagahelper\\\\android\\\\app\\\\build\\\\intermediates\\\\cxx\\\\debug\\\\6h666z3j\\\\obj\\\\arm64-v8a\" ^\n  \"-BD:\\\\dev\\\\sagahelper\\\\android\\\\app\\\\.cxx\\\\debug\\\\6h666z3j\\\\arm64-v8a\" ^\n  -GNinja ^\n  -Wno-dev ^\n  --no-warn-unused-cli ^\n  \"-DCMAKE_BUILD_TYPE\u003ddebug\"\n",
+    "file_": "C:\\dev\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\scripts\\CMakeLists.txt",
+    "tag_": "debug|arm64-v8a",
+    "diagnosticCode_": 0,
+    "memoizedIsInitialized": 1,
+    "unknownFields": {
+      "fields": {}
+    },
+    "memoizedSize": -1,
+    "memoizedHashCode": 0
+  },
+  {
+    "level_": 0,
+    "message_": "Received process result: 0",
+    "file_": "C:\\dev\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\scripts\\CMakeLists.txt",
+    "tag_": "debug|arm64-v8a",
+    "diagnosticCode_": 0,
+    "memoizedIsInitialized": 1,
+    "unknownFields": {
+      "fields": {}
+    },
+    "memoizedSize": -1,
+    "memoizedHashCode": 0
+  },
+  {
+    "level_": 0,
+    "message_": "D:\\dev\\sagahelper\\android\\app\\.cxx\\debug\\6h666z3j\\arm64-v8a\\compile_commands.json.bin existed but not D:\\dev\\sagahelper\\android\\app\\.cxx\\debug\\6h666z3j\\arm64-v8a\\compile_commands.json",
+    "file_": "C:\\dev\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\scripts\\CMakeLists.txt",
+    "tag_": "debug|arm64-v8a",
+    "diagnosticCode_": 0,
+    "memoizedIsInitialized": 1,
+    "unknownFields": {
+      "fields": {}
+    },
+    "memoizedSize": -1,
+    "memoizedHashCode": 0
+  },
+  {
+    "level_": 0,
+    "message_": "done executing cmake",
+    "file_": "C:\\dev\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\scripts\\CMakeLists.txt",
+    "tag_": "debug|arm64-v8a",
+    "diagnosticCode_": 0,
+    "memoizedIsInitialized": 1,
+    "unknownFields": {
+      "fields": {}
+    },
+    "memoizedSize": -1,
+    "memoizedHashCode": 0
+  },
+  {
+    "level_": 0,
+    "message_": "JSON generation completed without problems",
+    "file_": "C:\\dev\\flutter\\packages\\flutter_tools\\gradle\\src\\main\\scripts\\CMakeLists.txt",
+    "tag_": "debug|arm64-v8a",
+    "diagnosticCode_": 0,
+    "memoizedIsInitialized": 1,
+    "unknownFields": {
+      "fields": {}
+    },
+    "memoizedSize": -1,
+    "memoizedHashCode": 0
+  }
+]
