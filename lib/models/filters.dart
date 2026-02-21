@@ -45,6 +45,13 @@ enum FilterType {
   final String prefix;
 }
 
+enum CustomFilterTags {
+  hasModule('has_module');
+
+  const CustomFilterTags(this.tag);
+  final String tag;
+}
+
 enum FilterMode {
   whitelist,
   blacklist,

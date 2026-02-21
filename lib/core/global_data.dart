@@ -10,6 +10,8 @@ bool flagCheckForAppUpdates = false;
 
 // ------------- constants
 
+const String appVersion = "Beta 0.3.0";
+
 const Map<String, Map> credits = {
   "Kengxxiao - ArknightsGameData": {
     "assets": "Providing the raw game data",

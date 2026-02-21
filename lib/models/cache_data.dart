@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 
 import 'package:sagahelper/models/operator.dart';
-import 'package:sagahelper/providers/server_provider.dart';
+import 'package:sagahelper/models/server_state.dart';
 
 @immutable
 class CacheData {
   final List<Operator>? cachedListOperator;
-  final Server? cachedListOperatorServer;
-  final String? cachedListOperatorVersion;
+  final ServerState? cachedServer;
   final Map<String, dynamic>? cachedRangeTable;
   final Map<String, dynamic>? cachedSkillTable;
   final Map<String, dynamic>? cachedModInfoTable;
@@ -25,8 +24,7 @@ class CacheData {
   /// if you want to know if is cached last version/current server
   /// consider doing it with the other providers too
   bool get operatorDataCached => (cachedListOperator != null &&
-      cachedListOperatorServer != null &&
-      cachedListOperatorVersion != null &&
+      cachedServer != null &&
       cachedRangeTable != null &&
       cachedSkillTable != null &&
       cachedModInfoTable != null &&
@@ -41,8 +39,7 @@ class CacheData {
 
   const CacheData({
     this.cachedListOperator,
-    this.cachedListOperatorServer,
-    this.cachedListOperatorVersion,
+    this.cachedServer,
     this.cachedRangeTable,
     this.cachedSkillTable,
     this.cachedModInfoTable,
@@ -59,8 +56,7 @@ class CacheData {
 
   CacheData copyWith({
     List<Operator>? cachedListOperator,
-    Server? cachedListOperatorServer,
-    String? cachedListOperatorVersion,
+    ServerState? cachedServer,
     Map<String, dynamic>? cachedRangeTable,
     Map<String, dynamic>? cachedSkillTable,
     Map<String, dynamic>? cachedModInfoTable,
@@ -76,8 +72,7 @@ class CacheData {
   }) {
     return CacheData(
       cachedListOperator: cachedListOperator ?? this.cachedListOperator,
-      cachedListOperatorServer: cachedListOperatorServer ?? this.cachedListOperatorServer,
-      cachedListOperatorVersion: cachedListOperatorVersion ?? this.cachedListOperatorVersion,
+      cachedServer: cachedServer ?? this.cachedServer,
       cachedRangeTable: cachedRangeTable ?? this.cachedRangeTable,
       cachedSkillTable: cachedSkillTable ?? this.cachedSkillTable,
       cachedModInfoTable: cachedModInfoTable ?? this.cachedModInfoTable,

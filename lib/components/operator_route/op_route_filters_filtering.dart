@@ -141,10 +141,13 @@ class OpRouteFiltersFiltering extends ConsumerWidget {
     final List<FilterChip> extraFilters = [
       FilterChip(
         label: const Text('Has module'),
-        selected: currentFilters.containsKey('${FilterType.extra.prefix}_has_module'),
-        avatar: currentFilters.containsKey('${FilterType.extra.prefix}_has_module')
+        selected: currentFilters
+            .containsKey('${FilterType.extra.prefix}_${CustomFilterTags.hasModule.tag}'),
+        avatar: currentFilters
+                .containsKey('${FilterType.extra.prefix}_${CustomFilterTags.hasModule.tag}')
             ? Icon(
-                currentFilters['${FilterType.extra.prefix}_has_module']!.mode ==
+                currentFilters['${FilterType.extra.prefix}_${CustomFilterTags.hasModule.tag}']!
+                            .mode ==
                         FilterMode.whitelist
                     ? Icons.check
                     : Icons.block,
@@ -152,8 +155,8 @@ class OpRouteFiltersFiltering extends ConsumerWidget {
             : null,
         onSelected: (_) => ref.read(operatorSearchProvider.notifier).toggleOperatorFilter(
               FilterTag(
-                id: '${FilterType.extra.prefix}_has_module',
-                key: 'has_module',
+                id: '${FilterType.extra.prefix}_${CustomFilterTags.hasModule.tag}',
+                key: CustomFilterTags.hasModule.tag,
                 type: FilterType.extra,
               ),
             ),

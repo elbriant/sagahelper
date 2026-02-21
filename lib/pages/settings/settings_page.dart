@@ -1,45 +1,43 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
-import 'package:sagahelper/core/global_data.dart';
-import 'package:sagahelper/providers/settings_provider.dart';
-import 'package:sagahelper/providers/ui_provider.dart';
+import 'package:sagahelper/models/config/config_manager.dart';
+import 'package:sagahelper/providers/config_provider.dart';
 
-class SettingsSettings extends StatefulWidget {
+class SettingsSettings extends ConsumerStatefulWidget {
   const SettingsSettings({super.key});
 
   @override
-  State<SettingsSettings> createState() => _SettingsSettingsState();
+  ConsumerState<SettingsSettings> createState() => _SettingsSettingsState();
 }
 
-class _SettingsSettingsState extends State<SettingsSettings> {
+class _SettingsSettingsState extends ConsumerState<SettingsSettings> {
   late final TextEditingController nicknameTextController;
-  String nicknameControllerText = '';
+  String editedNickname = '';
 
   @override
   void initState() {
     super.initState();
+    final nickname = ref.read(configProvider).nickname;
     nicknameTextController = TextEditingController(
-      text: NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().nickname,
+      text: nickname,
     );
-    nicknameControllerText =
-        NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().nickname ?? '';
+    editedNickname = nickname ?? '';
     nicknameTextController.addListener(() {
       setState(() {
-        nicknameControllerText = nicknameTextController.text;
+        editedNickname = nicknameTextController.text;
       });
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final String nickname = context.select<SettingsProvider, String?>((p) => p.nickname) ?? '';
+    final String nickname = ref.watch(configProvider.select((p) => p.nickname)) ?? '';
+    final translucent = ref.watch(configProvider.select((p) => p.useTranslucentUi));
 
     void changeNickname() {
-      context
-          .read<SettingsProvider>()
-          .changeNickname(nicknameControllerText == '' ? null : nicknameControllerText);
+      ref.read(configProvider.notifier).updateSettings(ConfigKeys.nickname, editedNickname);
     }
 
     return Scaffold(
@@ -47,15 +45,14 @@ class _SettingsSettingsState extends State<SettingsSettings> {
       extendBody: true,
       bottomNavigationBar: const SystemNavBar(),
       appBar: AppBar(
-        flexibleSpace: context.read<UiProvider>().useTranslucentUi
-            ? TranslucentWidget(
-                sigma: 3,
-                child: Container(color: Colors.transparent),
-              )
-            : null,
-        backgroundColor: context.read<UiProvider>().useTranslucentUi
-            ? Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.5)
-            : null,
+        flexibleSpace: ConditionalTranslucentWidget(
+          conditional: translucent,
+          child: Container(
+            color: translucent ? Colors.transparent : null,
+          ),
+        ),
+        backgroundColor:
+            Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: translucent ? 0.5 : 1),
         title: const Text('Settings'),
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
@@ -95,13 +92,13 @@ class _SettingsSettingsState extends State<SettingsSettings> {
                       border: const OutlineInputBorder(),
                     ),
                     maxLength: 12,
-                    onSubmitted: (_) => changeNickname(),
+                    onSubmitted: nickname != editedNickname ? (_) => changeNickname() : null,
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16.0),
                   child: IconButton(
-                    onPressed: nickname != nicknameControllerText ? changeNickname : null,
+                    onPressed: nickname != editedNickname ? changeNickname : null,
                     icon: const Icon(Icons.save),
                   ),
                 ),

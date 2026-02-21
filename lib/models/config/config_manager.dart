@@ -6,30 +6,56 @@ import 'package:sagahelper/models/filters.dart' show OperatorSortingType;
 import 'package:sagahelper/providers/server_provider.dart' show Server;
 import 'package:shared_preferences/shared_preferences.dart';
 
-bool isSaveableType(Type type) {
-  return type is Enum;
-}
-
 enum ConfigKeys {
+  /// Can save either [int] or [Enum]
   currentServer('currentServerIndex'),
+
+  /// Save [bool]
   homeHour12Format('homeHour12Format'),
+
+  /// Save [bool]
   homeShowDate('homeShowDate'),
+
+  /// Save [bool]
   homeShowSeconds('homeShowSeconds'),
+
+  /// Save [bool]
   homeCompactMode('homeCompactMode'),
+
+  /// Save [String]
   nickname('nickname'),
 
+  /// Save [int]
   operatorSearchDelegate('operatorSearchDelegate'),
+
+  /// Can save either [int] or [Enum]
   operatorDisplayMode('operatorDisplayModeIndex'),
+
+  /// Can save either [int] or [Enum]
   operatorSortingType('operatorSortingTypeIndex'),
+
+  /// Save [bool]
   useOperatorSortingReversed('useOperatorSortingReversed'),
 
+  /// Save index [int]
   customTheme('customThemeIndex'),
+
+  /// Can save either [int] or [Enum]
   themeMode('themeModeIndex'),
+
+  /// Save [bool]
   usePureDarkTheme('usePureDarkTheme'),
+
+  /// Save [bool]
   useTranslucentUi('useTranslucentUi'),
+
+  /// Save [bool]
   useClassicDialogBox('useClassicDialogBox'),
 
+  /// Save [bool]
   opInfoMenuShowAdvanced('opInfo_menuShowAdvanced'),
+
+  /// Save [bool]
   homeNotificationRequestAccepted('home_NotificationRequestAccepted');
 
   final String key;
@@ -43,13 +69,15 @@ class ConfigManager {
   const ConfigManager(this._prefs);
 
   PersistentSettings loadSettings() {
+    final settingNickname = _prefs.getString(ConfigKeys.nickname.key);
+
     return PersistentSettings(
       currentServer: Server.values[_prefs.getInt(ConfigKeys.currentServer.key) ?? Server.en.index],
       homeCompactMode: _prefs.getBool(ConfigKeys.homeCompactMode.key) ?? false,
       homeHour12Format: _prefs.getBool(ConfigKeys.homeHour12Format.key) ?? false,
       homeShowDate: _prefs.getBool(ConfigKeys.homeShowDate.key) ?? true,
       homeShowSeconds: _prefs.getBool(ConfigKeys.homeShowSeconds.key) ?? false,
-      nickname: _prefs.getString(ConfigKeys.nickname.key),
+      nickname: settingNickname == '' ? null : settingNickname,
       operatorDisplayMode: OperatorDisplayMode.values[
           _prefs.getInt(ConfigKeys.operatorDisplayMode.key) ?? OperatorDisplayMode.avatar.index],
       operatorSearchDelegate: _prefs.getInt(ConfigKeys.operatorSearchDelegate.key) ?? 4,
@@ -69,8 +97,8 @@ class ConfigManager {
     );
   }
 
-  Future<void> saveSetting<T>(ConfigKeys config, T value) async {
-    switch (T) {
+  Future<void> saveSetting(ConfigKeys config, Object value) async {
+    switch (value.runtimeType) {
       case const (Enum):
         return await _prefs.setInt(config.key, (value as Enum).index);
       case const (int):
@@ -84,7 +112,7 @@ class ConfigManager {
       case const (List<String>):
         return await _prefs.setStringList(config.key, value as List<String>);
       default:
-        throw ArgumentError('Tipo no soportado para SharedPreferences: $T');
+        throw ArgumentError('Tipo no soportado para SharedPreferences: ${value.runtimeType}');
     }
   }
 }

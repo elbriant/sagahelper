@@ -1,65 +1,39 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 // -------------------- Appearance Settings Page ------------------------------
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:sagahelper/components/dialog_box.dart';
 import 'package:sagahelper/components/theme_preview.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
-import 'package:sagahelper/providers/settings_provider.dart';
-import 'package:sagahelper/providers/ui_provider.dart';
 import 'package:sagahelper/core/themes.dart';
+import 'package:sagahelper/models/config/config_manager.dart';
+import 'package:sagahelper/providers/config_provider.dart';
 
-class AppearanceSettings extends StatefulWidget {
+class AppearanceSettings extends ConsumerWidget {
   const AppearanceSettings({super.key});
 
-  @override
-  State<AppearanceSettings> createState() => _AppearanceSettingsState();
-}
-
-class _AppearanceSettingsState extends State<AppearanceSettings> {
-  void changeThemeWithIndex(int index) {
-    if (context.read<UiProvider>().previewThemeIndexSelected == index) return;
-    setState(() {
-      context.read<UiProvider>().previewThemeSelected(index);
-      context.read<UiProvider>().changeTheme(newTheme: allCustomThemesList[index]);
-    });
-  }
-
-  void pureDarkChange(bool newState) {
-    setState(() {
-      context.read<UiProvider>().togglePureDark(newState);
-    });
-  }
-
-  void traslucentChange(bool newState) {
-    setState(() {
-      context.read<UiProvider>().toggleTraslucentUi(newState);
-    });
-  }
-
-  void changeHourFormat(bool newState) {
-    setState(() {
-      context.read<SettingsProvider>().setHourFormat(newState);
-    });
+  void updateSetting(WidgetRef ref, ConfigKeys key, Object value) {
+    ref.read(configProvider.notifier).updateSettings(key, value);
   }
 
   @override
-  Widget build(BuildContext context) {
-    final settings = context.watch<SettingsProvider>();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final config = ref.watch(configProvider);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
       extendBody: true,
       bottomNavigationBar: const SystemNavBar(),
       appBar: AppBar(
-        flexibleSpace: context.read<UiProvider>().useTranslucentUi == true
-            ? TranslucentWidget(
-                sigma: 3,
-                child: Container(color: Colors.transparent),
-              )
-            : null,
-        backgroundColor: context.read<UiProvider>().useTranslucentUi == true
-            ? Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.5)
-            : null,
+        flexibleSpace: ConditionalTranslucentWidget(
+          conditional: config.useTranslucentUi,
+          child: Container(
+            color: config.useTranslucentUi ? Colors.transparent : null,
+          ),
+        ),
+        backgroundColor: Theme.of(context)
+            .colorScheme
+            .surfaceContainer
+            .withValues(alpha: config.useTranslucentUi ? 0.5 : 1),
         title: const Text('Appearance'),
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
@@ -96,11 +70,10 @@ class _AppearanceSettingsState extends State<AppearanceSettings> {
                     ),
                   ],
                   selected: {
-                    context.read<UiProvider>().themeMode,
+                    config.themeMode,
                   },
-                  onSelectionChanged: (newSelection) => setState(() {
-                    context.read<UiProvider>().setThemeMode(newThemeMode: newSelection.first);
-                  }),
+                  onSelectionChanged: (newSelection) =>
+                      updateSetting(ref, ConfigKeys.themeMode, newSelection.first),
                 ),
                 Container(
                   margin: const EdgeInsets.fromLTRB(20, 30, 20, 10),
@@ -109,28 +82,25 @@ class _AppearanceSettingsState extends State<AppearanceSettings> {
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     children: List<ThemePreview>.generate(
-                      allCustomThemesList.length,
+                      allCustomThemes.length,
                       (index) => ThemePreview(
                         selfIndex: index,
-                        thisSelected:
-                            context.watch<UiProvider>().previewThemeIndexSelected == index,
-                        previewedTheme: allCustomThemesList[index],
+                        thisSelected: config.customThemeIndex == index,
+                        previewedTheme: allCustomThemes[index],
                         inkWellChild: InkWell(
-                          splashColor: Theme.of(context).brightness == Brightness.light
-                              ? (allCustomThemesList[index].colorLight.splashColor)
-                              : (allCustomThemesList[index]
-                                  .getDarkMode(
-                                    context.read<UiProvider>().isUsingPureDark,
-                                  )
-                                  .splashColor),
-                          highlightColor: Theme.of(context).brightness == Brightness.light
-                              ? (allCustomThemesList[index].colorLight.highlightColor)
-                              : (allCustomThemesList[index]
-                                  .getDarkMode(
-                                    context.read<UiProvider>().isUsingPureDark,
-                                  )
-                                  .highlightColor),
-                          onTap: () => changeThemeWithIndex(index),
+                          splashColor: allCustomThemes[index]
+                              .fromBrightnessAndPureDark(
+                                Theme.of(context).brightness,
+                                config.usePureDarkTheme,
+                              )
+                              .splashColor,
+                          highlightColor: allCustomThemes[index]
+                              .fromBrightnessAndPureDark(
+                                Theme.of(context).brightness,
+                                config.usePureDarkTheme,
+                              )
+                              .highlightColor,
+                          onTap: () => updateSetting(ref, ConfigKeys.customTheme, index),
                         ),
                       ),
                     ),
@@ -139,26 +109,25 @@ class _AppearanceSettingsState extends State<AppearanceSettings> {
               ],
             ),
           ),
-          if (context.watch<UiProvider>().themeMode != ThemeMode.light)
+          if (config.themeMode != ThemeMode.light)
             SwitchListTile(
-              secondary: context.read<UiProvider>().isUsingPureDark
+              secondary: config.usePureDarkTheme
                   ? const Icon(Icons.remove_red_eye)
                   : const Icon(Icons.remove_red_eye_outlined),
               subtitle: const Text('makes everything more darker'),
               title: const Text('Pure dark mode'),
-              value: context.read<UiProvider>().isUsingPureDark,
-              onChanged: (state) => pureDarkChange(state),
+              value: config.usePureDarkTheme,
+              onChanged: (state) => updateSetting(ref, ConfigKeys.usePureDarkTheme, state),
             ),
           SwitchListTile(
-            secondary: context.read<UiProvider>().useTranslucentUi
-                ? const Icon(Icons.blur_on)
-                : const Icon(Icons.blur_off),
+            secondary:
+                config.useTranslucentUi ? const Icon(Icons.blur_on) : const Icon(Icons.blur_off),
             subtitle: const Text(
               'makes UI transparent and blurry (performance cost!)',
             ),
             title: const Text('Traslucent UI'),
-            value: context.read<UiProvider>().useTranslucentUi,
-            onChanged: (state) => traslucentChange(state),
+            value: config.useTranslucentUi,
+            onChanged: (state) => updateSetting(ref, ConfigKeys.useTranslucentUi, state),
           ),
           ListTile(
             title: const Text('Home settings'),
@@ -167,32 +136,24 @@ class _AppearanceSettingsState extends State<AppearanceSettings> {
           SwitchListTile(
             secondary: const Icon(Icons.access_time),
             title: const Text('12-hour format'),
-            value: settings.homeHour12Format,
-            onChanged: (state) => setState(() {
-              context.read<SettingsProvider>().setHourFormat(state);
-            }),
+            value: config.homeHour12Format,
+            onChanged: (state) => updateSetting(ref, ConfigKeys.homeHour12Format, state),
           ),
           SwitchListTile(
             secondary: const Icon(Icons.date_range),
             title: const Text('Show server date'),
-            value: settings.homeShowDate,
-            onChanged: (state) => setState(() {
-              context.read<SettingsProvider>().sethomeShowDate(state);
-            }),
+            value: config.homeShowDate,
+            onChanged: (state) => updateSetting(ref, ConfigKeys.homeShowDate, state),
           ),
           SwitchListTile(
             title: const Text('Show seconds'),
-            value: settings.homeShowSeconds,
-            onChanged: (state) => setState(() {
-              context.read<SettingsProvider>().sethomeShowSeconds(state);
-            }),
+            value: config.homeShowSeconds,
+            onChanged: (state) => updateSetting(ref, ConfigKeys.homeShowSeconds, state),
           ),
           SwitchListTile(
             title: const Text('Compact mode'),
-            value: settings.homeCompactMode,
-            onChanged: (state) => setState(() {
-              context.read<SettingsProvider>().sethomeCompactMode(state);
-            }),
+            value: config.homeCompactMode,
+            onChanged: (state) => updateSetting(ref, ConfigKeys.homeCompactMode, state),
           ),
           ListTile(
             title: const Text('Display'),
@@ -200,8 +161,8 @@ class _AppearanceSettingsState extends State<AppearanceSettings> {
           ),
           SwitchListTile(
             title: const Text('Classic dialog box color'),
-            value: !context.select<UiProvider, bool>((p) => p.combineWithTheme),
-            onChanged: (state) => context.read<UiProvider>().setCombineWithTheme(!state),
+            value: config.useClassicDialogBox,
+            onChanged: (state) => updateSetting(ref, ConfigKeys.useClassicDialogBox, state),
           ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 16.0),

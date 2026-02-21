@@ -61,8 +61,7 @@ String yostarrepo(String server) =>
 const String chServerlink =
     'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/refs/heads/master/zh_CN/gamedata';
 
-final serverProvider =
-    AsyncNotifierProvider.autoDispose.family<ServerNotifier, ServerState, Server>(
+final serverProvider = NotifierProvider.autoDispose.family<ServerNotifier, ServerState, Server>(
   ServerNotifier.new,
 );
 
@@ -73,38 +72,36 @@ final currentServerNotifierProvider = Provider<ServerNotifier>((ref) {
 });
 
 /// Provider que expone el estado del servidor actual
-final currentServerStateProvider = Provider<AsyncValue<ServerState>>((ref) {
+final currentServerStateProvider = Provider<ServerState>((ref) {
   final currentServer = ref.watch(configProvider.select((p) => p.currentServer));
   return ref.watch(serverProvider(currentServer));
 });
 
-class ServerNotifier extends AsyncNotifier<ServerState> {
+class ServerNotifier extends Notifier<ServerState> {
   String get serverlink =>
       switch (server) { Server.cn => chServerlink, _ => yostarrepo(server.repoString) };
 
   ServerNotifier(this.server);
   final Server server;
+  late final String serverLocalPath;
 
   @override
   ServerState build() {
-    final prefs = ref.watch(sharedPreferencesProvider);
+    final prefs = ref.read(sharedPreferencesProvider);
+    serverLocalPath = LocalDataManager.localpathServer(server);
 
-    return ServerState(version: prefs.getString(server.key));
+    return ServerState(server: server, version: prefs.getString(server.key));
   }
 
+  /// sets the version [String] to the provided server
   Future<void> setVersion(String? version) async {
-    final prefs = ref.watch(sharedPreferencesProvider);
+    final prefs = ref.read(sharedPreferencesProvider);
     await prefs.setString(server.key, version ?? '');
-
-    final prevState = await future;
-
-    state = AsyncData(prevState.copyWith(version: version));
+    state = state.copyWith(version: version);
   }
 
   /// [filePaths] null means all files
   Future<bool> existFiles([List<String>? filesPaths]) async {
-    String serverLocalPath = LocalDataManager.localpathServer(server);
-
     for (var file in (filesPaths ?? kFiles)) {
       bool fileExist = await File(p.join(serverLocalPath, file)).exists();
 
@@ -116,13 +113,13 @@ class ServerNotifier extends AsyncNotifier<ServerState> {
     return true;
   }
 
+  /// returns the future string of a certain server file (downloaded)
   Future<String> getFile(String filepath) async {
-    String serverLocalPath = LocalDataManager.localpathServer(server);
-    return File(p.join(serverLocalPath, filepath)).readAsString();
+    return await File(p.join(serverLocalPath, filepath)).readAsString();
   }
 
+  /// safer version of getFile
   Future<String?> tryGetFile(String filepath) async {
-    String serverLocalPath = LocalDataManager.localpathServer(server);
     if ((await File(p.join(serverLocalPath, filepath)).exists())) {
       return await File(p.join(serverLocalPath, filepath)).readAsString();
     } else {
@@ -130,6 +127,8 @@ class ServerNotifier extends AsyncNotifier<ServerState> {
     }
   }
 
+  /// fetch last data version available for the provided server
+  /// returns [String] version
   Future<String> fetchLastestVersion() async {
     final response = await http.get(Uri.parse('$serverlink/excel/data_version.txt'));
 
@@ -151,53 +150,45 @@ class ServerNotifier extends AsyncNotifier<ServerState> {
     }
   }
 
-  Future<void> checkUpdate() async {
-    final prevState = await future;
-    state = AsyncValue.data(
-      prevState.copyWith(state: DataState.fetching),
-    );
+  /// checks either if theres new version of the provided server
+  /// or if theres a problem with any of the server files
+  /// updates the folder size too
+  /// check the dataState to know
+  Future<void> refresh() async {
+    state = state.copyWith(state: DataState.fetching);
 
     try {
+      updateFolderSize();
       final updateString = await fetchLastestVersion();
       final hasAllFiles = await existFiles();
-      if (updateString != (prevState.version ?? '') || !hasAllFiles) {
-        state = AsyncValue.data(
-          prevState.copyWith(
-            state: DataState.hasUpdate,
-          ),
+      if (updateString != (state.version ?? '') || !hasAllFiles) {
+        state = state.copyWith(
+          state: DataState.hasUpdate,
         );
       } else {
-        state = AsyncValue.data(
-          prevState.copyWith(
-            state: DataState.upToDate,
-          ),
+        state = state.copyWith(
+          state: DataState.upToDate,
         );
       }
     } catch (_) {
-      state = AsyncValue.data(
-        prevState.copyWith(
-          state: DataState.error,
-        ),
+      state = state.copyWith(
+        state: DataState.error,
       );
     }
   }
 
+  /// updates the folder size of the provided server
   Future<void> updateFolderSize() async {
-    String serverLocalPath = LocalDataManager.localpathServer(server);
-
     String serverSize = await DirStat.getDirStat(serverLocalPath).then((dirStat) {
       return dirStat.totalSizeString;
     });
 
-    final prevState = await future;
-
-    state = AsyncData(
-      prevState.copyWith(
-        folderSize: (serverSize != '0 B') ? serverSize : null,
-      ),
+    state = state.copyWith(
+      folderSize: (serverSize != '0 B') ? serverSize : null,
     );
   }
 
+  /// verifies if all files are alright and sets the version to the given version
   void verifyDownloadedLastest(String version) async {
     final result = await existFiles();
 
@@ -219,14 +210,12 @@ class ServerNotifier extends AsyncNotifier<ServerState> {
       }
     */
 
-    final prevState = await future;
-    state = AsyncData(
-      prevState.copyWith(
-        state: DataState.upToDate,
-      ),
+    state = state.copyWith(
+      state: DataState.upToDate,
     );
   }
 
+  /// deletes and tries to download the last version
   Future<void> downloadLastest() async {
     /* TODO: tasker
     if (NavigationService.navigatorKey.currentContext!.mounted) {
@@ -239,14 +228,9 @@ class ServerNotifier extends AsyncNotifier<ServerState> {
     }
     */
 
-    final prevState = await future;
-    state = AsyncData(
-      prevState.copyWith(
-        state: DataState.downloading,
-      ),
+    state = state.copyWith(
+      state: DataState.downloading,
     );
-
-    String serverLocalPath = LocalDataManager.localpathServer(server);
 
     for (var file in kFiles) {
       bool fileExist = await File('$serverLocalPath$file').exists();
@@ -307,14 +291,15 @@ class ServerNotifier extends AsyncNotifier<ServerState> {
     }
   }
 
+  /// deletes all files related to this server
   Future<void> deleteServer() async {
-    String serverLocalPath = LocalDataManager.localpathServer(server);
-
     if (await Directory(serverLocalPath).exists()) {
       await Directory(serverLocalPath).delete(recursive: true);
     }
-    await updateFolderSize();
+    updateFolderSize();
     // no version
     await setVersion(null);
+
+    state = state.copyWith(state: DataState.unknown);
   }
 }

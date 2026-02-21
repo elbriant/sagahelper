@@ -1,27 +1,29 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
 import 'package:sagahelper/components/custom_tabbar.dart';
 import 'package:sagahelper/components/shimmer.dart';
 import 'package:sagahelper/components/shimmer_loading_mask.dart';
 import 'package:sagahelper/components/stored_image.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/core/global_data.dart';
+import 'package:sagahelper/models/config/local_data_manager.dart';
+import 'package:sagahelper/models/config/types.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/pages/operator/archive_page.dart';
 import 'package:sagahelper/pages/operator/art_page.dart';
 import 'package:sagahelper/pages/operator/voice_page.dart';
-import 'package:sagahelper/providers/settings_provider.dart';
-import 'package:sagahelper/providers/ui_provider.dart';
+import 'package:sagahelper/providers/config_provider.dart';
 
 Future<Widget> buildOperatorInfo(operator) async {
   await Future.delayed(const Duration(milliseconds: 300));
   return OperatorInfo(
-    key: const Key('Ops2'),
+    key: Key('${operator.id}completed'),
     operator: operator,
   );
 }
 
+/// This is done so the hero from the operator avatar gets completed without lagging due to heavy operations made
+/// loading the widgets, useless i know, my app my rules
 class OperatorInfoSkeletonPage extends StatelessWidget {
   final Operator operator;
   const OperatorInfoSkeletonPage({
@@ -60,6 +62,7 @@ class OperatorInfoSkeletonPage extends StatelessWidget {
             child: snapshot.hasData
                 ? snapshot.data!
                 : OperatorInfoPlaceholder(
+                    key: Key('${operator.id}unfinished'),
                     operator: operator,
                   ),
           );
@@ -69,7 +72,7 @@ class OperatorInfoSkeletonPage extends StatelessWidget {
   }
 }
 
-class OperatorInfo extends StatelessWidget {
+class OperatorInfo extends ConsumerWidget {
   const OperatorInfo({
     super.key,
     required this.operator,
@@ -77,8 +80,8 @@ class OperatorInfo extends StatelessWidget {
   final Operator operator;
 
   @override
-  Widget build(BuildContext context) {
-    final transparent = context.read<UiProvider>().useTranslucentUi;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final translucent = ref.watch(configProvider.select((p) => p.useTranslucentUi));
 
     List<Tab> tabs = <Tab>[
       const Tab(text: 'Archive', icon: Icon(Icons.file_present)),
@@ -100,46 +103,41 @@ class OperatorInfo extends StatelessWidget {
         ),
         bottomNavigationBar: CustomTabBar(
           tabs: tabs,
-          isTransparent: transparent,
+          isTransparent: translucent,
         ),
       ),
     );
   }
 }
 
-class OperatorInfoPlaceholder extends StatelessWidget {
+class OperatorInfoPlaceholder extends ConsumerWidget {
   final Operator operator;
   const OperatorInfoPlaceholder({super.key, required this.operator});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final translucent = ref.watch(configProvider.select((p) => p.useTranslucentUi));
+
     return Scaffold(
       extendBody: true,
       body: CustomScrollView(
         slivers: [
           SliverAppBar.medium(
-            flexibleSpace: context.read<UiProvider>().useTranslucentUi == true
-                ? TranslucentWidget(
-                    child: FlexibleSpaceBar(
-                      title: Text(operator.name),
-                      titlePadding: const EdgeInsets.only(
-                        left: 72.0,
-                        bottom: 16.0,
-                        right: 32.0,
-                      ),
-                    ),
-                  )
-                : FlexibleSpaceBar(
-                    title: Text(operator.name),
-                    titlePadding: const EdgeInsets.only(
-                      left: 72.0,
-                      bottom: 16.0,
-                      right: 32.0,
-                    ),
-                  ),
-            backgroundColor: context.read<UiProvider>().useTranslucentUi == true
-                ? Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.5)
-                : null,
+            flexibleSpace: ConditionalTranslucentWidget(
+              conditional: translucent,
+              child: FlexibleSpaceBar(
+                title: Text(operator.name),
+                titlePadding: const EdgeInsets.only(
+                  left: 72.0,
+                  bottom: 16.0,
+                  right: 32.0,
+                ),
+              ),
+            ),
+            backgroundColor: Theme.of(context)
+                .colorScheme
+                .surfaceContainer
+                .withValues(alpha: translucent ? 0 : 0.5),
             leading: IconButton(
               icon: const Icon(Icons.arrow_back),
               onPressed: () => Navigator.pop(context),
@@ -189,21 +187,21 @@ class OperatorInfoPlaceholder extends StatelessWidget {
                                 ),
                                 color: const Color.fromARGB(255, 241, 241, 241),
                               ),
-                              child: StoredImage(
-                                heroTag: operator.id,
-                                filePath:
-                                    'images/${operator.id}_dl${DisplayList.avatar.index.toString()}.png',
-                                fit: BoxFit.fitWidth,
-                                placeholder: Image.asset(
-                                  'assets/placeholders/avatar.png',
-                                  colorBlendMode: BlendMode.modulate,
-                                  color: Colors.transparent,
+                              child: Hero(
+                                tag: operator.id,
+                                child: StoredCustomImage(
+                                  filename:
+                                      '${operator.id}_dl${OperatorDisplayMode.avatar.index.toString()}.png',
+                                  type: CacheType.operatorAvatar,
                                   fit: BoxFit.fitWidth,
-                                  key: const Key('placeholder'),
+                                  placeholderColorBlendMode: BlendMode.modulate,
+                                  placeholderColor: Colors.transparent,
+                                  placeholderFit: BoxFit.fitWidth,
+                                  placeholder: const AssetImage(
+                                    'assets/placeholders/avatar.png',
+                                  ),
+                                  imageUrl: '$kAvatarRepo/${operator.id}.png',
                                 ),
-                                imageUrl: '$kAvatarRepo/${operator.id}.png',
-                                showProgress: false,
-                                useSync: true,
                               ),
                             ),
                           ),

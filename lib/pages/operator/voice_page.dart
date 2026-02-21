@@ -1,26 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
-import 'package:provider/provider.dart';
 import 'package:sagahelper/components/dialog_box.dart';
 import 'package:sagahelper/components/styled_buttons.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/core/global_data.dart';
 import 'package:sagahelper/models/operator.dart';
-import 'package:sagahelper/providers/ui_provider.dart';
+import 'package:sagahelper/providers/config_provider.dart';
+import 'package:sagahelper/utils/audio_player_manager.dart';
 import 'package:sagahelper/utils/extensions.dart';
 
-class VoicePage extends StatefulWidget {
+class VoicePage extends ConsumerStatefulWidget {
   final Operator operator;
   const VoicePage(this.operator, {super.key});
 
   @override
-  State<VoicePage> createState() => _VoicePageState();
+  ConsumerState<VoicePage> createState() => _VoicePageState();
 }
 
-class _VoicePageState extends State<VoicePage> with WidgetsBindingObserver {
+class _VoicePageState extends ConsumerState<VoicePage> with WidgetsBindingObserver {
   final AudioPlayerManager manager = AudioPlayerManager();
   int selectedLang = 0;
-  List voicelines = [];
+  final List voicelines = [];
   String selectedVoicelines = '';
   List<String> langs = [];
   List<Map<String, dynamic>> filteredCharWord = [];
@@ -66,6 +67,10 @@ class _VoicePageState extends State<VoicePage> with WidgetsBindingObserver {
     }
     selectedVoicelines = voicelines.first;
 
+    filteredCharWord = widget.operator.charWordsList
+        .where((charWord) => charWord['wordKey'] == selectedVoicelines)
+        .toList();
+
     manager.player.playerStateStream.listen((state) {
       playerState = state;
     });
@@ -74,20 +79,95 @@ class _VoicePageState extends State<VoicePage> with WidgetsBindingObserver {
   void changeVoiceline(String? voiceline) {
     setState(() {
       selectedVoicelines = voiceline ?? voicelines.first;
+      filteredCharWord = widget.operator.charWordsList
+          .where((charWord) => charWord['wordKey'] == selectedVoicelines)
+          .toList();
     });
     if (manager.player.playing) {
       managerPlay(filteredCharWord[playingIndex - 2]["voiceId"], playingIndex);
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    filteredCharWord = [];
-    for (var value in widget.operator.charWordsList) {
-      if (value['wordKey'] == selectedVoicelines) {
-        filteredCharWord.add(value);
+  void selectLang(int index) {
+    setState(() {
+      selectedLang = index;
+    });
+    if (manager.player.playing) {
+      managerPlay(filteredCharWord[playingIndex - 2]["voiceId"], playingIndex);
+    }
+  }
+
+  void managerPlay(String voiceId, int index) {
+    if (playingIndex != index) {
+      setState(() {
+        playingIndex = index;
+      });
+    }
+    // get link using Sagapi-audio repo
+    String voicelang = switch (langs[selectedLang]) {
+      'jp' => 'voice',
+      'en' => 'voice_en',
+      'kr' => 'voice_kr',
+      'cn_mandarin' => 'voice_cn',
+      'linkage' => 'voice',
+      String() => 'voice_custom'
+    };
+
+    String opId = selectedVoicelines;
+
+    if (voicelang == 'voice_custom') {
+      opId += switch (langs[selectedLang]) {
+        'cn_topolect' => '_cn_topolect',
+        'ita' => '_ita',
+        String() => ''
+      };
+    }
+
+    String link = '$kVoiceRepo/$voicelang/$opId/$voiceId.mp3'.githubEncode();
+    String fallbackJpLink = '$kVoiceRepo/voice/$opId/$voiceId.mp3'.githubEncode();
+
+    manager.init(link, fallbackJpLink);
+  }
+
+  // not proud of this code
+  void play(String voiceId, int index) {
+    final processingState = playerState?.processingState;
+    final playing = playerState?.playing;
+
+    if (playing == true) {
+      if (processingState == ProcessingState.loading ||
+          processingState == ProcessingState.buffering) {
+        // is loading something
+        if (index != playingIndex) {
+          manager.stop();
+          managerPlay(voiceId, index);
+        }
+      } else if (processingState == ProcessingState.completed) {
+        // replay
+        managerPlay(voiceId, index);
+      } else if (processingState != ProcessingState.completed) {
+        // pause
+        if (index != playingIndex) {
+          managerPlay(voiceId, index);
+        } else {
+          manager.pause();
+        }
+      }
+    } else {
+      if (processingState != ProcessingState.completed) {
+        // paused
+        if (index != playingIndex) {
+          managerPlay(voiceId, index);
+        } else {
+          manager.play();
+        }
       }
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final translucent = ref.watch(configProvider.select((p) => p.useTranslucentUi));
 
     List<Widget> langsButtons = List.generate(langs.length, (index) {
       String label = switch (langs[index]) {
@@ -121,32 +201,19 @@ class _VoicePageState extends State<VoicePage> with WidgetsBindingObserver {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        flexibleSpace: context.read<UiProvider>().useTranslucentUi == true
-            ? TranslucentWidget(
-                sigma: 3,
-                child: Container(
-                  color: Colors.transparent,
-                  child: FlexibleSpaceBar(
-                    title: Text(widget.operator.name),
-                    titlePadding: const EdgeInsets.only(
-                      left: 72.0,
-                      bottom: 16.0,
-                      right: 32.0,
-                    ),
-                  ),
-                ),
-              )
-            : FlexibleSpaceBar(
-                title: Text(widget.operator.name),
-                titlePadding: const EdgeInsets.only(
-                  left: 72.0,
-                  bottom: 16.0,
-                  right: 32.0,
-                ),
-              ),
-        backgroundColor: context.read<UiProvider>().useTranslucentUi == true
-            ? Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.5)
-            : null,
+        flexibleSpace: ConditionalTranslucentWidget(
+          conditional: translucent,
+          child: FlexibleSpaceBar(
+            title: Text(widget.operator.name),
+            titlePadding: const EdgeInsets.only(
+              left: 72.0,
+              bottom: 16.0,
+              right: 32.0,
+            ),
+          ),
+        ),
+        backgroundColor:
+            Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: translucent ? 0.5 : 1),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -232,82 +299,5 @@ class _VoicePageState extends State<VoicePage> with WidgetsBindingObserver {
         ),
       ),
     );
-  }
-
-  void selectLang(int index) {
-    setState(() {
-      selectedLang = index;
-    });
-    if (manager.player.playing) {
-      managerPlay(filteredCharWord[playingIndex - 2]["voiceId"], playingIndex);
-    }
-  }
-
-  void managerPlay(String voiceId, int index) {
-    if (playingIndex != index) {
-      setState(() {
-        playingIndex = index;
-      });
-    }
-    // get link using Sagapi-audio repo
-    String voicelang = switch (langs[selectedLang]) {
-      'jp' => 'voice',
-      'en' => 'voice_en',
-      'kr' => 'voice_kr',
-      'cn_mandarin' => 'voice_cn',
-      'linkage' => 'voice',
-      String() => 'voice_custom'
-    };
-
-    String opId = selectedVoicelines;
-
-    if (voicelang == 'voice_custom') {
-      opId += switch (langs[selectedLang]) {
-        'cn_topolect' => '_cn_topolect',
-        'ita' => '_ita',
-        String() => ''
-      };
-    }
-
-    String link = '$kVoiceRepo/$voicelang/$opId/$voiceId.mp3'.githubEncode();
-    String fallbackJpLink = '$kVoiceRepo/voice/$opId/$voiceId.mp3'.githubEncode();
-
-    manager.init(link, fallbackJpLink);
-  }
-
-  // not proud of this code
-  void play(String voiceId, int index) {
-    final processingState = playerState?.processingState;
-    final playing = playerState?.playing;
-
-    if (playing == true) {
-      if (processingState == ProcessingState.loading ||
-          processingState == ProcessingState.buffering) {
-        // is loading something
-        if (index != playingIndex) {
-          manager.stop();
-          managerPlay(voiceId, index);
-        }
-      } else if (processingState == ProcessingState.completed) {
-        // replay
-        managerPlay(voiceId, index);
-      } else if (processingState != ProcessingState.completed) {
-        // pause
-        if (index != playingIndex) {
-          managerPlay(voiceId, index);
-        } else {
-          manager.pause();
-        }
-      }
-    } else {
-      if (processingState != ProcessingState.completed) {
-        // paused
-        if (index != playingIndex) {
-          managerPlay(voiceId, index);
-        } else {
-          manager.play();
-        }
-      }
-    }
   }
 }

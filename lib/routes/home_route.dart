@@ -56,54 +56,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final translucentUi = ref.watch(configProvider.select((p) => p.useTranslucentUi));
-
-    final children = [
-      HomeMainWidget(
-        serverTime: serverCurrentDatetime,
-        serverResetTime: resetTime,
-      ),
-      const SizedBox(height: 40),
-      HomeOrundum(
-        serverTime: serverCurrentDatetime,
-        serverResetTime: resetTime,
-      ),
-      const SizedBox(height: 40),
-      HomeUnlockedToday(
-        serverTime: serverCurrentDatetime,
-      ),
-    ];
-
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        title: const Text('news'),
-        flexibleSpace: translucentUi
-            ? TranslucentWidget(
-                sigma: 3,
-                child: Container(color: Colors.transparent),
-              )
-            : null,
-        backgroundColor: translucentUi
-            ? Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.5)
-            : null,
-        elevation: 0,
-      ),
-      body: ListView.builder(
-        padding: EdgeInsets.fromLTRB(
-          24.0,
-          MediaQuery.paddingOf(context).top + AppBar().preferredSize.height + 24.0,
-          24.0,
-          MediaQuery.paddingOf(context).bottom + 24.0,
-        ),
-        itemCount: children.length,
-        itemBuilder: (context, index) => children[index],
-      ),
-    );
-  }
-
   void _getServerTime() {
     final DateTime now = DateTime.timestamp();
     DateTime serverDateTime;
@@ -188,7 +140,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     final hasAllFiles = await ref.read(currentServerNotifierProvider).existFiles();
 
-    final server = ref.read(currentServerStateProvider).value!;
+    final server = ref.read(currentServerStateProvider);
 
     if (server.version.isNotNull || !hasAllFiles) {
       /* TODO: tasker
@@ -204,11 +156,11 @@ class _HomePageState extends ConsumerState<HomePage> {
       NavigationService.navigatorKey.currentContext!
           .read<SettingsProvider>()
           .setLoadingString('checking gamedata updates...'); */
-      await ref.read(currentServerNotifierProvider).checkUpdate();
-      bool lastAvailable = ref.read(currentServerStateProvider).value!.state == DataState.hasUpdate;
+      await ref.read(currentServerNotifierProvider).refresh();
+      bool lastAvailable = ref.read(currentServerStateProvider).state == DataState.hasUpdate;
       if (lastAvailable) {
         // ask if update
-        final currentVersion = ref.read(currentServerStateProvider).value!.version;
+        final currentVersion = ref.read(currentServerStateProvider).version;
         final lastestVersion = await ref.read(currentServerNotifierProvider).fetchLastestVersion();
 
         /* TODO: tasker
@@ -218,7 +170,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         ref.read(notificationProvider).showNotification(
               title: 'Game data update',
               body: 'Current version: $currentVersion / Last version: $lastestVersion',
-              payload: 'doUpdateServer',
+              payload: NotificationPayloads.serverUpdate.payload,
             );
         /* TODO: tasker
         await Future.delayed(const Duration(seconds: 3));
@@ -241,5 +193,53 @@ class _HomePageState extends ConsumerState<HomePage> {
   Future<void> checkForUpdates() async {
     flagCheckForAppUpdates = true;
     fetchUpdateAndAlert();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final translucentUi = ref.watch(configProvider.select((p) => p.useTranslucentUi));
+
+    final children = [
+      HomeMainWidget(
+        serverTime: serverCurrentDatetime,
+        serverResetTime: resetTime,
+      ),
+      const SizedBox(height: 40),
+      HomeOrundum(
+        serverTime: serverCurrentDatetime,
+        serverResetTime: resetTime,
+      ),
+      const SizedBox(height: 40),
+      HomeUnlockedToday(
+        serverTime: serverCurrentDatetime,
+      ),
+    ];
+
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: AppBar(
+        title: const Text('news'),
+        flexibleSpace: translucentUi
+            ? TranslucentWidget(
+                sigma: 3,
+                child: Container(color: Colors.transparent),
+              )
+            : null,
+        backgroundColor: translucentUi
+            ? Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.5)
+            : null,
+        elevation: 0,
+      ),
+      body: ListView.builder(
+        padding: EdgeInsets.fromLTRB(
+          24.0,
+          MediaQuery.paddingOf(context).top + AppBar().preferredSize.height + 24.0,
+          24.0,
+          MediaQuery.paddingOf(context).bottom + 24.0,
+        ),
+        itemCount: children.length,
+        itemBuilder: (context, index) => children[index],
+      ),
+    );
   }
 }

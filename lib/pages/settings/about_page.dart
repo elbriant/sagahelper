@@ -1,46 +1,47 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 // -------------------------- About Settings Page ----------------------------
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/core/global_data.dart';
-import 'package:sagahelper/providers/ui_provider.dart';
+import 'package:sagahelper/core/snack_bar_service.dart';
+import 'package:sagahelper/providers/config_provider.dart';
 import 'package:sagahelper/utils/misc.dart';
 
-class AboutSettings extends StatelessWidget {
+class AboutSettings extends ConsumerWidget {
   const AboutSettings({super.key});
 
   void checkUpdates() async {
     final status = await fetchUpdateAndAlert(
       onError: (res) {
-        ShowSnackBar.showSnackBar(
+        SnackBarService.showSnackBar(
           "Couldn't check updates [${res.statusCode} : ${(jsonDecode(res.body) as Map<String, dynamic>)["message"]}]",
         );
       },
     );
 
     if (status == UpdateStatus.upToDate) {
-      ShowSnackBar.showSnackBar("Already have lastest version");
+      SnackBarService.showSnackBar("Already have lastest version");
     }
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final translucent = ref.watch(configProvider.select((p) => p.useTranslucentUi));
     return Scaffold(
       extendBodyBehindAppBar: true,
       extendBody: true,
       bottomNavigationBar: const SystemNavBar(),
       appBar: AppBar(
-        flexibleSpace: context.read<UiProvider>().useTranslucentUi == true
-            ? TranslucentWidget(
-                sigma: 3,
-                child: Container(color: Colors.transparent),
-              )
-            : null,
-        backgroundColor: context.read<UiProvider>().useTranslucentUi == true
-            ? Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.5)
-            : null,
+        flexibleSpace: ConditionalTranslucentWidget(
+          conditional: translucent,
+          child: Container(
+            color: translucent ? Colors.transparent : null,
+          ),
+        ),
+        backgroundColor:
+            Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: translucent ? 0.5 : 1),
         title: const Text('About'),
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
@@ -59,7 +60,7 @@ class AboutSettings extends StatelessWidget {
               ),
             ),
           ),
-          const ListTile(title: Text('Version'), subtitle: Text('Beta 0.1')),
+          const ListTile(title: Text('Version'), subtitle: Text(appVersion)),
           ListTile(
             title: const Text('Check updates'),
             subtitle: const Text('tap to check for updates'),

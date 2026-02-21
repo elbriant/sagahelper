@@ -5,26 +5,14 @@ import 'package:sagahelper/providers/server_provider.dart';
 import 'package:sagahelper/utils/misc.dart';
 import 'package:sagahelper/core/global_data.dart';
 
-Set<int> usedId = {};
-int getUniqueId() {
-  for (int id = 0; id <= 1000; id++) {
-    if (usedId.contains(id)) {
-      continue;
-    } else {
-      usedId.add(id);
-      return id;
-    }
-  }
-  return generateId();
-}
-
-int autoid = 1000;
-int generateId() {
-  autoid++;
-  return autoid;
-}
-
 enum Channels { news, downloading, downloaded }
+
+enum NotificationPayloads {
+  serverUpdate('doUpdateServer');
+
+  const NotificationPayloads(this.payload);
+  final String payload;
+}
 
 final notificationProvider = Provider<NotificationService>((ref) {
   return NotificationService(ref: ref);
@@ -32,8 +20,29 @@ final notificationProvider = Provider<NotificationService>((ref) {
 
 class NotificationService {
   final Ref ref;
-  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
+  final Set<int> usedId = {};
+  int autoid = 10000;
+
+  /// slower, can reuse ids
+  int getUniqueId() {
+    for (int id = 0; id <= 10000; id++) {
+      if (usedId.contains(id)) {
+        continue;
+      } else {
+        usedId.add(id);
+        return id;
+      }
+    }
+    return generateId();
+  }
+
+  /// faster, ids grow infinitely
+  int generateId() {
+    autoid++;
+    return autoid;
+  }
 
   static List notiChannelGroups = [
     const AndroidNotificationChannelGroup(
@@ -82,7 +91,7 @@ class NotificationService {
       if (notificationResponse.payload?.startsWith('update') ?? false) {
         openUrl(notificationResponse.payload!.split('-')[1]);
       }
-      if (notificationResponse.payload == 'doUpdateServer') {
+      if (notificationResponse.payload == NotificationPayloads.serverUpdate.payload) {
         ref.read(currentServerNotifierProvider).downloadLastest();
 
         SnackBarService.showSnackBar('Updating server version');

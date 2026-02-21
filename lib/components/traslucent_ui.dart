@@ -20,6 +20,36 @@ class TranslucentWidget extends StatelessWidget {
   }
 }
 
+/// condition done on this widget build, to avoid unnecessary nesting
+/// note tha this just adds the backdrop filter, if you need to make
+/// background transparent you need to do it in the child
+class ConditionalTranslucentWidget extends StatelessWidget {
+  final Widget? child;
+  final double sigma;
+  final bool conditional;
+  const ConditionalTranslucentWidget({
+    super.key,
+    this.conditional = true,
+    this.child,
+    this.sigma = 3,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (!conditional) {
+      return child ?? const SizedBox.shrink();
+    }
+
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
+        blendMode: BlendMode.src,
+        child: child,
+      ),
+    );
+  }
+}
+
 class SystemNavBar extends ConsumerWidget {
   const SystemNavBar({super.key});
 

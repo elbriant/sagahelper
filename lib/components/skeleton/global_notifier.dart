@@ -6,6 +6,8 @@ import 'package:sagahelper/providers/tasker_provider.dart';
 
 const randomWords = ['Natto gohan...', 'Aburage...', 'Completed...', 'Working...'];
 
+// TODO: add global notifier to nagvigator pushes
+
 class GlobalNotifier extends ConsumerWidget {
   const GlobalNotifier({super.key});
 

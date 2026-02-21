@@ -14,6 +14,16 @@ class OperatorSearchNotifier extends Notifier<OperatorSearchData> {
     return const OperatorSearchData();
   }
 
+  set isSearching(bool newValue) {
+    state = state.copyWith(isSearching: newValue);
+  }
+
+  set searchString(String? newSearch) {
+    state.copyWith(
+      searchFilterString: newSearch ?? '',
+    );
+  }
+
   void toggleOperatorFilter(FilterTag tag) {
     // TODO: test, this may not work as it may appear as "same" info, so doesnt reloads new data from the map
 

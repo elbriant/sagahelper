@@ -7,6 +7,8 @@ import 'package:sagahelper/providers/config_provider.dart';
 import 'package:sagahelper/providers/server_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
 
+typedef UpdateCallback = CacheData Function(CacheData current);
+
 List computeJsonDecode(List<String?> input) {
   List<Map?> result = [];
 
@@ -25,13 +27,17 @@ class CacheNotifier extends Notifier<CacheData> {
     return const CacheData();
   }
 
+  void update(UpdateCallback callback) {
+    state = callback.call(state);
+  }
+
   Future<void> cacheHomeDependecies() async {
     List<String?> files = [];
-    final server = ref.watch(configProvider).currentServer;
+    final server = ref.read(configProvider).currentServer;
 
     for (String filepath in kHomeFiles) {
       files.add(
-        await ref.watch(serverProvider(server).notifier).tryGetFile(filepath),
+        await ref.read(serverProvider(server).notifier).tryGetFile(filepath),
       );
     }
 

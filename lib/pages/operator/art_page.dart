@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:io';
 
 import 'package:carousel_slider/carousel_slider.dart';
@@ -13,26 +14,27 @@ import 'package:sagahelper/components/stored_image.dart';
 import 'package:sagahelper/components/styled_buttons.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/core/global_data.dart';
+import 'package:sagahelper/core/snack_bar_service.dart';
+import 'package:sagahelper/models/config/local_data_manager.dart';
 import 'dart:developer' as dev;
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/core/notification_service.dart';
+import 'package:sagahelper/providers/config_provider.dart';
 import 'package:sagahelper/providers/style_provider.dart';
-import 'package:sagahelper/providers/ui_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
-import 'package:provider/provider.dart';
 import 'package:styled_text/styled_text.dart';
 
 enum ChibiMode { back, front, build }
 
-class ArtPage extends StatefulWidget {
+class ArtPage extends ConsumerStatefulWidget {
   final Operator operator;
   const ArtPage(this.operator, {super.key});
 
   @override
-  State<ArtPage> createState() => _ArtPageState();
+  ConsumerState<ArtPage> createState() => _ArtPageState();
 }
 
-class _ArtPageState extends State<ArtPage> {
+class _ArtPageState extends ConsumerState<ArtPage> {
   int selectedIndex = 0;
   bool chibimode = false;
   bool hasDynamicArt = false;
@@ -74,7 +76,7 @@ class _ArtPageState extends State<ArtPage> {
   }
 
   void showDynamicSkin() {
-    ShowSnackBar.showSnackBar('dynamic art not supported yet');
+    SnackBarService.showSnackBar('dynamic art not supported yet');
   }
 
   void fullscreen() {
@@ -86,8 +88,9 @@ class _ArtPageState extends State<ArtPage> {
         builder: (context) => FullscreenArtsPage(
           NetworkToFileImage(
             url: getImageLink(selectedIndex),
-            file: LocalDataManager.localCacheFileSync(
-              'opart/${widget.operator.id}/$opSkinId.png',
+            file: LocalDataManager.localCacheFile(
+              '${widget.operator.id}/$opSkinId.png',
+              CacheType.operatorArt,
             ),
           ),
           selectedIndex: selectedIndex,
@@ -114,10 +117,11 @@ class _ArtPageState extends State<ArtPage> {
       Permission.storage.request();
     }
 
-    int id = getUniqueId();
-    String path = await LocalDataManager.downloadPath;
+    final notificationService = ref.read(notificationProvider);
+    final int id = notificationService.getUniqueId();
+    final String path = LocalDataManager.download.path;
 
-    showDownloadNotification(
+    notificationService.showDownloadNotification(
       title: 'Downloading',
       body: 'downloading image',
       id: id,
@@ -125,14 +129,14 @@ class _ArtPageState extends State<ArtPage> {
       indeterminate: true,
     );
 
-    String skin = (widget.operator.skinsList[selectedIndex]['illustId'] as String)
+    final String skin = (widget.operator.skinsList[selectedIndex]['illustId'] as String)
         .replaceFirst('illust_', '');
-    String link = '$kArtRepo/${widget.operator.id}/$skin.png'.githubEncode();
+    final String link = '$kArtRepo/${widget.operator.id}/$skin.png'.githubEncode();
 
     final downloaderUtils = DownloaderUtils(
       progressCallback: (current, total) {
         final progress = (current / total) * 100;
-        showDownloadNotification(
+        notificationService.showDownloadNotification(
           title: 'Downloading',
           body: skin,
           id: id,
@@ -144,8 +148,8 @@ class _ArtPageState extends State<ArtPage> {
       file: File('$path/$skin.png'),
       progress: ProgressImplementation(),
       onDone: () async {
-        await flutterLocalNotificationsPlugin.cancel(id);
-        showDownloadNotification(
+        await notificationService.flutterLocalNotificationsPlugin.cancel(id);
+        notificationService.showDownloadNotification(
           title: 'Downloaded',
           body: '$skin finished',
           id: id,
@@ -174,110 +178,114 @@ class _ArtPageState extends State<ArtPage> {
       isScrollControlled: true,
       context: context,
       builder: (BuildContext context) {
-        Map skinInfo = widget.operator.skinsList[selectedIndex];
-        Map<String, StyledTextTagBase> tags =
-            context.read<StyleProvider>().tagsAsArknights(context: context);
-        return SafeArea(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 24.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  skinInfo["displaySkin"]["skinName"] != null
-                      ? Text(
-                          skinInfo["displaySkin"]["skinName"],
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                          textScaler: const TextScaler.linear(1.5),
-                        )
-                      : Text(
-                          skinInfo["displaySkin"]["skinGroupName"],
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                          textScaler: const TextScaler.linear(1.5),
-                        ),
-                  skinInfo["skinId"] != null
-                      ? Text(
-                          skinInfo["skinId"],
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                            fontStyle: FontStyle.italic,
-                          ),
-                        )
-                      : null,
-                  const SizedBox(height: 20),
-                  skinInfo["displaySkin"]["modelName"] != null
-                      ? Text('Model: ${skinInfo["displaySkin"]["modelName"]}')
-                      : null,
-                  skinInfo["displaySkin"]["drawerList"] != null
-                      ? Text(
-                          'Drawer: ${(skinInfo["displaySkin"]["drawerList"] as List).join(', ')}',
-                        )
-                      : null,
-                  skinInfo["displaySkin"]["skinGroupName"] != null
-                      ? Text(
-                          'Series: ${skinInfo["displaySkin"]["skinGroupName"]}',
-                        )
-                      : null,
-                  const SizedBox(height: 20),
-                  skinInfo["displaySkin"]["content"] != null
-                      ? Container(
-                          margin: const EdgeInsets.only(bottom: 10.0),
-                          child: StyledText(
-                            text: skinInfo["displaySkin"]["content"],
-                            tags: tags,
-                            style: TextStyle(
-                              color: skinInfo["displaySkin"]["skinName"] != null
-                                  ? Theme.of(context).colorScheme.secondary
-                                  : null,
-                            ),
-                            async: true,
-                          ),
-                        )
-                      : null,
-                  skinInfo["displaySkin"]["usage"] != null
-                      ? Container(
-                          margin: const EdgeInsets.only(bottom: 10.0),
-                          child: StyledText(
-                            text: skinInfo["displaySkin"]["usage"],
-                            tags: tags,
-                            async: true,
-                          ),
-                        )
-                      : null,
-                  skinInfo["displaySkin"]["description"] != null
-                      ? Container(
-                          margin: const EdgeInsets.only(bottom: 10.0),
-                          child: StyledText(
-                            text: skinInfo["displaySkin"]["description"],
-                            tags: tags,
-                            style: const TextStyle(fontStyle: FontStyle.italic),
-                            async: true,
-                          ),
-                        )
-                      : null,
-                  Row(
+        return Consumer(
+          builder: (context, ref, child) {
+            final Map skinInfo = widget.operator.skinsList[selectedIndex];
+            final Map<String, StyledTextTagBase> tags = ref.watch(styleProvider).tagsAsArknights;
+            return SafeArea(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 24.0),
+                  child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.max,
-                    children: <Widget>[
-                      IconButtonStyled(
-                        icon: Icons.file_download_outlined,
-                        label: 'Download image',
-                        onTap: downloadArt,
-                        selected: true,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      skinInfo["displaySkin"]["skinName"] != null
+                          ? Text(
+                              skinInfo["displaySkin"]["skinName"],
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              textScaler: const TextScaler.linear(1.5),
+                            )
+                          : Text(
+                              skinInfo["displaySkin"]["skinGroupName"],
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
+                              textScaler: const TextScaler.linear(1.5),
+                            ),
+                      skinInfo["skinId"] != null
+                          ? Text(
+                              skinInfo["skinId"],
+                              style: TextStyle(
+                                color:
+                                    Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                                fontStyle: FontStyle.italic,
+                              ),
+                            )
+                          : null,
+                      const SizedBox(height: 20),
+                      skinInfo["displaySkin"]["modelName"] != null
+                          ? Text('Model: ${skinInfo["displaySkin"]["modelName"]}')
+                          : null,
+                      skinInfo["displaySkin"]["drawerList"] != null
+                          ? Text(
+                              'Drawer: ${(skinInfo["displaySkin"]["drawerList"] as List).join(', ')}',
+                            )
+                          : null,
+                      skinInfo["displaySkin"]["skinGroupName"] != null
+                          ? Text(
+                              'Series: ${skinInfo["displaySkin"]["skinGroupName"]}',
+                            )
+                          : null,
+                      const SizedBox(height: 20),
+                      skinInfo["displaySkin"]["content"] != null
+                          ? Container(
+                              margin: const EdgeInsets.only(bottom: 10.0),
+                              child: StyledText(
+                                text: skinInfo["displaySkin"]["content"],
+                                tags: tags,
+                                style: TextStyle(
+                                  color: skinInfo["displaySkin"]["skinName"] != null
+                                      ? Theme.of(context).colorScheme.secondary
+                                      : null,
+                                ),
+                                async: true,
+                              ),
+                            )
+                          : null,
+                      skinInfo["displaySkin"]["usage"] != null
+                          ? Container(
+                              margin: const EdgeInsets.only(bottom: 10.0),
+                              child: StyledText(
+                                text: skinInfo["displaySkin"]["usage"],
+                                tags: tags,
+                                async: true,
+                              ),
+                            )
+                          : null,
+                      skinInfo["displaySkin"]["description"] != null
+                          ? Container(
+                              margin: const EdgeInsets.only(bottom: 10.0),
+                              child: StyledText(
+                                text: skinInfo["displaySkin"]["description"],
+                                tags: tags,
+                                style: const TextStyle(fontStyle: FontStyle.italic),
+                                async: true,
+                              ),
+                            )
+                          : null,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.max,
+                        children: <Widget>[
+                          IconButtonStyled(
+                            icon: Icons.file_download_outlined,
+                            label: 'Download image',
+                            onTap: downloadArt,
+                            selected: true,
+                          ),
+                        ],
                       ),
-                    ],
+                    ].nullParser(),
                   ),
-                ].nullParser(),
+                ),
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );
@@ -303,9 +311,10 @@ class _ArtPageState extends State<ArtPage> {
           borderRadius: BorderRadius.circular(6),
           child: Stack(
             children: [
-              StoredImage(
+              StoredFadeInImage(
                 imageUrl: avatarLink,
-                filePath: 'opartavatar/${widget.operator.skinsList[index]['avatarId']}.png',
+                filename: '${widget.operator.skinsList[index]['avatarId']}.png',
+                type: CacheType.operatorAvatar,
               ),
               Positioned.fill(
                 child: Material(
@@ -323,6 +332,8 @@ class _ArtPageState extends State<ArtPage> {
         ),
       );
     });
+
+    final translucentUi = ref.watch(configProvider.select((p) => p.useTranslucentUi));
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -347,13 +358,13 @@ class _ArtPageState extends State<ArtPage> {
             ),
           ),
         ],
-        flexibleSpace: context.read<UiProvider>().useTranslucentUi == true
+        flexibleSpace: translucentUi
             ? TranslucentWidget(
                 sigma: 3,
                 child: Container(color: Colors.transparent),
               )
             : null,
-        backgroundColor: context.read<UiProvider>().useTranslucentUi == true
+        backgroundColor: translucentUi
             ? Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.5)
             : null,
         leading: IconButton(
@@ -369,12 +380,35 @@ class _ArtPageState extends State<ArtPage> {
                 Visibility(
                   visible: !chibimode,
                   maintainState: true,
-                  child: photoview(context, getImageLink),
+                  child: PhotoViewGallery.builder(
+                    scrollPhysics: const NeverScrollableScrollPhysics(),
+                    childEnableAlwaysPan: true,
+                    backgroundDecoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surfaceContainerLowest,
+                    ),
+                    pageController: _pageController,
+                    itemCount: widget.operator.skinsList.length,
+                    builder: (BuildContext context, int index) {
+                      String opSkinId = (widget.operator.skinsList[index]['illustId'] as String)
+                          .replaceFirst('illust_', '');
+                      return PhotoViewGalleryPageOptions(
+                        filterQuality: FilterQuality.high,
+                        imageProvider: NetworkToFileImage(
+                          url: getImageLink(index),
+                          file: LocalDataManager.localCacheFile(
+                            '${widget.operator.id}/$opSkinId.png',
+                            CacheType.operatorArt,
+                          ),
+                        ),
+                        heroAttributes: PhotoViewHeroAttributes(tag: '$selectedIndex hero'),
+                      );
+                    },
+                  ),
                 ),
                 Visibility(
                   visible: chibimode,
                   maintainState: true,
-                  child: chibiview(),
+                  child: const _ChibiView(),
                 ),
               ],
             ),
@@ -382,104 +416,51 @@ class _ArtPageState extends State<ArtPage> {
               left: 0,
               right: 0,
               bottom: 0,
-              child: carouselContainer(skinChildren, carouselController),
+              child: Builder(
+                builder: (context) {
+                  final double height = 80;
+                  final child = Container(
+                    margin: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+                    height: height,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .surfaceDim
+                        .withValues(alpha: translucentUi ? 0.5 : 1),
+                    child: CarouselSlider(
+                      carouselController: carouselController,
+                      items: skinChildren,
+                      options: CarouselOptions(
+                        onPageChanged: (int index, _) => changeOpSkin(index),
+                        enableInfiniteScroll: false,
+                        viewportFraction: 0.3,
+                      ),
+                    ),
+                  );
+
+                  return translucentUi ? TranslucentWidget(child: child) : child;
+                },
+              ),
             ),
-            hasDynamicArt && chibimode == false
-                ? Positioned(right: 0, bottom: 0, child: dynamicSkinButton())
+            hasDynamicArt && !chibimode
+                ? Positioned(
+                    right: 0,
+                    bottom: 0,
+                    child: Container(
+                      margin: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).padding.bottom + 80 + 20,
+                        right: 20,
+                      ),
+                      child: FloatingActionButton.small(
+                        onPressed: () {
+                          showDynamicSkin();
+                        },
+                        child: const Icon(Icons.play_arrow),
+                      ),
+                    ),
+                  )
                 : null,
           ].nullParser(),
         ),
-      ),
-    );
-  }
-
-  Widget chibiview() {
-    return const Center(
-      child: Text('Chibi not supported yet'),
-    );
-  }
-
-  PhotoViewGallery photoview(
-    BuildContext context,
-    String Function(int index) getImageLink,
-  ) {
-    return PhotoViewGallery.builder(
-      scrollPhysics: const NeverScrollableScrollPhysics(),
-      childEnableAlwaysPan: true,
-      backgroundDecoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerLowest,
-      ),
-      pageController: _pageController,
-      itemCount: widget.operator.skinsList.length,
-      builder: (BuildContext context, int index) {
-        String opSkinId =
-            (widget.operator.skinsList[index]['illustId'] as String).replaceFirst('illust_', '');
-        return PhotoViewGalleryPageOptions(
-          filterQuality: FilterQuality.high,
-          imageProvider: NetworkToFileImage(
-            url: getImageLink(index),
-            file: LocalDataManager.localCacheFileSync(
-              'opart/${widget.operator.id}/$opSkinId.png',
-            ),
-          ),
-          heroAttributes: PhotoViewHeroAttributes(tag: '$selectedIndex hero'),
-        );
-      },
-    );
-  }
-
-  Widget carouselContainer(
-    List<Widget> children,
-    CarouselSliderController controller,
-  ) {
-    final double height = 80;
-
-    if (NavigationService.navigatorKey.currentContext!.read<UiProvider>().useTranslucentUi) {
-      return TranslucentWidget(
-        child: Container(
-          margin: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
-          height: height,
-          color: Theme.of(context).colorScheme.surfaceDim.withValues(alpha: 0.5),
-          child: CarouselSlider(
-            carouselController: controller,
-            items: children,
-            options: CarouselOptions(
-              onPageChanged: (int index, _) => changeOpSkin(index),
-              enableInfiniteScroll: false,
-              viewportFraction: 0.3,
-            ),
-          ),
-        ),
-      );
-    } else {
-      return Container(
-        margin: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
-        height: height,
-        color: Theme.of(context).colorScheme.surfaceDim,
-        child: CarouselSlider(
-          carouselController: controller,
-          items: children,
-          options: CarouselOptions(
-            onPageChanged: (int index, _) => changeOpSkin(index),
-            enableInfiniteScroll: false,
-            viewportFraction: 0.3,
-          ),
-        ),
-      );
-    }
-  }
-
-  Widget dynamicSkinButton() {
-    return Container(
-      margin: EdgeInsets.only(
-        bottom: MediaQuery.of(context).padding.bottom + 80 + 20,
-        right: 20,
-      ),
-      child: FloatingActionButton.small(
-        onPressed: () {
-          showDynamicSkin();
-        },
-        child: const Icon(Icons.play_arrow),
       ),
     );
   }
@@ -554,6 +535,17 @@ class _FullscreenArtsPageState extends State<FullscreenArtsPage> {
               ),
               heroAttributes: PhotoViewHeroAttributes(tag: '${widget.selectedIndex} hero'),
             ),
+    );
+  }
+}
+
+class _ChibiView extends StatelessWidget {
+  const _ChibiView();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Text('Chibi not supported yet'),
     );
   }
 }

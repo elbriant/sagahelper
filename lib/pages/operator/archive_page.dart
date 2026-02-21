@@ -2,25 +2,16 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sagahelper/components/operator_info_page/operator_lil_card.dart';
 import 'package:sagahelper/components/operator_info_page/opinfo_archive_header.dart';
 import 'package:sagahelper/components/operator_info_page/opinfo_archive_lore.dart';
 import 'package:sagahelper/components/operator_info_page/opinfo_archive_skill.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
-import 'package:sagahelper/core/global_data.dart';
+import 'package:sagahelper/models/config/config_manager.dart';
 import 'package:sagahelper/models/operator.dart';
-import 'package:sagahelper/providers/settings_provider.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
-import 'package:sagahelper/providers/ui_provider.dart';
-
-class ArchivePage extends StatefulWidget {
-  final Operator operator;
-  const ArchivePage(this.operator, {super.key});
-
-  @override
-  State<ArchivePage> createState() => _ArchivePageState();
-}
+import 'package:sagahelper/providers/config_provider.dart';
 
 List<Operator>? computingRelatedOps(List input) {
   List<Operator>? result;
@@ -56,7 +47,15 @@ List<Operator>? computingRelatedOps(List input) {
   return result;
 }
 
-class _ArchivePageState extends State<ArchivePage>
+class ArchivePage extends ConsumerStatefulWidget {
+  final Operator operator;
+  const ArchivePage(this.operator, {super.key});
+
+  @override
+  ConsumerState<ArchivePage> createState() => _ArchivePageState();
+}
+
+class _ArchivePageState extends ConsumerState<ArchivePage>
     with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   late TabController _secondaryTabController;
   final List<Tab> _secTabs = <Tab>[
@@ -91,14 +90,14 @@ class _ArchivePageState extends State<ArchivePage>
   }
 
   Future<List<Operator>?> getRelatedOps() async {
-    final charMeta =
-        NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedCharMeta;
-    final charPatch =
-        NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedCharPatch;
-    final opList =
-        NavigationService.navigatorKey.currentContext!.read<CacheProvider>().cachedListOperator;
+    final cache = ref.read(cacheProvider);
+
+    final charMeta = cache.cachedCharMeta;
+    final charPatch = cache.cachedCharPatch;
+    final opList = cache.cachedListOperator;
     final bool opHasPatch = widget.operator.opPatched;
 
+    /// should have made this with a class smh
     final List input = [widget.operator.id, charMeta, opList, charPatch, opHasPatch];
 
     return await compute(computingRelatedOps, input);
@@ -153,10 +152,12 @@ class _ArchivePageState extends State<ArchivePage>
                 width: double.maxFinite,
               );
 
+        final conf = ref.watch(configProvider);
+
         return CustomScrollView(
           slivers: [
             SliverAppBar.medium(
-              flexibleSpace: context.read<UiProvider>().useTranslucentUi == true
+              flexibleSpace: conf.useTranslucentUi
                   ? TranslucentWidget(
                       child: FlexibleSpaceBar(
                         title: Text(widget.operator.name),
@@ -175,7 +176,7 @@ class _ArchivePageState extends State<ArchivePage>
                         right: 32.0,
                       ),
                     ),
-              backgroundColor: context.read<UiProvider>().useTranslucentUi == true
+              backgroundColor: conf.useTranslucentUi
                   ? Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.5)
                   : null,
               leading: IconButton(
@@ -186,11 +187,11 @@ class _ArchivePageState extends State<ArchivePage>
                 MenuAnchor(
                   menuChildren: [
                     SwitchListTile(
-                      value: context.watch<SettingsProvider>().prefs[PrefsFlags.menuShowAdvanced],
+                      value: conf.opInfoMenuShowAdvanced,
                       onChanged: (bool value) {
-                        context
-                            .read<SettingsProvider>()
-                            .setAndSaveBoolPref(PrefsFlags.menuShowAdvanced, value);
+                        ref
+                            .read(configProvider.notifier)
+                            .updateSettings(ConfigKeys.opInfoMenuShowAdvanced, value);
                       },
                       title: const Text('Show advanced'),
                     ),

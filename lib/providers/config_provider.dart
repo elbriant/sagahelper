@@ -23,9 +23,9 @@ class ConfigNotifier extends Notifier<PersistentSettings> {
     return manager.loadSettings();
   }
 
-  Future<void> updateSettings<T>(ConfigKeys config, T value) async {
+  Future<void> updateSettings(ConfigKeys config, Object value) async {
     final manager = ref.read(configManagerProvider);
-    await manager.saveSetting<T>(config, value);
+    await manager.saveSetting(config, value);
     state = manager.loadSettings();
   }
 }

@@ -1,31 +1,33 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 // ---------------------- Data Management Page ----------------------------------
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:provider/provider.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/core/global_data.dart';
+import 'package:sagahelper/core/snack_bar_service.dart';
+import 'package:sagahelper/models/config/config_manager.dart';
+import 'package:sagahelper/models/server_state.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
+import 'package:sagahelper/providers/config_provider.dart';
 import 'package:sagahelper/providers/server_provider.dart';
-import 'package:sagahelper/providers/settings_provider.dart';
-import 'package:sagahelper/providers/ui_provider.dart';
+import 'package:sagahelper/providers/style_provider.dart';
 
-class DataSettings extends StatelessWidget {
+class DataSettings extends ConsumerWidget {
   const DataSettings({super.key});
 
-  void checkupdate() async {
-    var servprov = NavigationService.navigatorKey.currentContext!.read<ServerProvider>();
-
-    for (Servers server in Servers.values) {
-      servprov.setSingleServerState(server, await servprov.getServerStatus(server));
-      servprov.getFolderSize(server);
-    }
-  }
-
   @override
-  Widget build(BuildContext context) {
-    if (!serverFetchFlag) {
-      serverFetchFlag = true;
-      checkupdate();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final translucent = ref.watch(configProvider.select((p) => p.useTranslucentUi));
+
+    void refreshServers() async {
+      for (Server server in Server.values) {
+        ref.read(serverProvider(server).notifier).refresh();
+      }
+    }
+
+    if (!flagServerFetch) {
+      flagServerFetch = true;
+      refreshServers();
     }
 
     return Scaffold(
@@ -33,15 +35,14 @@ class DataSettings extends StatelessWidget {
       extendBody: true,
       bottomNavigationBar: const SystemNavBar(),
       appBar: AppBar(
-        flexibleSpace: context.read<UiProvider>().useTranslucentUi == true
-            ? TranslucentWidget(
-                sigma: 3,
-                child: Container(color: Colors.transparent),
-              )
-            : null,
-        backgroundColor: context.read<UiProvider>().useTranslucentUi == true
-            ? Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: 0.5)
-            : null,
+        flexibleSpace: ConditionalTranslucentWidget(
+          conditional: translucent,
+          child: Container(
+            color: translucent ? Colors.transparent : null,
+          ),
+        ),
+        backgroundColor:
+            Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: translucent ? 0.5 : 1),
         title: const Text('Server & Data'),
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
@@ -52,13 +53,13 @@ class DataSettings extends StatelessWidget {
         padding: const EdgeInsets.all(8.0),
         child: ListView(
           children: [
-            const ServerTile(server: Servers.en),
+            const ServerTile(server: Server.en),
             const Divider(),
-            const ServerTile(server: Servers.cn),
+            const ServerTile(server: Server.cn),
             const Divider(),
-            const ServerTile(server: Servers.jp),
+            const ServerTile(server: Server.jp),
             const Divider(),
-            const ServerTile(server: Servers.kr),
+            const ServerTile(server: Server.kr),
             const SizedBox(height: 20),
             Text(
               'Drag to left to delete server data, drag to right to force fetch last data',
@@ -72,93 +73,61 @@ class DataSettings extends StatelessWidget {
   }
 }
 
-class ServerTile extends StatelessWidget {
+class ServerTile extends ConsumerWidget {
   const ServerTile({super.key, required this.server});
-  final Servers server;
+  final Server server;
 
   @override
-  Widget build(BuildContext context) {
-    final String version = switch (server) {
-      Servers.en => context.select<ServerProvider, String>(
-          (prov) => prov.enVersion == '' ? 'No version' : prov.enVersion,
-        ),
-      Servers.cn => context.select<ServerProvider, String>(
-          (prov) => prov.cnVersion == '' ? 'No version' : prov.cnVersion,
-        ),
-      Servers.jp => context.select<ServerProvider, String>(
-          (prov) => prov.jpVersion == '' ? 'No version' : prov.jpVersion,
-        ),
-      Servers.kr => context.select<ServerProvider, String>(
-          (prov) => prov.krVersion == '' ? 'No version' : prov.krVersion,
-        ),
-    };
+  Widget build(BuildContext context, WidgetRef ref) {
+    final serverState = ref.watch(serverProvider(server));
+    final currentServer = ref.watch(configProvider.select((p) => p.currentServer));
+    final staticColors = ref.watch(styleProvider).colors;
 
-    final DataState state = switch (server) {
-      Servers.en => context.select<ServerProvider, DataState>((prov) => prov.enState),
-      Servers.cn => context.select<ServerProvider, DataState>((prov) => prov.cnState),
-      Servers.jp => context.select<ServerProvider, DataState>((prov) => prov.jpState),
-      Servers.kr => context.select<ServerProvider, DataState>((prov) => prov.krState),
-    };
+    final String version = serverState.version ?? 'No version';
+    final DataState state = serverState.state;
+    final String? folderSize = serverState.folderSize;
 
-    final Map<Servers, String> provFolderSize =
-        context.select<ServerProvider, Map<Servers, String>>(
-      (prov) => prov.folderSize,
-    );
+    void changeServer(Server server) {
+      ref.read(configProvider.notifier).updateSettings(ConfigKeys.currentServer, server);
 
-    final String? folderSize = provFolderSize.containsKey(server) ? provFolderSize[server] : null;
-
-    final settingsServer = context.select<SettingsProvider, Servers>((prov) => prov.currentServer);
-
-    void changeServer(Servers server) {
-      context.read<SettingsProvider>().changeServer(server);
-      NavigationService.navigatorKey.currentContext!.read<CacheProvider>().unCacheAll();
-      Navigator.pop(context);
+      /// uncache so all server related files gets reloaded
+      /// lobotomize the cacheProvider
+      ref.invalidate(cacheProvider);
+      // Navigator.of(context).pop();
     }
 
-    void getUpdate(Servers server, DataState state) {
+    void getUpdate(Server server, DataState state) {
       switch (state) {
+        case DataState.unknown:
+          SnackBarService.showSnackBar('Try to force a fetch');
         case DataState.fetching:
-          ShowSnackBar.showSnackBar('checking last version');
-
+          SnackBarService.showSnackBar('Checking lastest version');
         case DataState.hasUpdate:
-          NavigationService.navigatorKey.currentContext!
-              .read<ServerProvider>()
-              .setSingleServerState(server, DataState.downloading);
-          ShowSnackBar.showSnackBar('starting to download last version');
-          NavigationService.navigatorKey.currentContext!
-              .read<ServerProvider>()
-              .downloadLastest(server);
-
+          SnackBarService.showSnackBar('starting to download last version');
+          ref.read(serverProvider(server).notifier).downloadLastest();
         case DataState.upToDate:
-          ShowSnackBar.showSnackBar('already has the last version');
-
+          SnackBarService.showSnackBar('already has the last version');
         case DataState.error:
-          ShowSnackBar.showSnackBar(
-            'something went wrong, try later',
+          SnackBarService.showSnackBar(
+            'Something went wrong, try later',
             type: SnackBarType.failure,
           );
-
         case DataState.downloading:
-          ShowSnackBar.showSnackBar('downloading last version');
+          SnackBarService.showSnackBar('Downloading server files');
       }
     }
 
     void deleteServer() async {
       if (state == DataState.downloading) return;
-      var servprov = NavigationService.navigatorKey.currentContext!.read<ServerProvider>();
+      ref.read(serverProvider(server).notifier).deleteServer();
 
-      servprov.deleteServer(server).then((_) async {
-        servprov.setSingleServerState(server, await servprov.getServerStatus(server));
-      });
-
-      NavigationService.navigatorKey.currentContext!.read<CacheProvider>().unCacheAll();
+      /// uncache so all server related files gets reloaded
+      /// lobotomize the cacheProvider
+      ref.invalidate(cacheProvider);
     }
 
     void forceFetch() async {
-      var servprov = NavigationService.navigatorKey.currentContext!.read<ServerProvider>();
-
-      servprov.setSingleServerState(server, DataState.fetching);
-      servprov.setSingleServerState(server, await servprov.getServerStatus(server));
+      ref.read(serverProvider(server).notifier).refresh();
     }
 
     return Slidable(
@@ -167,7 +136,7 @@ class ServerTile extends StatelessWidget {
         children: [
           SlidableAction(
             onPressed: (_) => forceFetch(),
-            backgroundColor: StaticColors.fromBrightness(context).blue,
+            backgroundColor: staticColors.blue,
             foregroundColor: Colors.white,
             icon: Icons.restart_alt,
             label: 'Fetch',
@@ -179,7 +148,7 @@ class ServerTile extends StatelessWidget {
         children: [
           SlidableAction(
             onPressed: (_) => deleteServer(),
-            backgroundColor: StaticColors.fromBrightness(context).red,
+            backgroundColor: staticColors.red,
             foregroundColor: Colors.white,
             icon: Icons.delete_forever,
             label: 'Delete',
@@ -190,7 +159,7 @@ class ServerTile extends StatelessWidget {
         title: Text(
           '${server.folderLabel.toUpperCase()} · $version ${folderSize != null ? '· $folderSize' : ''}',
         ),
-        subtitle: settingsServer == server
+        subtitle: currentServer == server
             ? Text(
                 'Selected',
                 style: TextStyle(
