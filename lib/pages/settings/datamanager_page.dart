@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
-import 'package:sagahelper/core/global_data.dart';
 import 'package:sagahelper/core/snack_bar_service.dart';
 import 'package:sagahelper/models/config/config_manager.dart';
 import 'package:sagahelper/models/server_state.dart';
@@ -12,23 +11,32 @@ import 'package:sagahelper/providers/config_provider.dart';
 import 'package:sagahelper/providers/server_provider.dart';
 import 'package:sagahelper/providers/style_provider.dart';
 
-class DataSettings extends ConsumerWidget {
+class DataSettings extends ConsumerStatefulWidget {
   const DataSettings({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final translucent = ref.watch(configProvider.select((p) => p.useTranslucentUi));
+  ConsumerState<DataSettings> createState() => _DataSettingsState();
+}
 
-    void refreshServers() async {
-      for (Server server in Server.values) {
-        ref.read(serverProvider(server).notifier).refresh();
-      }
-    }
+class _DataSettingsState extends ConsumerState<DataSettings> {
+  @override
+  void initState() {
+    super.initState();
 
-    if (!flagServerFetch) {
-      flagServerFetch = true;
+    Future(() {
       refreshServers();
+    });
+  }
+
+  void refreshServers() async {
+    for (Server server in Server.values) {
+      ref.read(serverProvider(server).notifier).refresh();
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final translucent = ref.watch(configProvider.select((p) => p.useTranslucentUi));
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -172,7 +180,8 @@ class ServerTile extends ConsumerWidget {
           DataState.upToDate => const Icon(Icons.done),
           DataState.error => const Icon(Icons.error),
           DataState.downloading => const Icon(Icons.downloading),
-          _ => null
+          DataState.unknown => const Icon(Icons.question_mark),
+          DataState.fetching => const Icon(Icons.sync),
         },
         onTap: () {
           state == DataState.upToDate ? changeServer(server) : getUpdate(server, state);

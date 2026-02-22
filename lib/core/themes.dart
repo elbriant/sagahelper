@@ -76,6 +76,7 @@ class CustomTheme {
 
   ThemeData get themePureDark {
     return themeDark.copyWith(
+      scaffoldBackgroundColor: Colors.black,
       colorScheme: themeDark.colorScheme.copyWith(
         surface: Colors.black,
         onSurface: Colors.white,

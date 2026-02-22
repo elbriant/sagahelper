@@ -98,19 +98,19 @@ class ConfigManager {
   }
 
   Future<void> saveSetting(ConfigKeys config, Object value) async {
-    switch (value.runtimeType) {
-      case const (Enum):
-        return await _prefs.setInt(config.key, (value as Enum).index);
-      case const (int):
-        return await _prefs.setInt(config.key, value as int);
-      case const (double):
-        return await _prefs.setDouble(config.key, value as double);
-      case const (bool):
-        return await _prefs.setBool(config.key, value as bool);
-      case const (String):
-        return await _prefs.setString(config.key, value as String);
-      case const (List<String>):
-        return await _prefs.setStringList(config.key, value as List<String>);
+    switch (value) {
+      case Enum _:
+        return await _prefs.setInt(config.key, value.index);
+      case int _:
+        return await _prefs.setInt(config.key, value);
+      case double _:
+        return await _prefs.setDouble(config.key, value);
+      case bool _:
+        return await _prefs.setBool(config.key, value);
+      case String _:
+        return await _prefs.setString(config.key, value);
+      case List<String> _:
+        return await _prefs.setStringList(config.key, value);
       default:
         throw ArgumentError('Tipo no soportado para SharedPreferences: ${value.runtimeType}');
     }

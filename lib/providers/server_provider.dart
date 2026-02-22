@@ -61,7 +61,7 @@ String yostarrepo(String server) =>
 const String chServerlink =
     'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/refs/heads/master/zh_CN/gamedata';
 
-final serverProvider = NotifierProvider.autoDispose.family<ServerNotifier, ServerState, Server>(
+final serverProvider = NotifierProvider.family<ServerNotifier, ServerState, Server>(
   ServerNotifier.new,
 );
 
