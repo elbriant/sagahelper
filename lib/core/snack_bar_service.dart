@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sagahelper/core/global_data.dart';
+import 'package:sagahelper/core/navigation_service.dart';
 
 enum SnackBarType { normal, success, failure, warning, custom }
 

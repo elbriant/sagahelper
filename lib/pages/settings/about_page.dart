@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // -------------------------- About Settings Page ----------------------------
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
@@ -14,9 +13,9 @@ class AboutSettings extends ConsumerWidget {
 
   void checkUpdates() async {
     final status = await fetchUpdateAndAlert(
-      onError: (res) {
+      onError: (e) {
         SnackBarService.showSnackBar(
-          "Couldn't check updates [${res.statusCode} : ${(jsonDecode(res.body) as Map<String, dynamic>)["message"]}]",
+          "Couldn't check updates",
         );
       },
     );

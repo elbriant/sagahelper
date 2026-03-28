@@ -176,7 +176,7 @@ class Operator {
     String? _altkey;
     for (MapEntry<String, dynamic> patch in (patchChars["infos"] as Map<String, dynamic>).entries) {
       if ((patch.value["tmplIds"] as List).contains(key)) {
-        _altkey = patch.value["default"];
+        _altkey = patch.value["default"] ?? patch.value["defaultPatch"];
         patched = true;
         break;
       }
@@ -236,8 +236,8 @@ class Operator {
       itemDesc: dict['itemDesc'],
       names: names,
       loreInfo: loreDict[key] ?? ((patched) ? loreDict[_altkey] : {}),
-      voiceLangDict: voiceDict['voiceLangDict'][key] ??
-          ((patched) ? voiceDict['voiceLangDict'][_altkey] : null),
+      voiceLangDict: voiceDict['voiceLangDict']?[key] ??
+          ((patched) ? voiceDict['voiceLangDict'][_altkey] : {}),
       charWordsList: getVoices(voiceDict['charWords'], key),
       skinsList: getSkins(charSkins, key),
       trait: dict['trait'],
@@ -247,7 +247,7 @@ class Operator {
       potentials: dict['potentialRanks'],
       favorKeyframes: dict['favorKeyFrames'],
       skillLvlMats: dict['allSkillLvlup'],
-      baseSkills: baseSkills[key] ?? ((patched) ? baseSkills[_altkey] : null),
+      baseSkills: baseSkills[key] ?? ((patched) ? baseSkills[_altkey] : {}),
       modules: (modTable[key] as List<dynamic>?)?.map((e) => e as String).toList(),
       opPatched: patched,
     );

@@ -152,6 +152,7 @@ class _OperatorBaseSkillState extends ConsumerState<OperatorBaseSkill> {
                           AssetImage(
                             'assets/elite/elite_${baseElites[index]}.png',
                           ),
+                          color: Colors.grey[200],
                         ),
                       );
                     }),
@@ -282,6 +283,7 @@ class _OperatorBaseSkillState extends ConsumerState<OperatorBaseSkill> {
                                           .githubEncode(),
                                   filename: '${cachedTable[buffId]["skillIcon"]}.png',
                                   type: CacheType.baseSkill,
+                                  quality: FilterQuality.low,
                                   scale: 1.3,
                                   color: unlocked ? null : Colors.transparent,
                                   placeholder:

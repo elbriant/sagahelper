@@ -1,11 +1,24 @@
 import 'package:flowder/flowder.dart';
-import 'package:flutter/material.dart';
+import 'package:sagahelper/providers/server_provider.dart';
+
+/// todo list
+/// TODO: feature: add favorite operator
+/// TODO: feature: add new badge to new operators
+/// TODO: feature: filter by voice type (ex: operators that have spanish voicelines)
+/// TODO: feature: audio download by long press (context menu maybe?)
+/// TODO: feature: stream/provider to check internet status (so the home autocheck runs or not, also affects other auto checks)
+/// TODO: feature: show "new" badge on current version added operators
+/// TODO: add auto check update switch
+/// TODO: integration with go route ( so global notifier can get everywhere ?)
+///
+
+/// bug list
+/// TODO: main cn server (¿¿??) (maybe home screen)
 
 // ----------------- run time flags
 
 Map<String, DownloaderCore> downloadsBackgroundCores = {};
 bool flagFirstTimeCheck = false;
-bool flagServerFetch = false;
 bool flagCheckForAppUpdates = false;
 
 // ------------- constants
@@ -13,8 +26,12 @@ bool flagCheckForAppUpdates = false;
 const String appVersion = "Beta 0.3.0";
 
 const Map<String, Map> credits = {
-  "Kengxxiao - ArknightsGameData": {
+  "elbriant - Sagapi-gamedata": {
     "assets": "Providing the raw game data",
+    "link": "https://github.com/elbriant/sagapi-gamedata",
+  },
+  "Kengxxiao - ArknightsGameData": {
+    "assets": "Providing the raw game data for cn",
     "link": "https://github.com/Kengxxiao/ArknightsGameData",
   },
   "elbriant - Sagapi-assets": {
@@ -36,6 +53,17 @@ const Map<String, Map> credits = {
   },
 };
 
+// yes, i use github as a CDN
+// maybe i'll consider to use Statically or something later
+
+// gamedata from ArknightsGamedata repo
+String gamedataRepo(Server s) => switch (s) {
+      Server.cn =>
+        'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/refs/heads/master/zh_CN/gamedata',
+      _ =>
+        'https://raw.githubusercontent.com/elbriant/sagapi-gamedata/refs/heads/gamedata/${s.repoString}/gamedata'
+    };
+
 // Assets from sagapi-assets repo
 const String kAvatarRepo =
     'https://raw.githubusercontent.com/elbriant/sagapi-assets/refs/heads/assets/assets/charavatars';
@@ -55,10 +83,11 @@ const String kModImgRepo =
     'https://raw.githubusercontent.com/elbriant/sagapi-assets/refs/heads/assets/assets/ui/uniequipimg';
 const String kModIconRepo =
     'https://raw.githubusercontent.com/elbriant/sagapi-assets/refs/heads/assets/assets/ui/uniequiptype';
+const String kSubProfessionIconRepo =
+    'https://raw.githubusercontent.com/elbriant/sagapi-assets/refs/heads/assets/assets/ui/subprofessionicon';
+const String kSkinBrandLogoRepo =
+    'https://raw.githubusercontent.com/elbriant/sagapi-assets/refs/heads/assets/assets/ui/brandimage';
+// TODO: add brand logo to the skins viewer
 
 // Voice Assets from sagapi-audio repo
 const String kVoiceRepo = 'https://github.com/elbriant/sagapi-audio/raw/refs/heads/audio/audio';
-
-class NavigationService {
-  static GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-}

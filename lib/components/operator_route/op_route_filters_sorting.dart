@@ -43,7 +43,7 @@ class OpRouteFiltersSorting extends ConsumerWidget {
           currentSortingReversed: currentSortingReversed,
         ),
         OperatorSortingTile(
-          label: 'Creation',
+          label: 'Creation (kinda)',
           operatorSorting: OperatorSortingType.creation,
           callback: changeSortingType,
           currentSortingType: currentSortingType,

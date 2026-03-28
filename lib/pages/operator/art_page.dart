@@ -14,6 +14,7 @@ import 'package:sagahelper/components/stored_image.dart';
 import 'package:sagahelper/components/styled_buttons.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/core/global_data.dart';
+import 'package:sagahelper/core/navigation_service.dart';
 import 'package:sagahelper/core/snack_bar_service.dart';
 import 'package:sagahelper/models/config/local_data_manager.dart';
 import 'dart:developer' as dev;
@@ -83,13 +84,13 @@ class _ArtPageState extends ConsumerState<ArtPage> {
     String opSkinId = (widget.operator.skinsList[selectedIndex]['illustId'] as String)
         .replaceFirst('illust_', '');
     Navigator.push(
-      context,
+      NavigationService.rootNavigatorKey.currentContext ?? context,
       MaterialPageRoute(
         builder: (context) => FullscreenArtsPage(
           NetworkToFileImage(
             url: getImageLink(selectedIndex),
             file: LocalDataManager.localCacheFile(
-              '${widget.operator.id}/$opSkinId.png',
+              '${widget.operator.id}_$opSkinId.png',
               CacheType.operatorArt,
             ),
           ),
@@ -396,7 +397,7 @@ class _ArtPageState extends ConsumerState<ArtPage> {
                         imageProvider: NetworkToFileImage(
                           url: getImageLink(index),
                           file: LocalDataManager.localCacheFile(
-                            '${widget.operator.id}/$opSkinId.png',
+                            '${widget.operator.id}_$opSkinId.png',
                             CacheType.operatorArt,
                           ),
                         ),

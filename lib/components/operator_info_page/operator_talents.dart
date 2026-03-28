@@ -118,6 +118,7 @@ class _OperatorTalentsState extends ConsumerState<OperatorTalents> {
                         AssetImage(
                           'assets/elite/elite_${talentElites[index]}.png',
                         ),
+                        color: Colors.grey[200],
                       ),
                     );
                   }),

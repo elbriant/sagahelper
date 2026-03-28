@@ -454,6 +454,9 @@ class _OperatorSkillState extends ConsumerState<OperatorSkill> {
                                     child: ClipRRect(
                                       borderRadius: BorderRadius.circular(4.0),
                                       child: StoredCustomImage(
+                                        key: ValueKey(
+                                          '${snapshot.data![index]["iconId"] ?? snapshot.data![index]["skillId"]}.png',
+                                        ),
                                         imageUrl:
                                             '$kSkillRepo/skill_icon_${snapshot.data![index]["iconId"] ?? snapshot.data![index]["skillId"]}.png'
                                                 .githubEncode(),

@@ -19,15 +19,13 @@ class OperatorSearchNotifier extends Notifier<OperatorSearchData> {
   }
 
   set searchString(String? newSearch) {
-    state.copyWith(
+    state = state.copyWith(
       searchFilterString: newSearch ?? '',
     );
   }
 
   void toggleOperatorFilter(FilterTag tag) {
-    // TODO: test, this may not work as it may appear as "same" info, so doesnt reloads new data from the map
-
-    Map<String, FilterDetail> newFilters = state.operatorFilters;
+    Map<String, FilterDetail> newFilters = Map.of(state.operatorFilters);
     if (newFilters.containsKey(tag.id)) {
       if (newFilters[tag.id]!.mode != FilterMode.blacklist) {
         newFilters[tag.id] = FilterDetail(
@@ -48,8 +46,7 @@ class OperatorSearchNotifier extends Notifier<OperatorSearchData> {
   }
 
   void addOperatorFilter(FilterTag tag) {
-    // TODO: test, this may not work as it may appear as "same" info, so doesnt reloads new data from the map
-    Map<String, FilterDetail> newFilters = state.operatorFilters;
+    Map<String, FilterDetail> newFilters = Map.of(state.operatorFilters);
 
     newFilters[tag.id] = FilterDetail(key: tag.key, mode: FilterMode.whitelist, type: tag.type);
 

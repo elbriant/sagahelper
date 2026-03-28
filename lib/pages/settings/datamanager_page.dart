@@ -108,18 +108,21 @@ class ServerTile extends ConsumerWidget {
       switch (state) {
         case DataState.unknown:
           SnackBarService.showSnackBar('Try to force a fetch');
+          if (serverState.version != null) changeServer(server);
         case DataState.fetching:
           SnackBarService.showSnackBar('Checking lastest version');
+          if (serverState.version != null) changeServer(server);
         case DataState.hasUpdate:
           SnackBarService.showSnackBar('starting to download last version');
           ref.read(serverProvider(server).notifier).downloadLastest();
         case DataState.upToDate:
-          SnackBarService.showSnackBar('already has the last version');
+          changeServer(server);
         case DataState.error:
           SnackBarService.showSnackBar(
-            'Something went wrong, try later',
+            'Something went wrong, try fetching later',
             type: SnackBarType.failure,
           );
+          if (serverState.version != null) changeServer(server);
         case DataState.downloading:
           SnackBarService.showSnackBar('Downloading server files');
       }
@@ -184,7 +187,7 @@ class ServerTile extends ConsumerWidget {
           DataState.fetching => const Icon(Icons.sync),
         },
         onTap: () {
-          state == DataState.upToDate ? changeServer(server) : getUpdate(server, state);
+          getUpdate(server, state);
         },
       ),
     );

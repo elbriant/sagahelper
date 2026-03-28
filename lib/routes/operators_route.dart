@@ -123,7 +123,7 @@ class _OperatorsPageState extends ConsumerState<OperatorsPage> {
               ListTile(
                 title: const Text('reload gamedata'),
                 onTap: reloadgamedata,
-                enabled: isFreshOperatorData,
+                enabled: !filteredOperatorList.isLoading,
               ),
             ],
             controller: _menuController,
@@ -152,11 +152,11 @@ class _OperatorsPageState extends ConsumerState<OperatorsPage> {
         child: switch (filteredOperatorList) {
           // loading
           AsyncValue(isLoading: true) => const OpRouteLoading(),
+          // error
+          AsyncValue(:final error?) => OpRouteError(error: error),
           // done
           AsyncValue<List<Operator>>(:final value?) =>
             value.isEmpty ? const OpRouteSearchNotFound() : OperatorListView(operators: value),
-          // error
-          AsyncValue(:final error?) => OpRouteError(error: error),
           // fallback
           _ => const OpRouteLoading(),
         },

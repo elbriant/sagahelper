@@ -38,50 +38,73 @@ class HomeMainWidget extends ConsumerWidget {
     final String serverCurrentTime = serverTime.formatHome(settings);
     final String timeUntilReset = getTimeUntilReset(showSeconds);
 
-    return SizedBox(
-      height: !compactMode ? 150 : 75,
-      child: Card.filled(
-        color: Theme.of(context).colorScheme.secondaryContainer,
-        elevation: 2,
-        child: Column(
-          children: [
-            !compactMode
-                ? Expanded(
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Center(
-                            child: Text(
-                              'Local Reset Time: \n$localResetTime',
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Center(
-                            child: Text(
-                              'Server: ${currentServer.toUpperCase()}\n$serverCurrentTime',
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : Container(),
-            Expanded(
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Column(
+        children: [
+          if (!compactMode)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12.0),
               child: Row(
                 children: [
                   Expanded(
-                    child: Center(
-                      child: Text(
-                        'Time until reset: \n$timeUntilReset',
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          const TextSpan(
+                            text: 'Local Reset Time:\n',
+                            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                          ),
+                          TextSpan(
+                            text: localResetTime,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text.rich(
+                      TextSpan(
+                        children: [
+                          const TextSpan(
+                            text: 'Server: ',
+                          ),
+                          TextSpan(
+                            text: currentServer.toUpperCase(),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          TextSpan(
+                            text: '\n$serverCurrentTime',
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
+          Row(
+            children: [
+              Expanded(
+                child: Text.rich(
+                  TextSpan(
+                    children: [
+                      const TextSpan(
+                        text: 'Time until reset:\n',
+                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                      ),
+                      TextSpan(
+                        text: timeUntilReset,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

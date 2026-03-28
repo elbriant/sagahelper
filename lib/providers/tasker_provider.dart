@@ -42,6 +42,13 @@ class TaskerNotifier extends Notifier<Tasker> {
     );
   }
 
+  /// Removes a task by ID with a delay
+  Future<void> timedRemoveTask(String id, {int seconds = 3}) async {
+    await Future.delayed(Duration(seconds: seconds)).then((_) {
+      removeTask(id);
+    });
+  }
+
   /// clear
   void completeAllTasks() {
     state = const Tasker();

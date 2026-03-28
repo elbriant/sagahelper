@@ -88,7 +88,7 @@ extension StringExtension on String {
       } else {
         parsed = parsed.replaceAll(
           RegExp('{${RegExp.escape(map['key'])}}', caseSensitive: false),
-          map['value'],
+          map['valueStr'] ?? map['value'].toString(),
         );
       }
     }
@@ -200,5 +200,15 @@ extension NullableExtension<T> on T? {
 
   bool get isNotNull {
     return this != null;
+  }
+}
+
+extension TextMeasurer on BuildContext {
+  Size measureTextSize(String text, TextStyle style, {double maxWidth = double.infinity}) {
+    final textPainter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: Directionality.of(this),
+    )..layout(maxWidth: maxWidth);
+    return textPainter.size;
   }
 }

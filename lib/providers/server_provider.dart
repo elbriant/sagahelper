@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sagahelper/core/global_data.dart';
+import 'package:sagahelper/core/snack_bar_service.dart';
 import 'package:sagahelper/models/config/local_data_manager.dart';
 import 'package:sagahelper/models/dir_stat.dart';
 import 'package:sagahelper/models/server_state.dart';
@@ -9,12 +12,14 @@ import 'package:sagahelper/providers/config_provider.dart';
 import 'package:flowder/flowder.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
+import 'package:sagahelper/providers/tasker_provider.dart';
 
 enum Server {
-  en('enVersion', 'en_US', 'en'),
-  cn('cnVersion', '', 'cn'),
-  jp('jpVersion', 'ja_JP', 'jp'),
-  kr('krVersion', 'ko_KR', 'kr');
+  cn('cnVersion', 'cn', 'cn'),
+  en('enVersion', 'en', 'en'),
+  jp('jpVersion', 'jp', 'jp'),
+  kr('krVersion', 'kr', 'kr'),
+  tw('twVersion', 'tw', 'tw');
 
   const Server(
     this.key,
@@ -56,11 +61,6 @@ const List<String> kOpFiles = [
 
 const Set<String> kFiles = {...kHomeFiles, ...kMetadataFiles, ...kOpFiles};
 
-String yostarrepo(String server) =>
-    'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData_YoStar/refs/heads/main/$server/gamedata';
-const String chServerlink =
-    'https://raw.githubusercontent.com/Kengxxiao/ArknightsGameData/refs/heads/master/zh_CN/gamedata';
-
 final serverProvider = NotifierProvider.family<ServerNotifier, ServerState, Server>(
   ServerNotifier.new,
 );
@@ -78,19 +78,42 @@ final currentServerStateProvider = Provider<ServerState>((ref) {
 });
 
 class ServerNotifier extends Notifier<ServerState> {
-  String get serverlink =>
-      switch (server) { Server.cn => chServerlink, _ => yostarrepo(server.repoString) };
-
   ServerNotifier(this.server);
   final Server server;
   late final String serverLocalPath;
+  late final String serverLink;
 
   @override
   ServerState build() {
     final prefs = ref.read(sharedPreferencesProvider);
     serverLocalPath = LocalDataManager.localpathServer(server);
+    serverLink = gamedataRepo(server);
+    final version = prefs.getString(server.key);
 
-    return ServerState(server: server, version: prefs.getString(server.key));
+    return ServerState(
+      server: server,
+      version: (version ?? '').isEmpty ? null : version,
+    );
+  }
+
+  /// deletes initial "/" if has one and returns filepath of this server file
+  String _getSafePath(String relativePath) {
+    final cleanPath = relativePath.startsWith('/') ? relativePath.substring(1) : relativePath;
+    return p.join(serverLocalPath, cleanPath);
+  }
+
+  /// returns the future string of a certain server file (downloaded)
+  Future<String> getFile(String filepath) async {
+    return await File(_getSafePath(filepath)).readAsString();
+  }
+
+  /// safer version of getFile
+  Future<String?> tryGetFile(String filepath) async {
+    if ((await File(_getSafePath(filepath)).exists())) {
+      return await File(_getSafePath(filepath)).readAsString();
+    } else {
+      return null;
+    }
   }
 
   /// sets the version [String] to the provided server
@@ -103,8 +126,7 @@ class ServerNotifier extends Notifier<ServerState> {
   /// [filePaths] null means all files
   Future<bool> existFiles([List<String>? filesPaths]) async {
     for (var file in (filesPaths ?? kFiles)) {
-      bool fileExist = await File(p.join(serverLocalPath, file)).exists();
-
+      bool fileExist = await File(_getSafePath(file)).exists();
       if (!fileExist) {
         return false;
       }
@@ -113,24 +135,10 @@ class ServerNotifier extends Notifier<ServerState> {
     return true;
   }
 
-  /// returns the future string of a certain server file (downloaded)
-  Future<String> getFile(String filepath) async {
-    return await File(p.join(serverLocalPath, filepath)).readAsString();
-  }
-
-  /// safer version of getFile
-  Future<String?> tryGetFile(String filepath) async {
-    if ((await File(p.join(serverLocalPath, filepath)).exists())) {
-      return await File(p.join(serverLocalPath, filepath)).readAsString();
-    } else {
-      return null;
-    }
-  }
-
   /// fetch last data version available for the provided server
   /// returns [String] version
   Future<String> fetchLastestVersion() async {
-    final response = await http.get(Uri.parse('$serverlink/excel/data_version.txt'));
+    final response = await http.get(Uri.parse('$serverLink/excel/data_version.txt'));
 
     if (response.statusCode == 200) {
       // If the server did return a 200 OK response
@@ -155,10 +163,13 @@ class ServerNotifier extends Notifier<ServerState> {
   /// updates the folder size too
   /// check the dataState to know
   Future<void> refresh() async {
+    updateFolderSize();
+
+    if (state.state == DataState.fetching || state.state == DataState.downloading) return;
+
     state = state.copyWith(state: DataState.fetching);
 
     try {
-      updateFolderSize();
       final updateString = await fetchLastestVersion();
       final hasAllFiles = await existFiles();
       if (updateString != (state.version ?? '') || !hasAllFiles) {
@@ -189,7 +200,7 @@ class ServerNotifier extends Notifier<ServerState> {
   }
 
   /// verifies if all files are alright and sets the version to the given version
-  void verifyDownloadedLastest(String version) async {
+  void verifyDownloadedLastest(String version, {String? taskId}) async {
     final result = await existFiles();
 
     if (!result) return;
@@ -197,19 +208,12 @@ class ServerNotifier extends Notifier<ServerState> {
     await setVersion(version);
     await updateFolderSize();
 
-    /* TODO: tasker
-    if (NavigationService.navigatorKey.currentContext!.mounted) {
-      NavigationService.navigatorKey.currentContext!
-          .read<SettingsProvider>()
-          .setLoadingString('Completed download');
-      await Future.delayed(const Duration(seconds: 2));
-      if (NavigationService.navigatorKey.currentContext!.mounted) {
-        NavigationService.navigatorKey.currentContext!
-            .read<SettingsProvider>()
-            .setIsLoadingAsync(false);
-      }
-    */
-
+    if (taskId != null) {
+      ref.read(taskerProvider.notifier).updateTask(taskId, 'Completed download ≧◡≦');
+      Future.delayed(const Duration(seconds: 2)).then((_) {
+        ref.read(taskerProvider.notifier).removeTask(taskId);
+      });
+    }
     state = state.copyWith(
       state: DataState.upToDate,
     );
@@ -217,40 +221,19 @@ class ServerNotifier extends Notifier<ServerState> {
 
   /// deletes and tries to download the last version
   Future<void> downloadLastest() async {
-    /* TODO: tasker
-    if (NavigationService.navigatorKey.currentContext!.mounted) {
-      NavigationService.navigatorKey.currentContext!
-          .read<SettingsProvider>()
-          .setLoadingString('Preparing download...');
-      NavigationService.navigatorKey.currentContext!
-          .read<SettingsProvider>()
-          .setIsLoadingAsync(true);
-    }
-    */
+    final taskId = ref.read(taskerProvider.notifier).addTask('Preparing download...');
+
+    await deleteServer();
 
     state = state.copyWith(
       state: DataState.downloading,
     );
 
-    for (var file in kFiles) {
-      bool fileExist = await File('$serverLocalPath$file').exists();
-      if (fileExist) {
-        await File('$serverLocalPath$file').delete();
-      }
-    }
-
-    // no version
-    await setVersion(null);
-
-    /* TODO: tasker
-    if (NavigationService.navigatorKey.currentContext!.mounted) {
-      NavigationService.navigatorKey.currentContext!
-          .read<SettingsProvider>()
-          .setLoadingString('Starting download');
-    }
- */
+    ref.read(taskerProvider.notifier).updateTask(taskId, 'Starting download...');
 
     String version = await fetchLastestVersion();
+
+    List<Future<void>> downloadTasks = [];
 
     for (var file in kFiles) {
       final String msgfile = file.substring(
@@ -258,36 +241,43 @@ class ServerNotifier extends Notifier<ServerState> {
         file.lastIndexOf('.') > 0 ? file.lastIndexOf('.') : file.length - 1,
       );
 
+      final completer = Completer<void>();
+
       var downloaderUtils = DownloaderUtils(
+        file: File(_getSafePath(file)),
+        onDone: () {
+          ref.read(taskerProvider.notifier).updateTask(taskId, 'Completed $msgfile download...');
+          completer.complete();
+        },
+        onError: (e) => completer.completeError(e),
         progressCallback: (current, total) {
           // final progress = (current / total) * 100;
         },
-        file: File('$serverLocalPath$file'),
         progress: ProgressImplementation(),
-        onDone: () {
-          /* TODO: tasker
-          
-          if (NavigationService.navigatorKey.currentContext!.mounted) {
-            NavigationService.navigatorKey.currentContext!
-                .read<SettingsProvider>()
-                .setLoadingString('completed $msgfile download...');
-          } */
-          verifyDownloadedLastest(version);
-        },
         deleteOnCancel: true,
-        onError: (_) {},
       );
 
-      /* TODO: tasker
-      
-       if (NavigationService.navigatorKey.currentContext!.mounted) {
-        NavigationService.navigatorKey.currentContext!
-            .read<SettingsProvider>()
-            .setLoadingString('Starting $msgfile download...');
-      } */
+      ref.read(taskerProvider.notifier).updateTask(taskId, 'Starting $msgfile download...');
+      try {
+        await Flowder.download('$serverLink$file', downloaderUtils);
+        downloadTasks.add(completer.future);
+      } catch (e) {
+        ref.read(taskerProvider.notifier).updateTask(taskId, 'Error with $msgfile');
+        Future.delayed(const Duration(seconds: 2)).then((_) {
+          ref.read(taskerProvider.notifier).removeTask(taskId);
+        });
+        state = state.copyWith(
+          state: DataState.error,
+        );
+        SnackBarService.showSnackBar('Server download error: $e', type: SnackBarType.failure);
+      }
+    }
 
-      List core = [];
-      core.add(await Flowder.download('$serverlink$file', downloaderUtils));
+    try {
+      await Future.wait(downloadTasks);
+      verifyDownloadedLastest(version, taskId: taskId);
+    } catch (e) {
+      state = state.copyWith(state: DataState.error);
     }
   }
 

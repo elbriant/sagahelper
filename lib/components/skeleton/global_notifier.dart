@@ -2,11 +2,11 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:marquee/marquee.dart';
 import 'package:sagahelper/providers/tasker_provider.dart';
+import 'package:sagahelper/utils/extensions.dart';
 
 const randomWords = ['Natto gohan...', 'Aburage...', 'Completed...', 'Working...'];
-
-// TODO: add global notifier to nagvigator pushes
 
 class GlobalNotifier extends ConsumerWidget {
   const GlobalNotifier({super.key});
@@ -14,6 +14,10 @@ class GlobalNotifier extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tasker = ref.watch(taskerProvider);
+
+    final text = tasker.taskQueue.length > 1
+        ? 'Completing ${tasker.taskQueue.length} tasks (${tasker.taskQueue.lastOrNull?.message ?? randomWords[Random().nextInt(randomWords.length)]})'
+        : tasker.taskQueue.lastOrNull?.message ?? randomWords[Random().nextInt(randomWords.length)];
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 600),
@@ -39,15 +43,30 @@ class GlobalNotifier extends ConsumerWidget {
             ),
           ),
           const SizedBox(width: 20),
-          Flexible(
-            child: Text(
-              tasker.taskQueue.lastOrNull?.message ??
-                  randomWords[Random().nextInt(randomWords.length)],
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onPrimary,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
+          ConstrainedBox(
+            constraints:
+                BoxConstraints.loose(Size(MediaQuery.widthOf(context) * 0.7, double.maxFinite)),
+            child: context.measureTextSize(text, const TextStyle()).width >
+                    MediaQuery.widthOf(context) * 0.7
+                ? Marquee(
+                    text: text,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                    velocity: 25,
+                    blankSpace: 45.0,
+                    startPadding: 45.0,
+                    fadingEdgeEndFraction: 0.1,
+                    fadingEdgeStartFraction: 0.1,
+                    showFadingOnlyWhenScrolling: false,
+                    pauseAfterRound: const Duration(seconds: 2),
+                  )
+                : Text(
+                    text,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                  ),
           ),
         ],
       ),

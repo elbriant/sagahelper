@@ -119,7 +119,7 @@ class InkWellDialogBox extends ConsumerWidget {
                   ),
                 ],
                 color: useClassicDialogBox
-                    ? const Color.fromARGB(190, 85, 85, 85)
+                    ? const Color.fromARGB(255, 85, 85, 85)
                     : Color.lerp(
                         Theme.of(context).brightness == Brightness.light
                             ? const Color.fromARGB(166, 85, 85, 85)

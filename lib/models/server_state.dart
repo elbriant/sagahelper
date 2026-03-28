@@ -10,6 +10,8 @@ enum DataState {
   error,
 }
 
+const Object _undefined = Object();
+
 @immutable
 class ServerState {
   final Server server;
@@ -26,15 +28,15 @@ class ServerState {
 
   ServerState copyWith({
     Server? server,
-    String? version,
+    Object? version = _undefined,
     DataState? state,
-    String? folderSize,
+    Object? folderSize = _undefined,
   }) {
     return ServerState(
       server: server ?? this.server,
-      version: version ?? this.version,
+      version: version == _undefined ? this.version : (version as String?),
       state: state ?? this.state,
-      folderSize: folderSize ?? this.folderSize,
+      folderSize: folderSize == _undefined ? this.folderSize : (folderSize as String?),
     );
   }
 }

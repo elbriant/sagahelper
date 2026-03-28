@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:sagahelper/components/popup_dialog.dart';
-import 'package:sagahelper/core/global_data.dart';
+import 'package:sagahelper/core/navigation_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 
@@ -37,32 +37,36 @@ enum UpdateStatus { upToDate, alertSended, failedToFetch }
 ///
 /// [onError] triggered when statusCode != 200
 Future<UpdateStatus> fetchUpdateAndAlert({
-  void Function(http.Response)? onError,
+  void Function(Exception)? onError,
 }) async {
-  final response =
-      await http.get(Uri.parse('https://api.github.com/repos/elbriant/sagahelper/releases/latest'));
+  try {
+    final response = await http
+        .get(Uri.parse('https://api.github.com/repos/elbriant/sagahelper/releases/latest'));
 
-  if (response.statusCode == 200) {
-    final json = jsonDecode(response.body) as Map<String, dynamic>;
+    if (response.statusCode == 200) {
+      final json = jsonDecode(response.body) as Map<String, dynamic>;
 
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    String version = packageInfo.version;
-    String githubVersion = (json['tag_name'] as String).substring(1);
+      PackageInfo packageInfo = await PackageInfo.fromPlatform();
+      String version = packageInfo.version;
+      String githubVersion = (json['tag_name'] as String).substring(1);
 
-    if (isVersionGreaterThan(githubVersion, version)) {
-      PopupDialog.appUpdateAlert(
-        context: NavigationService.navigatorKey.currentContext!,
-        label: json["name"],
-        body: json["body"],
-        updateUrl: json["html_url"],
-        currentVersion: version,
-        newVersion: githubVersion,
-      );
-      return UpdateStatus.alertSended;
-    } else {
-      return UpdateStatus.upToDate;
+      if (isVersionGreaterThan(githubVersion, version)) {
+        PopupDialog.appUpdateAlert(
+          context: NavigationService.navigatorKey.currentContext!,
+          label: json["name"],
+          body: json["body"],
+          updateUrl: json["html_url"],
+          currentVersion: version,
+          newVersion: githubVersion,
+        );
+        return UpdateStatus.alertSended;
+      } else {
+        return UpdateStatus.upToDate;
+      }
     }
+    throw Exception("Response error, status code: ${response.statusCode}");
+  } on Exception catch (e) {
+    onError?.call(e);
+    return UpdateStatus.failedToFetch;
   }
-  onError?.call(response);
-  return UpdateStatus.failedToFetch;
 }

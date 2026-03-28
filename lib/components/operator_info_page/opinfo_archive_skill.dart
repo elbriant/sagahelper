@@ -5,7 +5,7 @@ import 'package:sagahelper/components/operator_info_page/operator_modules.dart';
 import 'package:sagahelper/components/operator_info_page/operator_skill.dart';
 import 'package:sagahelper/components/operator_info_page/operator_stats.dart';
 import 'package:sagahelper/components/operator_info_page/operator_talents.dart';
-import 'package:sagahelper/components/trait_card.dart';
+import 'package:sagahelper/components/operator_info_page/operator_trait_card.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/models/operator_context.dart';
 import 'package:sagahelper/providers/operator_context_provider.dart';

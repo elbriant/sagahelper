@@ -678,6 +678,9 @@ class _OperatorModulesState extends ConsumerState<OperatorModules> {
               child: Stack(
                 children: [
                   StoredCustomImage(
+                    key: ValueKey(
+                      '${isAdvanced ? modulesInfoList[currentModule]["uniEquipIcon"] : 'default'}.png',
+                    ),
                     imageUrl:
                         '$kModImgRepo/${isAdvanced ? modulesInfoList[currentModule]["uniEquipIcon"] : 'default'}.png',
                     filename:
@@ -686,7 +689,7 @@ class _OperatorModulesState extends ConsumerState<OperatorModules> {
                     fit: BoxFit.none,
                     width: double.maxFinite,
                     alignment: const Alignment(-0.8, 0),
-                    scale: 3.0,
+                    scale: 4.0,
                     colorBlendMode: BlendMode.modulate,
                     color: const Color.fromARGB(129, 255, 255, 255),
                     placeholderColorBlendMode: BlendMode.modulate,

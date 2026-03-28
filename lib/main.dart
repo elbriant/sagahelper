@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sagahelper/app.dart';
+import 'package:sagahelper/core/asset_service.dart';
 import 'package:sagahelper/core/notification_service.dart';
 import 'package:sagahelper/models/config/local_data_manager.dart' show LocalDataManager;
 import 'package:sagahelper/models/context_data.dart';
@@ -84,6 +85,7 @@ void main() async {
 
   // local files
   await LocalDataManager.init();
+  await AssetService.init();
 
   final providerContainer = ProviderContainer(
     overrides: [

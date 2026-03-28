@@ -13,6 +13,7 @@ import 'package:sagahelper/providers/server_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/core/global_data.dart' show flagFirstTimeCheck, flagCheckForAppUpdates;
+import 'package:sagahelper/providers/tasker_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
 import 'package:sagahelper/utils/misc.dart';
 
@@ -129,33 +130,19 @@ class _HomePageState extends ConsumerState<HomePage> {
     if (flagFirstTimeCheck) return;
     flagFirstTimeCheck = true;
 
-    /* TODO: tasker
-    NavigationService.navigatorKey.currentContext!
-        .read<SettingsProvider>()
-        .setLoadingString('checking gamedata...');
-
-    NavigationService.navigatorKey.currentContext!.read<SettingsProvider>().setIsLoadingHome(true);
-
-    await Future.delayed(const Duration(seconds: 1)); */
-
+    final taskId = ref.read(taskerProvider.notifier).addTask('Checking gamedata...');
+    await Future.delayed(const Duration(seconds: 1));
     final hasAllFiles = await ref.read(currentServerNotifierProvider).existFiles();
 
     final server = ref.read(currentServerStateProvider);
 
-    if (server.version.isNotNull || !hasAllFiles) {
-      /* TODO: tasker
-      NavigationService.navigatorKey.currentContext!
-          .read<SettingsProvider>()
-          .setLoadingString('downloading gamedata...');
-      NavigationService.navigatorKey.currentContext!
-          .read<SettingsProvider>()
-          .setIsLoadingHome(false); */
+    if (server.version.isNull || !hasAllFiles) {
+      ref.read(taskerProvider.notifier)
+        ..updateTask(taskId, 'Downloading gamedata...')
+        ..timedRemoveTask(taskId);
       await ref.read(currentServerNotifierProvider).downloadLastest();
     } else {
-      /* TODO: tasker
-      NavigationService.navigatorKey.currentContext!
-          .read<SettingsProvider>()
-          .setLoadingString('checking gamedata updates...'); */
+      ref.read(taskerProvider.notifier).updateTask(taskId, 'Checking gamedata updates...');
       await ref.read(currentServerNotifierProvider).refresh();
       bool lastAvailable = ref.read(currentServerStateProvider).state == DataState.hasUpdate;
       if (lastAvailable) {
@@ -163,29 +150,20 @@ class _HomePageState extends ConsumerState<HomePage> {
         final currentVersion = ref.read(currentServerStateProvider).version;
         final lastestVersion = await ref.read(currentServerNotifierProvider).fetchLastestVersion();
 
-        /* TODO: tasker
-        NavigationService.navigatorKey.currentContext!
-            .read<SettingsProvider>()
-            .setLoadingString('There is a game data update...'); */
+        ref.read(taskerProvider.notifier).updateTask(taskId, 'There is a game data update...');
         ref.read(notificationProvider).showNotification(
               title: 'Game data update',
               body: 'Current version: $currentVersion / Last version: $lastestVersion',
               payload: NotificationPayloads.serverUpdate.payload,
             );
-        /* TODO: tasker
-        await Future.delayed(const Duration(seconds: 3));
-        NavigationService.navigatorKey.currentContext!
-            .read<SettingsProvider>()
-            .setIsLoadingHome(false); */
+        Future.delayed(const Duration(seconds: 3)).then((_) {
+          ref.read(taskerProvider.notifier).removeTask(taskId);
+        });
       } else {
-        /* TODO: tasker
-        NavigationService.navigatorKey.currentContext!
-            .read<SettingsProvider>()
-            .setLoadingString('All good!');
-        await Future.delayed(const Duration(seconds: 2));
-        NavigationService.navigatorKey.currentContext!
-            .read<SettingsProvider>()
-            .setIsLoadingHome(false); */
+        ref.read(taskerProvider.notifier).updateTask(taskId, 'All good! ≧◡≦');
+        Future.delayed(const Duration(seconds: 3)).then((_) {
+          ref.read(taskerProvider.notifier).removeTask(taskId);
+        });
       }
     }
   }
@@ -218,7 +196,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('news'),
+        title: const Text('Home and News'),
         flexibleSpace: translucentUi
             ? TranslucentWidget(
                 sigma: 3,
@@ -232,9 +210,9 @@ class _HomePageState extends ConsumerState<HomePage> {
       ),
       body: ListView.builder(
         padding: EdgeInsets.fromLTRB(
-          24.0,
-          MediaQuery.paddingOf(context).top + AppBar().preferredSize.height + 24.0,
-          24.0,
+          16.0,
+          MediaQuery.paddingOf(context).top + AppBar().preferredSize.height + 16.0,
+          16.0,
           MediaQuery.paddingOf(context).bottom + 24.0,
         ),
         itemCount: children.length,

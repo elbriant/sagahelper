@@ -53,7 +53,9 @@ class _VoicePageState extends ConsumerState<VoicePage> with WidgetsBindingObserv
   }
 
   void _init() {
-    for (var key in (widget.operator.voiceLangDict['dict'] as Map<String, dynamic>).keys) {
+    for (var key in (widget.operator.voiceLangDict['dict'] ??
+            widget.operator.voiceLangDict['voiceLangInfoDataDict'] as Map<String, dynamic>)
+        .keys) {
       langs.add(key.toLowerCase());
       if (key == 'JP') selectedLang = langs.indexOf('jp');
     }
@@ -168,6 +170,7 @@ class _VoicePageState extends ConsumerState<VoicePage> with WidgetsBindingObserv
   @override
   Widget build(BuildContext context) {
     final translucent = ref.watch(configProvider.select((p) => p.useTranslucentUi));
+    final nickname = ref.watch(configProvider.select((p) => p.nickname));
 
     List<Widget> langsButtons = List.generate(langs.length, (index) {
       String label = switch (langs[index]) {
@@ -183,8 +186,9 @@ class _VoicePageState extends ConsumerState<VoicePage> with WidgetsBindingObserv
         String() => null
       };
 
-      String va = ((widget.operator.voiceLangDict['dict']
-              as Map<String, dynamic>)[langs[index].toUpperCase()]["cvName"] as List)
+      String va = ((widget.operator.voiceLangDict['dict'] ??
+              widget.operator.voiceLangDict['voiceLangInfoDataDict']
+                  as Map<String, dynamic>)[langs[index].toUpperCase()]["cvName"] as List)
           .join(', ');
 
       return StyledLangButton(
@@ -286,7 +290,8 @@ class _VoicePageState extends ConsumerState<VoicePage> with WidgetsBindingObserv
                 padding: const EdgeInsets.fromLTRB(24.0, 0, 24.0, 12.0),
                 child: AudioDialogBox(
                   title: filteredCharWord[index - 2]['voiceTitle'],
-                  body: (filteredCharWord[index - 2]['voiceText'] as String).nicknameParser(),
+                  body: (filteredCharWord[index - 2]['voiceText'] as String)
+                      .nicknameParser(nickname: nickname),
                   isPlaying: playingIndex == index,
                   manager: manager,
                   fun: () {

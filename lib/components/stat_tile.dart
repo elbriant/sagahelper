@@ -13,7 +13,7 @@ class StatTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final bool isPercent = stat.contains(r'%');
     final bool isNegative = value.characters.first == r'-';
-    final tags = ref.watch(styleProvider).tagsAsArknights;
+    final tags = ref.watch(styleProvider).tagsAsStats;
 
     return StyledText(
       text:
@@ -33,7 +33,7 @@ class StatTileText extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tags = ref.watch(styleProvider).tagsAsArknights;
+    final tags = ref.watch(styleProvider).tagsAsStats;
 
     return StyledText(
       text:
@@ -62,7 +62,7 @@ class StatTileValue extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final bool isPercent = stat.contains(r'%');
     final bool isNegative = value.characters.first == r'-';
-    final tags = ref.watch(styleProvider).tagsAsArknights;
+    final tags = ref.watch(styleProvider).tagsAsStats;
 
     return StyledText(
       text:

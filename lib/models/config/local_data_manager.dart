@@ -28,7 +28,10 @@ enum CacheType {
   operatorAvatar('opicon'),
 
   /// operator faction logo
-  operatorLogo('logo');
+  operatorLogo('logo'),
+
+  /// not specified
+  other('other');
 
   final String folderLabel;
   const CacheType(this.folderLabel);
@@ -78,14 +81,16 @@ class LocalDataManager {
   /// retrieves File, doesnt guarantees to exist
   /// if you need exist use [localCacheFileExist]
   static File localCacheFile(String filename, [CacheType? type]) {
-    return File(p.join(cache.path, type?.folderLabel ?? 'other', filename));
+    return File(p.join(cache.path, type?.folderLabel ?? CacheType.other.folderLabel, filename));
   }
 
   /// this will be the same for all servers¿?
   /// retrieves File, guarantees to exist
   /// if you dont need exist use [localCacheFile]
   static Future<File> localCacheFileExist(String filename, CacheType? type) async {
-    final file = await File(p.join(cache.path, type?.folderLabel ?? 'other', filename)).create();
+    final file = await File(p.join(cache.path, type?.folderLabel ?? 'other', filename)).create(
+      recursive: true,
+    );
     return file;
   }
 
@@ -93,7 +98,10 @@ class LocalDataManager {
   /// retrieves File, guarantees to exist, sync version of [localCacheFileExist]
   /// if you dont need exist use [localCacheFile]
   static File localCacheFileExistSync(String filename, CacheType? type) {
-    final file = File(p.join(cache.path, type?.folderLabel ?? 'other', filename))..createSync();
+    final file = File(p.join(cache.path, type?.folderLabel ?? 'other', filename))
+      ..createSync(
+        recursive: true,
+      );
     return file;
   }
 }

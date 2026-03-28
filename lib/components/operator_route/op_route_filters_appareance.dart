@@ -55,11 +55,11 @@ class OpRouteFiltersAppareance extends ConsumerWidget {
                   max: 5,
                   divisions: 3,
                   value: currentSearchDelegate.toDouble(),
-                  label: currentSearchDelegate.toString(),
+                  label: currentSearchDelegate.toStringAsFixed(0),
                   onChanged: (value) {
                     ref
                         .read(configProvider.notifier)
-                        .updateSettings(ConfigKeys.operatorSearchDelegate, value);
+                        .updateSettings(ConfigKeys.operatorSearchDelegate, value.toInt());
                   },
                   allowedInteraction: SliderInteraction.tapAndSlide,
                 ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sagahelper/components/stored_image.dart';
+import 'package:sagahelper/core/asset_service.dart';
 import 'package:sagahelper/core/global_data.dart';
 import 'package:sagahelper/models/config/local_data_manager.dart';
 import 'package:sagahelper/models/config/types.dart';
@@ -62,8 +63,11 @@ class _OpinfoArchiveHeaderState extends State<OpinfoArchiveHeader>
     final professionStr = 'assets/classes/class_${widget.operator.profession.toLowerCase()}.png';
     final subprofessionStr =
         'assets/subclasses/sub_${widget.operator.subProfessionId.toLowerCase()}_icon.png';
+    final networkSubProfessionStr =
+        "$kSubProfessionIconRepo/sub_${widget.operator.subProfessionId.toLowerCase()}_icon.png"
+            .githubEncode();
 
-    final String ghAvatarLink = '$kAvatarRepo/${widget.operator.id}.png';
+    final String ghAvatarLink = '$kAvatarRepo/${widget.operator.id}.png'.githubEncode();
     String? logo = widget.operator.teamId ?? widget.operator.groupId ?? widget.operator.nationId;
     if (logoNameExceptions.containsKey(logo)) logo = logoNameExceptions[logo];
     final String ghLogoLink = '$kLogoRepo/logo_$logo.png'.githubEncode();
@@ -239,7 +243,13 @@ class _OpinfoArchiveHeaderState extends State<OpinfoArchiveHeader>
                   if (index == 1) {
                     return ActionChip(
                       label: Text(widget.operator.subProfessionString),
-                      avatar: Image.asset(subprofessionStr),
+                      avatar: AssetService.assetSet.contains(subprofessionStr)
+                          ? Image.asset(subprofessionStr)
+                          : StoredFadeInImage(
+                              filename:
+                                  "sub_${widget.operator.subProfessionId.toLowerCase()}_icon.png",
+                              imageUrl: networkSubProfessionStr,
+                            ),
                       backgroundColor: Theme.of(context).brightness == Brightness.light
                           ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.7)
                           : null,

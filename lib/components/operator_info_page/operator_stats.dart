@@ -294,29 +294,30 @@ class _OperatorStatsState extends ConsumerState<OperatorStats> {
                               LilButton(
                                 selected: currentElite == 0,
                                 fun: () => setElite(0),
-                                icon: const ImageIcon(
-                                  AssetImage('assets/elite/elite_0.png'),
+                                icon: ImageIcon(
+                                  const AssetImage('assets/elite/elite_0.png'),
+                                  color: Colors.grey[200],
                                 ),
                               ),
-                              widget.operator.phases.length > 1
-                                  ? LilButton(
-                                      selected: currentElite == 1,
-                                      fun: () => setElite(1),
-                                      icon: const ImageIcon(
-                                        AssetImage('assets/elite/elite_1.png'),
-                                      ),
-                                    )
-                                  : null,
-                              widget.operator.phases.length > 2
-                                  ? LilButton(
-                                      selected: currentElite == 2,
-                                      fun: () => setElite(2),
-                                      icon: const ImageIcon(
-                                        AssetImage('assets/elite/elite_2.png'),
-                                      ),
-                                    )
-                                  : null,
-                            ].nullParser(),
+                              if (widget.operator.phases.length > 1)
+                                LilButton(
+                                  selected: currentElite == 1,
+                                  fun: () => setElite(1),
+                                  icon: ImageIcon(
+                                    const AssetImage('assets/elite/elite_1.png'),
+                                    color: Colors.grey[200],
+                                  ),
+                                ),
+                              if (widget.operator.phases.length > 2)
+                                LilButton(
+                                  selected: currentElite == 2,
+                                  fun: () => setElite(2),
+                                  icon: ImageIcon(
+                                    const AssetImage('assets/elite/elite_2.png'),
+                                    color: Colors.grey[200],
+                                  ),
+                                ),
+                            ],
                           ),
                         ],
                       ),

@@ -2,7 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:network_to_file_image/network_to_file_image.dart';
 import 'package:sagahelper/components/shimmer_loading_mask.dart';
+import 'package:sagahelper/core/asset_service.dart';
+import 'package:sagahelper/core/global_data.dart';
+import 'package:sagahelper/models/config/local_data_manager.dart';
 import 'package:sagahelper/providers/operator_context_provider.dart';
 import 'package:sagahelper/providers/style_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
@@ -41,6 +45,9 @@ class TraitCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final elite = ref.watch(operatorContextProvider.select((p) => p.elite));
     final tagsAsArknights = ref.watch(styleProvider).tagsAsArknights;
+    final subIconAsset = "assets/subclasses/sub_${operator.subProfessionId.toLowerCase()}_icon.png";
+    final subIconNetwork =
+        "$kSubProfessionIconRepo/sub_${operator.subProfessionId.toLowerCase()}_icon.png";
 
     return FutureBuilder(
       future: compute(computeTraitText, [operator, elite]),
@@ -53,9 +60,14 @@ class TraitCard extends ConsumerWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-          avatar: AssetImage(
-            'assets/subclasses/sub_${operator.subProfessionId.toLowerCase()}_icon.png',
-          ),
+          avatar: AssetService.assetSet.contains(subIconAsset)
+              ? AssetImage(subIconAsset)
+              : NetworkToFileImage(
+                  file: LocalDataManager.localCacheFile(
+                    "sub_${operator.subProfessionId.toLowerCase()}_icon.png",
+                  ),
+                  url: subIconNetwork,
+                ),
           content: AnimatedSize(
             duration: const Duration(milliseconds: 150),
             curve: Curves.ease,

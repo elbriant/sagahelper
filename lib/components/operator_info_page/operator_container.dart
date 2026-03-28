@@ -115,6 +115,7 @@ class OperatorContainer extends ConsumerWidget {
             Hero(
               tag: op.id,
               child: StoredCustomImage(
+                key: ValueKey('${op.id}_dl${opDisplay.index.toString()}.png'),
                 filename: '${op.id}_dl${opDisplay.index.toString()}.png',
                 type: CacheType.operatorAvatar,
                 imageUrl: imgLink,

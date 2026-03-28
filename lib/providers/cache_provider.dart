@@ -44,7 +44,7 @@ class CacheNotifier extends Notifier<CacheData> {
     final decoded = await compute(computeJsonDecode, files);
 
     state = state.copyWith(
-      cachedStageTable: decoded[0] as Map<String, String>?,
+      cachedStageTable: decoded[0] as Map<String, dynamic>?,
     );
   }
 }

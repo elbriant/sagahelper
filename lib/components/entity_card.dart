@@ -70,6 +70,7 @@ class EntityCard extends ConsumerWidget {
                   color: HSLColor.fromColor(rarityColors[0]).withLightness(0.10).toColor(),
                 ),
                 child: StoredFadeInImage(
+                  key: ValueKey('${entity.id}.png'),
                   filename: '${entity.id}.png',
                   type: CacheType.operatorAvatar,
                   imageUrl: '$kTokenAvatarRepo/${entity.id}.png'.githubEncode(),
