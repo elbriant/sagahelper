@@ -149,20 +149,18 @@ class _HomePageState extends ConsumerState<HomePage> {
         final currentVersion = ref.read(currentServerStateProvider).version;
         final lastestVersion = await ref.read(currentServerNotifierProvider).fetchLastestVersion();
 
-        ref.read(taskerProvider.notifier).updateTask(taskId, 'There is a game data update...');
+        ref.read(taskerProvider.notifier)
+          ..updateTask(taskId, 'There is a game data update...')
+          ..timedRemoveTask(taskId);
         ref.read(notificationProvider).showNotification(
               title: 'Game data update',
               body: 'Current version: $currentVersion / Last version: $lastestVersion',
               payload: NotificationPayloads.serverUpdate.payload,
             );
-        Future.delayed(const Duration(seconds: 3)).then((_) {
-          ref.read(taskerProvider.notifier).removeTask(taskId);
-        });
       } else {
-        ref.read(taskerProvider.notifier).updateTask(taskId, 'All good! ≧◡≦');
-        Future.delayed(const Duration(seconds: 3)).then((_) {
-          ref.read(taskerProvider.notifier).removeTask(taskId);
-        });
+        ref.read(taskerProvider.notifier)
+          ..updateTask(taskId, 'All good! ≧◡≦')
+          ..timedRemoveTask(taskId);
       }
     }
   }
