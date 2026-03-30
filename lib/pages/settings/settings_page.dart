@@ -35,6 +35,8 @@ class _SettingsSettingsState extends ConsumerState<SettingsSettings> {
   Widget build(BuildContext context) {
     final String nickname = ref.watch(configProvider.select((p) => p.nickname)) ?? '';
     final translucent = ref.watch(configProvider.select((p) => p.useTranslucentUi));
+    final gamedataUpdates = ref.watch(configProvider.select((p) => p.checkGamedataUpdatesOnStart));
+    final appUpdates = ref.watch(configProvider.select((p) => p.checkAppUpdatesOnStart));
 
     void changeNickname() {
       ref.read(configProvider.notifier).updateSettings(ConfigKeys.nickname, editedNickname);
@@ -104,6 +106,30 @@ class _SettingsSettingsState extends ConsumerState<SettingsSettings> {
                 ),
               ],
             ),
+          ),
+          ListTile(
+            title: const Text('Updates'),
+            textColor: Theme.of(context).colorScheme.primary,
+          ),
+          SwitchListTile(
+            subtitle: const Text(
+              'Check for gamedata updates on app start',
+            ),
+            title: const Text('Check Gamedata Updates'),
+            value: gamedataUpdates,
+            onChanged: (state) => ref
+                .read(configProvider.notifier)
+                .updateSettings(ConfigKeys.checkGamedataUpdatesOnStart, state),
+          ),
+          SwitchListTile(
+            subtitle: const Text(
+              'Check for app updates on app start',
+            ),
+            title: const Text('Check App Updates'),
+            value: appUpdates,
+            onChanged: (state) => ref
+                .read(configProvider.notifier)
+                .updateSettings(ConfigKeys.checkAppUpdatesOnStart, state),
           ),
         ],
       ),

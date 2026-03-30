@@ -56,7 +56,13 @@ enum ConfigKeys {
   opInfoMenuShowAdvanced('opInfo_menuShowAdvanced'),
 
   /// Save [bool]
-  homeNotificationRequestAccepted('home_NotificationRequestAccepted');
+  homeNotificationRequestAccepted('home_NotificationRequestAccepted'),
+
+  /// Save [bool]
+  checkGamedataUpdatesOnStart('settings_checkGamedataUpdatesOnStart'),
+
+  /// Save [bool]
+  checkAppUpdatesOnStart('settings_checkAppUpdatesOnStart');
 
   final String key;
 
@@ -94,6 +100,9 @@ class ConfigManager {
       homeNotificationRequestAccepted:
           _prefs.getBool(ConfigKeys.homeNotificationRequestAccepted.key) ?? false,
       opInfoMenuShowAdvanced: _prefs.getBool(ConfigKeys.opInfoMenuShowAdvanced.key) ?? false,
+      checkGamedataUpdatesOnStart:
+          _prefs.getBool(ConfigKeys.checkGamedataUpdatesOnStart.key) ?? true,
+      checkAppUpdatesOnStart: _prefs.getBool(ConfigKeys.checkAppUpdatesOnStart.key) ?? true,
     );
   }
 

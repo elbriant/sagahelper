@@ -45,9 +45,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
       requestNotification();
 
-      if (!flagCheckForAppUpdates) {
-        checkForUpdates();
-      }
+      checkForUpdates();
     });
   }
 
@@ -127,7 +125,8 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> checkServer() async {
-    if (flagFirstTimeCheck) return;
+    final shouldCheckUpdate = ref.read(configProvider).checkGamedataUpdatesOnStart;
+    if (flagFirstTimeCheck || !shouldCheckUpdate) return;
     flagFirstTimeCheck = true;
 
     final taskId = ref.read(taskerProvider.notifier).addTask('Checking gamedata...');
@@ -169,6 +168,8 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> checkForUpdates() async {
+    final shouldCheckUpdate = ref.read(configProvider).checkAppUpdatesOnStart;
+    if (flagCheckForAppUpdates || !shouldCheckUpdate) return;
     flagCheckForAppUpdates = true;
     fetchUpdateAndAlert();
   }

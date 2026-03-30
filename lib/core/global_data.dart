@@ -8,9 +8,6 @@ import 'package:sagahelper/providers/server_provider.dart';
 /// TODO: feature: audio download by long press (context menu maybe?)
 /// TODO: feature: stream/provider to check internet status (so the home autocheck runs or not, also affects other auto checks)
 /// TODO: feature: show "new" badge on current version added operators
-/// TODO: add auto check update switch
-/// TODO: integration with go route ( so global notifier can get everywhere ?)
-///
 
 /// bug list
 /// TODO: main cn server (¿¿??) (maybe home screen)

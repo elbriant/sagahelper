@@ -1,4 +1,6 @@
+// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:flutter/material.dart';
+
 import 'package:sagahelper/core/themes.dart' show allCustomThemes, CustomTheme;
 import 'package:sagahelper/models/config/types.dart' show OperatorDisplayMode;
 import 'package:sagahelper/models/filters.dart' show OperatorSortingType;
@@ -30,68 +32,77 @@ class PersistentSettings {
   // optional utils settings
   final bool opInfoMenuShowAdvanced;
   final bool homeNotificationRequestAccepted;
+  final bool checkGamedataUpdatesOnStart;
+  final bool checkAppUpdatesOnStart;
 
   int get customThemeIndex {
     return allCustomThemes.indexOf(customTheme);
   }
 
   const PersistentSettings({
-    required this.themeMode,
-    required this.customTheme,
-    required this.useClassicDialogBox,
-    required this.usePureDarkTheme,
-    required this.useTranslucentUi,
     required this.currentServer,
-    required this.homeCompactMode,
     required this.homeHour12Format,
     required this.homeShowDate,
     required this.homeShowSeconds,
-    required this.operatorDisplayMode,
+    required this.homeCompactMode,
+    this.nickname,
     required this.operatorSearchDelegate,
+    required this.operatorDisplayMode,
     required this.operatorSortingType,
     required this.useOperatorSortingReversed,
-    required this.homeNotificationRequestAccepted,
+    required this.customTheme,
+    required this.themeMode,
+    required this.usePureDarkTheme,
+    required this.useTranslucentUi,
+    required this.useClassicDialogBox,
     required this.opInfoMenuShowAdvanced,
-    this.nickname,
+    required this.homeNotificationRequestAccepted,
+    required this.checkGamedataUpdatesOnStart,
+    required this.checkAppUpdatesOnStart,
   });
 
   PersistentSettings copyWith({
-    ThemeMode? themeMode,
-    CustomTheme? customTheme,
-    bool? useClassicDialogBox,
-    bool? usePureDarkTheme,
-    bool? useTranslucentUi,
     Server? currentServer,
-    bool? homeCompactMode,
     bool? homeHour12Format,
     bool? homeShowDate,
     bool? homeShowSeconds,
-    OperatorDisplayMode? operatorDisplayMode,
+    bool? homeCompactMode,
+    String? nickname,
     int? operatorSearchDelegate,
+    OperatorDisplayMode? operatorDisplayMode,
     OperatorSortingType? operatorSortingType,
     bool? useOperatorSortingReversed,
-    String? nickname,
-    bool? homeNotificationRequestAccepted,
+    CustomTheme? customTheme,
+    ThemeMode? themeMode,
+    bool? usePureDarkTheme,
+    bool? useTranslucentUi,
+    bool? useClassicDialogBox,
     bool? opInfoMenuShowAdvanced,
+    bool? homeNotificationRequestAccepted,
+    bool? checkGamedataUpdatesOnStart,
+    bool? checkAppUpdatesOnStart,
   }) {
     return PersistentSettings(
-      themeMode: themeMode ?? this.themeMode,
-      customTheme: customTheme ?? this.customTheme,
-      useClassicDialogBox: useClassicDialogBox ?? this.useClassicDialogBox,
-      usePureDarkTheme: usePureDarkTheme ?? this.usePureDarkTheme,
-      useTranslucentUi: useTranslucentUi ?? this.useTranslucentUi,
       currentServer: currentServer ?? this.currentServer,
-      homeCompactMode: homeCompactMode ?? this.homeCompactMode,
       homeHour12Format: homeHour12Format ?? this.homeHour12Format,
       homeShowDate: homeShowDate ?? this.homeShowDate,
       homeShowSeconds: homeShowSeconds ?? this.homeShowSeconds,
-      operatorDisplayMode: operatorDisplayMode ?? this.operatorDisplayMode,
+      homeCompactMode: homeCompactMode ?? this.homeCompactMode,
+      nickname: nickname ?? this.nickname,
       operatorSearchDelegate: operatorSearchDelegate ?? this.operatorSearchDelegate,
+      operatorDisplayMode: operatorDisplayMode ?? this.operatorDisplayMode,
       operatorSortingType: operatorSortingType ?? this.operatorSortingType,
       useOperatorSortingReversed: useOperatorSortingReversed ?? this.useOperatorSortingReversed,
-      nickname: nickname ?? this.nickname,
-      homeNotificationRequestAccepted: opInfoMenuShowAdvanced ?? this.opInfoMenuShowAdvanced,
+      customTheme: customTheme ?? this.customTheme,
+      themeMode: themeMode ?? this.themeMode,
+      usePureDarkTheme: usePureDarkTheme ?? this.usePureDarkTheme,
+      useTranslucentUi: useTranslucentUi ?? this.useTranslucentUi,
+      useClassicDialogBox: useClassicDialogBox ?? this.useClassicDialogBox,
       opInfoMenuShowAdvanced: opInfoMenuShowAdvanced ?? this.opInfoMenuShowAdvanced,
+      homeNotificationRequestAccepted:
+          homeNotificationRequestAccepted ?? this.homeNotificationRequestAccepted,
+      checkGamedataUpdatesOnStart: checkGamedataUpdatesOnStart ?? this.checkGamedataUpdatesOnStart,
+      checkAppUpdatesOnStart: checkAppUpdatesOnStart ?? this.checkAppUpdatesOnStart,
     );
   }
 }
