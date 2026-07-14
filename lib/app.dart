@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sagahelper/components/skeleton/bottom_nav_bar.dart';
@@ -67,12 +68,19 @@ class __InnerAppState extends ConsumerState<_InnerApp> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBody: true,
-      body: pages[currentDestinationIndex],
-      bottomNavigationBar: BottomNavBar(
-        selectedIndex: currentDestinationIndex,
-        onDestinationSelected: onDestinationChanged,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: const SystemUiOverlayStyle(
+        systemNavigationBarColor: Color.fromRGBO(0, 0, 0, 0.01),
+        systemNavigationBarContrastEnforced: false,
+        systemNavigationBarDividerColor: Colors.transparent,
+      ),
+      child: Scaffold(
+        extendBody: true,
+        body: pages[currentDestinationIndex],
+        bottomNavigationBar: BottomNavBar(
+          selectedIndex: currentDestinationIndex,
+          onDestinationSelected: onDestinationChanged,
+        ),
       ),
     );
   }

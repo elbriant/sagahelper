@@ -35,31 +35,82 @@ enum Server {
   static Server? fromJson(int? index) => index != null ? Server.values[index] : null;
 }
 
-const List<String> kHomeFiles = [
-  '/excel/stage_table.json', // 0 for now just used to know if weekly supply are forcefully open
-];
+enum GameFile {
+  // Home data
+  /// for now just used to know if weekly supply are forcefully open
+  stages('/excel/stage_table.json'),
 
-const List<String> kMetadataFiles = [
-  '/excel/handbook_team_table.json', // 0 factions
-  '/excel/char_patch_table.json', // 1 amiyi changes
-  '/excel/char_meta_table.json', // 2 related ops alters
-  '/excel/gamedata_const.json', // 3 for now only for game terminology dictionary
-  '/excel/gacha_table.json', // 4 for now just to extract tag list from recruitment
-];
+  // Metadata
+  /// factions
+  handbookTeam('/excel/handbook_team_table.json'),
 
-const List<String> kOpFiles = [
-  '/excel/character_table.json', // 0 operators
-  '/excel/handbook_info_table.json', // 1 lore
-  '/excel/charword_table.json', // 2 voice
-  '/excel/skin_table.json', // 3 skin
-  '/excel/range_table.json', // 4 ranges
-  '/excel/skill_table.json', // 5 skills details
-  '/excel/uniequip_table.json', // 6 modules
-  '/excel/building_data.json', // 7 base skills
-  '/excel/battle_equip_table.json', // 8 module stats
-];
+  /// amiyi changes
+  charPatch('/excel/char_patch_table.json'),
 
-const Set<String> kFiles = {...kHomeFiles, ...kMetadataFiles, ...kOpFiles};
+  /// related ops alters
+  charMeta('/excel/char_meta_table.json'),
+
+  /// for now only for game terminology dictionary
+  gamedataConst('/excel/gamedata_const.json'),
+
+  /// for now just to extract tag list from recruitment
+  gacha('/excel/gacha_table.json'),
+
+  // Operators
+  /// operators table
+  character('/excel/character_table.json'),
+
+  /// lore
+  handbookInfo('/excel/handbook_info_table.json'),
+
+  /// voice
+  charWord('/excel/charword_table.json'),
+
+  /// skin
+  skin('/excel/skin_table.json'),
+
+  /// ranges
+  ranges('/excel/range_table.json'),
+
+  /// skills details
+  skills('/excel/skill_table.json'),
+
+  /// modules
+  modules('/excel/uniequip_table.json'),
+
+  /// base/building/riic skills
+  buildingSkills('/excel/building_data.json'),
+
+  /// module stats
+  moduleDetails('/excel/battle_equip_table.json');
+
+  final String path;
+  const GameFile(this.path);
+
+  static List<String> get kHomeFiles => [stages.path];
+
+  static List<String> get kMetadataFiles => [
+        handbookTeam.path,
+        charPatch.path,
+        charMeta.path,
+        gamedataConst.path,
+        gacha.path,
+      ];
+
+  static List<String> get kOpFiles => [
+        character.path,
+        handbookInfo.path,
+        charWord.path,
+        skin.path,
+        ranges.path,
+        skills.path,
+        modules.path,
+        buildingSkills.path,
+        moduleDetails.path,
+      ];
+
+  static Set<String> get kFiles => values.map((e) => e.path).toSet();
+}
 
 final serverProvider = NotifierProvider.family<ServerNotifier, ServerState, Server>(
   ServerNotifier.new,
@@ -125,7 +176,7 @@ class ServerNotifier extends Notifier<ServerState> {
 
   /// [filePaths] null means all files
   Future<bool> existFiles([List<String>? filesPaths]) async {
-    for (var file in (filesPaths ?? kFiles)) {
+    for (var file in (filesPaths ?? GameFile.kFiles)) {
       bool fileExist = await File(_getSafePath(file)).exists();
       if (!fileExist) {
         return false;
@@ -235,7 +286,7 @@ class ServerNotifier extends Notifier<ServerState> {
 
     List<Future<void>> downloadTasks = [];
 
-    for (var file in kFiles) {
+    for (var file in GameFile.kFiles) {
       final String msgfile = file.substring(
         max(0, file.lastIndexOf('/') + 1),
         file.lastIndexOf('.') > 0 ? file.lastIndexOf('.') : file.length - 1,

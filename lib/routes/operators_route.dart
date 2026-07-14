@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:sagahelper/components/operator_route/op_route_error.dart';
+import 'package:sagahelper/components/saga_error.dart';
 import 'package:sagahelper/components/operator_route/op_route_filters_popup.dart';
 import 'package:sagahelper/components/operator_route/op_route_loading.dart';
 import 'package:sagahelper/components/operator_route/op_route_search_not_found.dart';
@@ -153,7 +153,7 @@ class _OperatorsPageState extends ConsumerState<OperatorsPage> {
           // loading
           AsyncValue(isLoading: true) => const OpRouteLoading(),
           // error
-          AsyncValue(:final error?) => OpRouteError(error: error),
+          AsyncValue(:final error?) => SagaError(error: error),
           // done
           AsyncValue<List<Operator>>(:final value?) =>
             value.isEmpty ? const OpRouteSearchNotFound() : OperatorListView(operators: value),

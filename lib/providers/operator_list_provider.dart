@@ -67,13 +67,13 @@ final operatorListProvider = FutureProvider<List<Operator>>(
       return Future<List<Operator>>.value(cacheProv.cachedListOperator);
     }
 
-    final bool checkfiles = await currentServerNotifier.existFiles(kOpFiles);
+    final bool checkfiles = await currentServerNotifier.existFiles(GameFile.kOpFiles);
 
     if (!checkfiles) throw const FormatException('Update gamedata');
 
     final List<String> fileString = [];
 
-    for (String filepath in kOpFiles) {
+    for (String filepath in GameFile.kOpFiles) {
       fileString.add(
         await currentServerNotifier.getFile(filepath),
       );
@@ -81,7 +81,7 @@ final operatorListProvider = FutureProvider<List<Operator>>(
 
     List<String> misc = [];
 
-    for (String filepath in kMetadataFiles) {
+    for (String filepath in GameFile.kMetadataFiles) {
       misc.add(
         await currentServerNotifier.getFile(filepath),
       );

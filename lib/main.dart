@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
@@ -22,35 +23,29 @@ void main() async {
   SystemTheme.fallbackColor = Colors.grey;
   await SystemTheme.accentColor.load();
 
-  // normal system bars
-  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-
-  // dark color (transparent bugs sometimes)
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      systemNavigationBarColor: Color.fromRGBO(0, 0, 0, 0.01),
-    ),
-  );
-
-  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  if (!kIsWeb) {
+    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  }
 
   //Initialize Logging
-  await FlutterLogs.initLogs(
-    logLevelsEnabled: [LogLevel.INFO, LogLevel.WARNING, LogLevel.ERROR, LogLevel.SEVERE],
-    timeStampFormat: TimeStampFormat.TIME_FORMAT_READABLE,
-    directoryStructure: DirectoryStructure.FOR_DATE,
-    logTypesEnabled: ["device", "network", "errors"],
-    logFileExtension: LogFileExtension.LOG,
-    logsWriteDirectoryName: "MyLogs",
-    logsExportDirectoryName: "MyLogs/Exported",
-    debugFileOperations: true,
-    isDebuggable: true,
-    logsRetentionPeriodInDays: 14,
-    zipsRetentionPeriodInDays: 3,
-    autoDeleteZipOnExport: false,
-    autoClearLogs: true,
-    enabled: true,
-  );
+  if (!kIsWeb && Platform.isAndroid) {
+    await FlutterLogs.initLogs(
+      logLevelsEnabled: [LogLevel.INFO, LogLevel.WARNING, LogLevel.ERROR, LogLevel.SEVERE],
+      timeStampFormat: TimeStampFormat.TIME_FORMAT_READABLE,
+      directoryStructure: DirectoryStructure.FOR_DATE,
+      logTypesEnabled: ["device", "network", "errors"],
+      logFileExtension: LogFileExtension.LOG,
+      logsWriteDirectoryName: "MyLogs",
+      logsExportDirectoryName: "MyLogs/Exported",
+      debugFileOperations: true,
+      isDebuggable: true,
+      logsRetentionPeriodInDays: 14,
+      zipsRetentionPeriodInDays: 3,
+      autoDeleteZipOnExport: false,
+      autoClearLogs: true,
+      enabled: true,
+    );
+  }
 
   FlutterError.onError = (FlutterErrorDetails details) {
     if (kDebugMode) {
@@ -102,6 +97,18 @@ void main() async {
           ContextData(brightness: WidgetsBinding.instance.platformDispatcher.platformBrightness),
         );
   };
+
+  // normal system bars
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
+  // dark color (transparent bugs sometimes)
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      systemNavigationBarColor: Color.fromRGBO(0, 0, 0, 0.01),
+      systemNavigationBarContrastEnforced: false,
+      systemNavigationBarDividerColor: Colors.transparent,
+    ),
+  );
 
   runApp(
     UncontrolledProviderScope(

@@ -35,7 +35,7 @@ class CacheNotifier extends Notifier<CacheData> {
     List<String?> files = [];
     final server = ref.read(configProvider).currentServer;
 
-    for (String filepath in kHomeFiles) {
+    for (String filepath in GameFile.kHomeFiles) {
       files.add(
         await ref.read(serverProvider(server).notifier).tryGetFile(filepath),
       );

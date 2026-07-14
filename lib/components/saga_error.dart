@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-class OpRouteError extends StatelessWidget {
+class SagaError extends StatelessWidget {
   final Object? error;
-  const OpRouteError({super.key, this.error});
+  const SagaError({super.key, this.error});
 
   @override
   Widget build(BuildContext context) {

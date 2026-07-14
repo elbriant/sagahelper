@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sagahelper/pages/tools/recruitment_page.dart';
 
 class ToolsPage extends StatelessWidget {
   const ToolsPage({super.key});
@@ -13,37 +14,14 @@ class ToolsPage extends StatelessWidget {
         elevation: 0,
       ),
       body: SafeArea(
-        child: Center(
-          child: Text.rich(
-            TextSpan(
-              children: [
-                WidgetSpan(
-                  child: SizedBox(
-                    height: 220,
-                    child: DrawerHeader(
-                      child: Image.asset(
-                        'assets/gif/saga_scream.gif',
-                        alignment: Alignment.center,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ),
-                TextSpan(
-                  text: '\n Soon ( hopefully )',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                ),
-              ],
+        child: ListView(
+          children: [
+            ListTile(
+              title: const Text('RecruitmentPage'),
+              onTap: () => Navigator.of(context)
+                  .push(MaterialPageRoute(builder: (_) => const RecruitmentPage())),
             ),
-            style: TextStyle(
-              fontSize: 42,
-              color: Theme.of(context).colorScheme.outline,
-            ),
-            textAlign: TextAlign.center,
-          ),
+          ],
         ),
       ),
       backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,

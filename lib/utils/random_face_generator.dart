@@ -4,7 +4,7 @@ class RandomFaceGenerator {
   static Random random = Random();
 
   static const List<String> surpriseFaces = ['（；￣д￣）', '(゜ ロ゜)', '(°~°) !!', 'Σ(ﾟ口ﾟ;)//'];
-  static const List<String> sadFaces = ['(╥﹏╥)', '(◡﹏◡)', '(✖╭╮✖)', '(_ _|||)'];
+  static const List<String> sadFaces = ['(╥﹏╥)', '(◡﹏◡)', '(X╭╮X)', '(_ _|||)'];
   static const List<String> happyFaces = ['≧◡≦', '(✿◠‿◠)', '(^ｰ^)', '~ヾ(＾∇＾)'];
 
   static String surpriseFace() {
