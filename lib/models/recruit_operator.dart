@@ -4,17 +4,15 @@ import 'package:sagahelper/models/operator.dart';
 class RecruitOperator {
   final Operator op;
   final bool unique;
-  final List<int> rarityTags;
-  final List<int> positionTags;
-  final List<int> classTags;
-  final List<int> otherTags;
+  final List<int> allTagIds;
+  final List<String> allTagNames;
+  final List<String> tagNamesNoRarity;
 
-  RecruitOperator({
+  const RecruitOperator({
     required this.op,
     this.unique = false,
-    required this.rarityTags,
-    required this.positionTags,
-    required this.classTags,
-    required this.otherTags,
+    required this.allTagIds,
+    required this.allTagNames,
+    required this.tagNamesNoRarity,
   });
 }
