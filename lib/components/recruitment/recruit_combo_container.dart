@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sagahelper/components/recruitment/rarity_pie_chart.dart';
 import 'package:sagahelper/components/recruitment/recruit_operator_container.dart';
 import 'package:sagahelper/models/recruit_combo.dart';
 import 'package:sagahelper/providers/tools/recruitment/recruit_tag_map_provider.dart';
@@ -20,6 +21,12 @@ class RecruitComboContainer extends StatelessWidget {
         .whereType<String>()
         .toList();
 
+    // Build rarity distribution for the pie chart
+    final rarityCounts = <int, int>{};
+    for (final rop in combo.matches) {
+      rarityCounts[rop.op.rarity] = (rarityCounts[rop.op.rarity] ?? 0) + 1;
+    }
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
@@ -33,7 +40,7 @@ class RecruitComboContainer extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Tags header
+          // Tags header with pie chart
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -41,29 +48,43 @@ class RecruitComboContainer extends StatelessWidget {
               color: Theme.of(context).colorScheme.primaryContainer.withAlpha(60),
               borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
             ),
-            child: Wrap(
-              spacing: 6,
-              runSpacing: 4,
-              children: tagNames.map((name) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withAlpha(30),
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.primary.withAlpha(80),
-                    ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Tags
+                Expanded(
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: tagNames.map((name) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary.withAlpha(30),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.primary.withAlpha(80),
+                          ),
+                        ),
+                        child: Text(
+                          name,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                      );
+                    }).toList(),
                   ),
-                  child: Text(
-                    name,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                );
-              }).toList(),
+                ),
+                const SizedBox(width: 8),
+                // Pie chart
+                RarityPieChart(
+                  rarityCounts: rarityCounts,
+                  size: 32,
+                ),
+              ],
             ),
           ),
           // Operator grid
