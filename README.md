@@ -26,10 +26,6 @@ Before reporting a new issue, take a look at the already opened issues.
 - Offline mode
 - More tools
 
-### Note
-Some operator images or audios may not be available because they depend on external repositories and these may not be up to date.
-At the moment I don't have a cloud to store the assets myself, but I will try to change that in the future.
-
 ### License
 SagaHelper is licensed under the Apache License 2.0.
 
