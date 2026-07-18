@@ -6,6 +6,7 @@ import 'package:sagahelper/models/filters.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
 import 'package:sagahelper/providers/config_provider.dart';
+import 'package:sagahelper/providers/favorites_provider.dart';
 import 'package:sagahelper/providers/operator_search_provider.dart';
 import 'package:sagahelper/providers/server_provider.dart';
 
@@ -122,6 +123,8 @@ final filteredOperatorListProvider = FutureProvider<List<Operator>>(
     final filteringProvider = ref.watch(operatorSearchProvider);
     final sortingType = ref.watch(configProvider.select((p) => p.operatorSortingType));
     final sortingReversed = ref.watch(configProvider.select((p) => p.useOperatorSortingReversed));
+    final favoritePriority = ref.watch(configProvider.select((p) => p.favoritePriority));
+    final favorites = ref.watch(favoritesProvider);
     List<Operator> list = await ref.watch(operatorListProvider.future);
 
     // filter first then sort
@@ -263,6 +266,12 @@ final filteredOperatorListProvider = FutureProvider<List<Operator>>(
     }
 
     if (sortingReversed) list = list.reversed.toList();
+
+    if (favoritePriority && favorites.isNotEmpty) {
+      final favOps = list.where((op) => favorites.contains(op.id)).toList();
+      final nonFavOps = list.where((op) => !favorites.contains(op.id)).toList();
+      list = [...favOps, ...nonFavOps];
+    }
 
     return list;
   },

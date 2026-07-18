@@ -15,6 +15,7 @@ class OpRouteFiltersAppareance extends ConsumerWidget {
 
     final currentSearchDelegate = ref.watch(configProvider.select((p) => p.operatorSearchDelegate));
     final currentSearchDisplay = ref.watch(configProvider.select((p) => p.operatorDisplayMode));
+    final showFavoriteBadge = ref.watch(configProvider.select((p) => p.showFavoriteBadge));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,6 +67,15 @@ class OpRouteFiltersAppareance extends ConsumerWidget {
               ),
             ),
           ],
+        ),
+        const Divider(),
+        SwitchListTile(
+          title: const Text('Show favorite badge'),
+          subtitle: const Text('Display heart icon on favorite operators'),
+          value: showFavoriteBadge,
+          onChanged: (value) {
+            ref.read(configProvider.notifier).updateSettings(ConfigKeys.showFavoriteBadge, value);
+          },
         ),
       ],
     );

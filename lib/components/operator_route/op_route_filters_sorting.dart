@@ -13,6 +13,7 @@ class OpRouteFiltersSorting extends ConsumerWidget {
     final currentSortingType = ref.watch(configProvider.select((p) => p.operatorSortingType));
     final currentSortingReversed =
         ref.watch(configProvider.select((p) => p.useOperatorSortingReversed));
+    final favoritePriority = ref.watch(configProvider.select((p) => p.favoritePriority));
 
     void changeSortingType(OperatorSortingType newOrder) {
       if (currentSortingType == newOrder) {
@@ -26,28 +27,42 @@ class OpRouteFiltersSorting extends ConsumerWidget {
         ..updateSettings(ConfigKeys.useOperatorSortingReversed, false);
     }
 
-    return Wrap(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        OperatorSortingTile(
-          label: 'Rarity',
-          operatorSorting: OperatorSortingType.rarity,
-          callback: changeSortingType,
-          currentSortingType: currentSortingType,
-          currentSortingReversed: currentSortingReversed,
+        Wrap(
+          children: [
+            OperatorSortingTile(
+              label: 'Rarity',
+              operatorSorting: OperatorSortingType.rarity,
+              callback: changeSortingType,
+              currentSortingType: currentSortingType,
+              currentSortingReversed: currentSortingReversed,
+            ),
+            OperatorSortingTile(
+              label: 'Alphabetical',
+              operatorSorting: OperatorSortingType.alphabetical,
+              callback: changeSortingType,
+              currentSortingType: currentSortingType,
+              currentSortingReversed: currentSortingReversed,
+            ),
+            OperatorSortingTile(
+              label: 'Creation (kinda)',
+              operatorSorting: OperatorSortingType.creation,
+              callback: changeSortingType,
+              currentSortingType: currentSortingType,
+              currentSortingReversed: currentSortingReversed,
+            ),
+          ],
         ),
-        OperatorSortingTile(
-          label: 'Alphabetical',
-          operatorSorting: OperatorSortingType.alphabetical,
-          callback: changeSortingType,
-          currentSortingType: currentSortingType,
-          currentSortingReversed: currentSortingReversed,
-        ),
-        OperatorSortingTile(
-          label: 'Creation (kinda)',
-          operatorSorting: OperatorSortingType.creation,
-          callback: changeSortingType,
-          currentSortingType: currentSortingType,
-          currentSortingReversed: currentSortingReversed,
+        const Divider(),
+        SwitchListTile(
+          title: const Text('Favorite priority'),
+          subtitle: const Text('Show favorites first in the list'),
+          value: favoritePriority,
+          onChanged: (value) {
+            ref.read(configProvider.notifier).updateSettings(ConfigKeys.favoritePriority, value);
+          },
         ),
       ],
     );

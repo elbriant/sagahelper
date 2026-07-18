@@ -9,6 +9,7 @@ import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/pages/operator/skeleton.dart';
 import 'package:sagahelper/providers/config_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:sagahelper/providers/favorites_provider.dart';
 import 'package:sagahelper/providers/operator_search_provider.dart';
 
 const List<Color> rarityColors = [
@@ -49,6 +50,9 @@ class OperatorContainer extends ConsumerWidget {
 
     final opDisplay = ref.watch(configProvider.select((p) => p.operatorDisplayMode));
     final searchDelegate = ref.watch(configProvider.select((p) => p.operatorSearchDelegate));
+    final showFavoriteBadge = ref.watch(configProvider.select((p) => p.showFavoriteBadge));
+    final favorites = ref.watch(favoritesProvider);
+    final isFavorite = favorites.contains(op.id);
 
     String imgLink = switch (opDisplay) {
       OperatorDisplayMode.avatar => ghAvatarLink,
@@ -69,6 +73,48 @@ class OperatorContainer extends ConsumerWidget {
           ..addOperatorFilter(filter);
       }
     }
+
+    void showContextMenu(LongPressStartDetails details) {
+      final RenderBox? overlay =
+          Overlay.of(context).context.findRenderObject() as RenderBox?;
+
+      showMenu<String>(
+        context: context,
+        position: RelativeRect.fromLTRB(
+          details.globalPosition.dx,
+          details.globalPosition.dy,
+          overlay!.size.width - details.globalPosition.dx,
+          overlay.size.height - details.globalPosition.dy,
+        ),
+        items: [
+          PopupMenuItem<String>(
+            value: 'favorite',
+            child: Row(
+              children: [
+                Icon(
+                  isFavorite ? Icons.favorite : Icons.favorite_border,
+                  color: isFavorite ? Colors.red : null,
+                ),
+                const SizedBox(width: 8),
+                Text(isFavorite ? 'Remove from favorites' : 'Add to favorites'),
+              ],
+            ),
+          ),
+        ],
+      ).then((value) {
+        if (value == 'favorite') {
+          ref.read(favoritesProvider.notifier).toggleFavorite(op.id);
+        }
+      });
+    }
+
+    final badgeIconSize = switch (searchDelegate) {
+      2 => 16.0,
+      3 => 18.0,
+      4 => 18.0,
+      5 => 16.0,
+      _ => 16.0,
+    };
 
     return Container(
       margin: const EdgeInsets.all(4.0),
@@ -170,13 +216,42 @@ class OperatorContainer extends ConsumerWidget {
                 ),
               ),
             ),
+            if (showFavoriteBadge && isFavorite)
+              Positioned(
+                top: 4,
+                right: 4,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.6),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.red.withValues(alpha: 0.5),
+                        blurRadius: 4,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Icon(
+                      Icons.favorite_rounded,
+                      color: const Color(0xFFFF1744),
+                      size: badgeIconSize,
+                    ),
+                  ),
+                ),
+              ),
             Positioned.fill(
-              child: Material(
-                type: MaterialType.transparency,
-                child: InkWell(
-                  splashColor: rarityColors[op.rarity].withAlpha(45),
-                  highlightColor: rarityColors[op.rarity].withAlpha(35),
-                  onTap: () => openOperatorInfo(op),
+              child: GestureDetector(
+                onLongPressStart: showContextMenu,
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: InkWell(
+                    splashColor: rarityColors[op.rarity].withAlpha(45),
+                    highlightColor: rarityColors[op.rarity].withAlpha(35),
+                    onTap: () => openOperatorInfo(op),
+                  ),
                 ),
               ),
             ),

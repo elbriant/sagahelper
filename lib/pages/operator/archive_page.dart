@@ -12,6 +12,7 @@ import 'package:sagahelper/models/config/config_manager.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
 import 'package:sagahelper/providers/config_provider.dart';
+import 'package:sagahelper/providers/favorites_provider.dart';
 
 List<Operator>? computingRelatedOps(List input) {
   List<Operator>? result;
@@ -184,6 +185,22 @@ class _ArchivePageState extends ConsumerState<ArchivePage>
                 onPressed: () => Navigator.pop(context),
               ),
               actions: [
+                Consumer(
+                  builder: (context, ref, child) {
+                    final favorites = ref.watch(favoritesProvider);
+                    final isFavorite = favorites.contains(widget.operator.id);
+                    return IconButton(
+                      onPressed: () {
+                        ref.read(favoritesProvider.notifier).toggleFavorite(widget.operator.id);
+                      },
+                      icon: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: isFavorite ? Colors.red : null,
+                      ),
+                      tooltip: isFavorite ? 'Remove from favorites' : 'Add to favorites',
+                    );
+                  },
+                ),
                 MenuAnchor(
                   menuChildren: [
                     SwitchListTile(

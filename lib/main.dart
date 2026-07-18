@@ -10,8 +10,10 @@ import 'package:sagahelper/core/asset_service.dart';
 import 'package:sagahelper/core/notification_service.dart';
 import 'package:sagahelper/models/config/local_data_manager.dart' show LocalDataManager;
 import 'package:sagahelper/models/context_data.dart';
+import 'package:sagahelper/models/favorites/favorites_manager.dart';
 import 'package:sagahelper/providers/config_provider.dart';
 import 'package:sagahelper/providers/context_provider.dart';
+import 'package:sagahelper/providers/favorites_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:system_theme/system_theme.dart';
 import 'package:flutter_logs/flutter_logs.dart';
@@ -82,9 +84,14 @@ void main() async {
   await LocalDataManager.init();
   await AssetService.init();
 
+  // hive favorites
+  final favoritesManager = FavoritesManager();
+  await favoritesManager.init();
+
   final providerContainer = ProviderContainer(
     overrides: [
       sharedPreferencesProvider.overrideWithValue(sharedPreferences),
+      favoritesManagerProvider.overrideWithValue(favoritesManager),
     ],
   );
 

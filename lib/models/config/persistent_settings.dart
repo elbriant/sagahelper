@@ -35,6 +35,8 @@ class PersistentSettings {
   final bool checkGamedataUpdatesOnStart;
   final bool checkAppUpdatesOnStart;
   final bool offlineMode;
+  final bool favoritePriority;
+  final bool showFavoriteBadge;
 
   int get customThemeIndex {
     return allCustomThemes.indexOf(customTheme);
@@ -61,6 +63,8 @@ class PersistentSettings {
     required this.checkGamedataUpdatesOnStart,
     required this.checkAppUpdatesOnStart,
     required this.offlineMode,
+    required this.favoritePriority,
+    required this.showFavoriteBadge,
   });
 
   PersistentSettings copyWith({
@@ -84,6 +88,8 @@ class PersistentSettings {
     bool? checkGamedataUpdatesOnStart,
     bool? checkAppUpdatesOnStart,
     bool? offlineMode,
+    bool? favoritePriority,
+    bool? showFavoriteBadge,
   }) {
     return PersistentSettings(
       currentServer: currentServer ?? this.currentServer,
@@ -107,6 +113,8 @@ class PersistentSettings {
       checkGamedataUpdatesOnStart: checkGamedataUpdatesOnStart ?? this.checkGamedataUpdatesOnStart,
       checkAppUpdatesOnStart: checkAppUpdatesOnStart ?? this.checkAppUpdatesOnStart,
       offlineMode: offlineMode ?? this.offlineMode,
+      favoritePriority: favoritePriority ?? this.favoritePriority,
+      showFavoriteBadge: showFavoriteBadge ?? this.showFavoriteBadge,
     );
   }
 }

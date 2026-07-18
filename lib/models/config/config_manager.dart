@@ -65,7 +65,13 @@ enum ConfigKeys {
   checkAppUpdatesOnStart('settings_checkAppUpdatesOnStart'),
 
   /// Save [bool]
-  offlineMode('settings_offlineMode');
+  offlineMode('settings_offlineMode'),
+
+  /// Save [bool]
+  favoritePriority('operator_favoritePriority'),
+
+  /// Save [bool]
+  showFavoriteBadge('operator_showFavoriteBadge');
 
   final String key;
 
@@ -107,6 +113,8 @@ class ConfigManager {
           _prefs.getBool(ConfigKeys.checkGamedataUpdatesOnStart.key) ?? true,
       checkAppUpdatesOnStart: _prefs.getBool(ConfigKeys.checkAppUpdatesOnStart.key) ?? true,
       offlineMode: _prefs.getBool(ConfigKeys.offlineMode.key) ?? false,
+      favoritePriority: _prefs.getBool(ConfigKeys.favoritePriority.key) ?? true,
+      showFavoriteBadge: _prefs.getBool(ConfigKeys.showFavoriteBadge.key) ?? true,
     );
   }
 
