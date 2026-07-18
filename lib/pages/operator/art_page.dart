@@ -21,6 +21,7 @@ import 'dart:developer' as dev;
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/core/notification_service.dart';
 import 'package:sagahelper/providers/config_provider.dart';
+import 'package:sagahelper/providers/connectivity_provider.dart';
 import 'package:sagahelper/providers/style_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
 import 'package:styled_text/styled_text.dart';
@@ -76,24 +77,36 @@ class _ArtPageState extends ConsumerState<ArtPage> {
     return '$kArtRepo/$opSkinId.png'.githubEncode();
   }
 
+  ImageProvider _getImageProvider(int index) {
+    final isConnected = ref.read(effectiveIsConnectedProvider);
+    String opSkinId = (widget.operator.skinsList[index]['illustId'] as String)
+        .replaceFirst('illust_', '');
+    final cacheFile = LocalDataManager.localCacheFile(
+      '${widget.operator.id}_$opSkinId.png',
+      CacheType.operatorArt,
+    );
+    if (!isConnected) {
+      if (cacheFile.existsSync()) {
+        return FileImage(cacheFile);
+      }
+      return const AssetImage('assets/placeholders/original.png');
+    }
+    return NetworkToFileImage(
+      url: getImageLink(index),
+      file: cacheFile,
+    );
+  }
+
   void showDynamicSkin() {
     SnackBarService.showSnackBar('dynamic art not supported yet');
   }
 
   void fullscreen() {
-    String opSkinId = (widget.operator.skinsList[selectedIndex]['illustId'] as String)
-        .replaceFirst('illust_', '');
     Navigator.push(
       NavigationService.rootNavigatorKey.currentContext ?? context,
       MaterialPageRoute(
         builder: (context) => FullscreenArtsPage(
-          NetworkToFileImage(
-            url: getImageLink(selectedIndex),
-            file: LocalDataManager.localCacheFile(
-              '${widget.operator.id}_$opSkinId.png',
-              CacheType.operatorArt,
-            ),
-          ),
+          _getImageProvider(selectedIndex),
           selectedIndex: selectedIndex,
           chibi: chibimode,
         ),
@@ -109,6 +122,11 @@ class _ArtPageState extends ConsumerState<ArtPage> {
 
   void downloadArt() async {
     Navigator.pop(context);
+
+    if (!ref.read(effectiveIsConnectedProvider)) {
+      SnackBarService.showSnackBar('No internet connection', type: SnackBarType.failure);
+      return;
+    }
 
     // this download may or may not work as i currently can't test
     // downloading for API >= 29 doesn't require permissons (Android provides permissons for shared media)
@@ -390,17 +408,9 @@ class _ArtPageState extends ConsumerState<ArtPage> {
                     pageController: _pageController,
                     itemCount: widget.operator.skinsList.length,
                     builder: (BuildContext context, int index) {
-                      String opSkinId = (widget.operator.skinsList[index]['illustId'] as String)
-                          .replaceFirst('illust_', '');
                       return PhotoViewGalleryPageOptions(
                         filterQuality: FilterQuality.high,
-                        imageProvider: NetworkToFileImage(
-                          url: getImageLink(index),
-                          file: LocalDataManager.localCacheFile(
-                            '${widget.operator.id}_$opSkinId.png',
-                            CacheType.operatorArt,
-                          ),
-                        ),
+                        imageProvider: _getImageProvider(index),
                         heroAttributes: PhotoViewHeroAttributes(tag: '$selectedIndex hero'),
                       );
                     },

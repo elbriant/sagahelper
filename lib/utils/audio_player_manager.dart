@@ -18,7 +18,7 @@ class AudioPlayerManager {
   final player = AudioPlayer();
   Stream<DurationState>? durationState;
 
-  void init(String url, [String? fallbackUrl]) async {
+  void init(String url, [String? fallbackUrl, bool hasConnection = true]) async {
     durationState = Rx.combineLatest2<Duration, PlaybackEvent, DurationState>(
       player.positionStream,
       player.playbackEventStream,
@@ -28,6 +28,10 @@ class AudioPlayerManager {
         total: playbackEvent.duration,
       ),
     );
+    if (!hasConnection) {
+      SnackBarService.showSnackBar('No internet connection');
+      return;
+    }
     try {
       await player.setUrl(url);
       player.play();

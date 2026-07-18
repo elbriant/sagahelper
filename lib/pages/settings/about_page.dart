@@ -6,13 +6,16 @@ import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/core/global_data.dart';
 import 'package:sagahelper/core/snack_bar_service.dart';
 import 'package:sagahelper/providers/config_provider.dart';
+import 'package:sagahelper/providers/connectivity_provider.dart';
 import 'package:sagahelper/utils/misc.dart';
 
 class AboutSettings extends ConsumerWidget {
   const AboutSettings({super.key});
 
-  void checkUpdates() async {
+  void checkUpdates(WidgetRef ref) async {
+    final hasConnection = ref.read(effectiveIsConnectedProvider);
     final status = await fetchUpdateAndAlert(
+      hasConnection: hasConnection,
       onError: (e) {
         SnackBarService.showSnackBar(
           "Couldn't check updates",
@@ -63,7 +66,7 @@ class AboutSettings extends ConsumerWidget {
           ListTile(
             title: const Text('Check updates'),
             subtitle: const Text('tap to check for updates'),
-            onTap: checkUpdates,
+            onTap: () => checkUpdates(ref),
           ),
           ListTile(
             title: const Text('Credits'),

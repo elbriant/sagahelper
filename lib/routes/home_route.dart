@@ -9,6 +9,7 @@ import 'package:sagahelper/models/config/config_manager.dart';
 import 'package:sagahelper/models/server_state.dart' show DataState;
 import 'package:sagahelper/providers/cache_provider.dart';
 import 'package:sagahelper/providers/config_provider.dart';
+import 'package:sagahelper/providers/connectivity_provider.dart';
 import 'package:sagahelper/providers/server_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:sagahelper/components/traslucent_ui.dart';
@@ -126,7 +127,8 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   Future<void> checkServer() async {
     final shouldCheckUpdate = ref.read(configProvider).checkGamedataUpdatesOnStart;
-    if (flagFirstTimeCheck || !shouldCheckUpdate) return;
+    final hasConnection = ref.read(effectiveIsConnectedProvider);
+    if (flagFirstTimeCheck || !shouldCheckUpdate || !hasConnection) return;
     flagFirstTimeCheck = true;
 
     final taskId = ref.read(taskerProvider.notifier).addTask('Checking gamedata...');
@@ -167,9 +169,10 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   Future<void> checkForUpdates() async {
     final shouldCheckUpdate = ref.read(configProvider).checkAppUpdatesOnStart;
+    final hasConnection = ref.read(effectiveIsConnectedProvider);
     if (flagCheckForAppUpdates || !shouldCheckUpdate) return;
     flagCheckForAppUpdates = true;
-    fetchUpdateAndAlert();
+    fetchUpdateAndAlert(hasConnection: hasConnection);
   }
 
   @override

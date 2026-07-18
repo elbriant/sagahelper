@@ -38,7 +38,11 @@ enum UpdateStatus { upToDate, alertSended, failedToFetch }
 /// [onError] triggered when statusCode != 200
 Future<UpdateStatus> fetchUpdateAndAlert({
   void Function(Exception)? onError,
+  bool hasConnection = true,
 }) async {
+  if (!hasConnection) {
+    return UpdateStatus.failedToFetch;
+  }
   try {
     final response = await http
         .get(Uri.parse('https://api.github.com/repos/elbriant/sagahelper/releases/latest'));

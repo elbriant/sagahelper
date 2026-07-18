@@ -7,6 +7,7 @@ import 'package:sagahelper/components/shimmer_loading_mask.dart';
 import 'package:sagahelper/core/asset_service.dart';
 import 'package:sagahelper/core/global_data.dart';
 import 'package:sagahelper/models/config/local_data_manager.dart';
+import 'package:sagahelper/providers/connectivity_provider.dart';
 import 'package:sagahelper/providers/operator_context_provider.dart';
 import 'package:sagahelper/providers/style_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
@@ -45,6 +46,7 @@ class TraitCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final elite = ref.watch(operatorContextProvider.select((p) => p.elite));
     final tagsAsArknights = ref.watch(styleProvider).tagsAsArknights;
+    final isConnected = ref.watch(effectiveIsConnectedProvider);
     final subIconAsset = "assets/subclasses/sub_${operator.subProfessionId.toLowerCase()}_icon.png";
     final subIconNetwork =
         "$kSubProfessionIconRepo/sub_${operator.subProfessionId.toLowerCase()}_icon.png";
@@ -52,6 +54,9 @@ class TraitCard extends ConsumerWidget {
     return FutureBuilder(
       future: compute(computeTraitText, [operator, elite]),
       builder: (context, snapshot) {
+        final cacheFile = LocalDataManager.localCacheFile(
+          "sub_${operator.subProfessionId.toLowerCase()}_icon.png",
+        );
         return _TraitCard(
           label: Text(
             '${operator.professionString} - ${operator.subProfessionString}',
@@ -62,12 +67,14 @@ class TraitCard extends ConsumerWidget {
           ),
           avatar: AssetService.assetSet.contains(subIconAsset)
               ? AssetImage(subIconAsset)
-              : NetworkToFileImage(
-                  file: LocalDataManager.localCacheFile(
-                    "sub_${operator.subProfessionId.toLowerCase()}_icon.png",
-                  ),
-                  url: subIconNetwork,
-                ),
+              : (!isConnected)
+                  ? (cacheFile.existsSync()
+                      ? FileImage(cacheFile)
+                      : const AssetImage('assets/placeholders/original.png'))
+                  : NetworkToFileImage(
+                      file: cacheFile,
+                      url: subIconNetwork,
+                    ),
           content: AnimatedSize(
             duration: const Duration(milliseconds: 150),
             curve: Curves.ease,

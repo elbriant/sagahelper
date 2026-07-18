@@ -9,6 +9,7 @@ import 'package:sagahelper/models/config/local_data_manager.dart';
 import 'package:sagahelper/models/dir_stat.dart';
 import 'package:sagahelper/models/server_state.dart';
 import 'package:sagahelper/providers/config_provider.dart';
+import 'package:sagahelper/providers/connectivity_provider.dart';
 import 'package:flowder/flowder.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
@@ -189,6 +190,9 @@ class ServerNotifier extends Notifier<ServerState> {
   /// fetch last data version available for the provided server
   /// returns [String] version
   Future<String> fetchLastestVersion() async {
+    if (!ref.read(effectiveIsConnectedProvider)) {
+      throw Exception('No internet connection');
+    }
     final response = await http.get(Uri.parse('$serverLink/excel/data_version.txt'));
 
     if (response.statusCode == 200) {
@@ -272,6 +276,12 @@ class ServerNotifier extends Notifier<ServerState> {
 
   /// deletes and tries to download the last version
   Future<void> downloadLastest() async {
+    if (!ref.read(effectiveIsConnectedProvider)) {
+      state = state.copyWith(state: DataState.error);
+      SnackBarService.showSnackBar('No internet connection', type: SnackBarType.failure);
+      return;
+    }
+
     final taskId = ref.read(taskerProvider.notifier).addTask('Preparing download...');
 
     await deleteServer();

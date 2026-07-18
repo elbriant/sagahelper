@@ -141,6 +141,9 @@ local.properties
 **/linux/flutter/generated_plugin_registrant.h
 **/linux/flutter/generated_plugins.cmake
 
+# macOS
+**/macos/Flutter/GeneratedPluginRegistrant.swift
+
 # Coverage
 coverage/
 

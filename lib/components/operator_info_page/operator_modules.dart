@@ -13,6 +13,7 @@ import 'package:sagahelper/core/global_data.dart';
 import 'package:sagahelper/models/config/local_data_manager.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/providers/cache_provider.dart';
+import 'package:sagahelper/providers/connectivity_provider.dart';
 import 'package:sagahelper/providers/operator_context_provider.dart';
 import 'package:sagahelper/providers/style_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
@@ -109,6 +110,24 @@ class _OperatorModulesState extends ConsumerState<OperatorModules> {
   late List<Map?> moduleStatList;
   late List<List<int>> modStagesList;
   late List<List<int>> modPotsList;
+
+  ImageProvider _getModIconImage(String typeIcon) {
+    final isConnected = ref.read(effectiveIsConnectedProvider);
+    final cacheFile = LocalDataManager.localCacheFile(
+      '$typeIcon.png',
+      CacheType.moduleIcon,
+    );
+    final url =
+        '$kModIconRepo/${moduleNameExceptions.containsKey(typeIcon.toLowerCase()) ? moduleNameExceptions[typeIcon.toLowerCase()] : typeIcon.toLowerCase()}.png'
+            .githubEncode();
+    if (!isConnected) {
+      if (cacheFile.existsSync()) {
+        return FileImage(cacheFile);
+      }
+      return const AssetImage('assets/placeholders/original.png');
+    }
+    return NetworkToFileImage(url: url, file: cacheFile);
+  }
 
   void getModuleData() async {
     final modulesStatTable = ref.read(cacheProvider).cachedModStatsTable!;
@@ -501,14 +520,8 @@ class _OperatorModulesState extends ConsumerState<OperatorModules> {
                             padding: const EdgeInsets.all(3.0),
                             child: Image(
                               image: isThisAdvanced
-                                  ? NetworkToFileImage(
-                                      url:
-                                          '$kModIconRepo/${moduleNameExceptions.containsKey((modulesInfoList[index]["typeIcon"] as String).toLowerCase()) ? moduleNameExceptions[(modulesInfoList[index]["typeIcon"] as String).toLowerCase()] : (modulesInfoList[index]["typeIcon"] as String).toLowerCase()}.png'
-                                              .githubEncode(),
-                                      file: LocalDataManager.localCacheFile(
-                                        '${modulesInfoList[index]["typeIcon"]}.png',
-                                        CacheType.moduleIcon,
-                                      ),
+                                  ? _getModIconImage(
+                                      modulesInfoList[index]["typeIcon"] as String,
                                     )
                                   : const AssetImage('assets/placeholders/original.png'),
                               colorBlendMode: BlendMode.modulate,
@@ -561,14 +574,8 @@ class _OperatorModulesState extends ConsumerState<OperatorModules> {
                       ),
                       Image(
                         image: isAdvanced
-                            ? NetworkToFileImage(
-                                url:
-                                    '$kModIconRepo/${moduleNameExceptions.containsKey((modulesInfoList[currentModule]["typeIcon"] as String).toLowerCase()) ? moduleNameExceptions[(modulesInfoList[currentModule]["typeIcon"] as String).toLowerCase()] : (modulesInfoList[currentModule]["typeIcon"] as String).toLowerCase()}.png'
-                                        .githubEncode(),
-                                file: LocalDataManager.localCacheFile(
-                                  '${modulesInfoList[currentModule]["typeIcon"]}.png',
-                                  CacheType.moduleIcon,
-                                ),
+                            ? _getModIconImage(
+                                modulesInfoList[currentModule]["typeIcon"] as String,
                               )
                             : const AssetImage('assets/placeholders/original.png'),
                         filterQuality: FilterQuality.high,

@@ -34,6 +34,7 @@ class PersistentSettings {
   final bool homeNotificationRequestAccepted;
   final bool checkGamedataUpdatesOnStart;
   final bool checkAppUpdatesOnStart;
+  final bool offlineMode;
 
   int get customThemeIndex {
     return allCustomThemes.indexOf(customTheme);
@@ -59,6 +60,7 @@ class PersistentSettings {
     required this.homeNotificationRequestAccepted,
     required this.checkGamedataUpdatesOnStart,
     required this.checkAppUpdatesOnStart,
+    required this.offlineMode,
   });
 
   PersistentSettings copyWith({
@@ -81,6 +83,7 @@ class PersistentSettings {
     bool? homeNotificationRequestAccepted,
     bool? checkGamedataUpdatesOnStart,
     bool? checkAppUpdatesOnStart,
+    bool? offlineMode,
   }) {
     return PersistentSettings(
       currentServer: currentServer ?? this.currentServer,
@@ -103,6 +106,7 @@ class PersistentSettings {
           homeNotificationRequestAccepted ?? this.homeNotificationRequestAccepted,
       checkGamedataUpdatesOnStart: checkGamedataUpdatesOnStart ?? this.checkGamedataUpdatesOnStart,
       checkAppUpdatesOnStart: checkAppUpdatesOnStart ?? this.checkAppUpdatesOnStart,
+      offlineMode: offlineMode ?? this.offlineMode,
     );
   }
 }

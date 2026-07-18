@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sagahelper/components/skeleton/bottom_nav_bar.dart';
 import 'package:sagahelper/components/skeleton/global_notifier.dart';
+import 'package:sagahelper/components/skeleton/global_offline_notifier.dart';
 import 'package:sagahelper/core/navigation_service.dart';
 import 'package:sagahelper/providers/config_provider.dart';
 import 'package:sagahelper/routes/home_route.dart';
@@ -24,6 +25,7 @@ final _router = GoRouter(
           body: Column(
             mainAxisSize: MainAxisSize.max,
             children: [
+              const GlobalOfflineNotifier(),
               const GlobalNotifier(),
               Expanded(
                 child: child,

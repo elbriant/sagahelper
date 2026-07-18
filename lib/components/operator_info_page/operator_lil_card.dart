@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:network_to_file_image/network_to_file_image.dart';
 import 'package:sagahelper/core/global_data.dart';
 import 'package:sagahelper/models/config/local_data_manager.dart';
@@ -6,13 +7,14 @@ import 'package:sagahelper/models/config/types.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/pages/operator/skeleton.dart';
 import 'package:sagahelper/components/operator_info_page/operator_container.dart';
+import 'package:sagahelper/providers/connectivity_provider.dart';
 
-class OperatorLilCard extends StatelessWidget {
+class OperatorLilCard extends ConsumerWidget {
   const OperatorLilCard({super.key, required this.operator});
   final Operator operator;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     void openOperatorInfo() {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
@@ -25,6 +27,12 @@ class OperatorLilCard extends StatelessWidget {
 
     final String imgLink =
         '$kAvatarRepo/${operator.id}${opIdMustHaveE2avatar.contains(operator.id) ? '_2' : ''}.png';
+
+    final isConnected = ref.watch(effectiveIsConnectedProvider);
+    final cacheFile = LocalDataManager.localCacheFile(
+      '${operator.id}_dl${OperatorDisplayMode.avatar.index.toString()}.png',
+      CacheType.operatorAvatar,
+    );
 
     return Container(
       decoration: BoxDecoration(
@@ -42,13 +50,14 @@ class OperatorLilCard extends StatelessWidget {
           height: 50,
           decoration: BoxDecoration(
             image: DecorationImage(
-              image: NetworkToFileImage(
-                file: LocalDataManager.localCacheFile(
-                  '${operator.id}_dl${OperatorDisplayMode.avatar.index.toString()}.png',
-                  CacheType.operatorAvatar,
-                ),
-                url: imgLink,
-              ),
+              image: (!isConnected)
+                  ? (cacheFile.existsSync()
+                      ? FileImage(cacheFile)
+                      : const AssetImage('assets/placeholders/original.png'))
+                  : NetworkToFileImage(
+                      file: cacheFile,
+                      url: imgLink,
+                    ),
               opacity: 0.6,
               alignment: const Alignment(0, 0.3),
               fit: BoxFit.cover,

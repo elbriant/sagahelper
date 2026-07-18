@@ -7,6 +7,7 @@ import 'package:sagahelper/components/traslucent_ui.dart';
 import 'package:sagahelper/core/global_data.dart';
 import 'package:sagahelper/models/operator.dart';
 import 'package:sagahelper/providers/config_provider.dart';
+import 'package:sagahelper/providers/connectivity_provider.dart';
 import 'package:sagahelper/utils/audio_player_manager.dart';
 import 'package:sagahelper/utils/extensions.dart';
 
@@ -128,7 +129,7 @@ class _VoicePageState extends ConsumerState<VoicePage> with WidgetsBindingObserv
     String link = '$kVoiceRepo/$voicelang/$opId/$voiceId.mp3'.githubEncode();
     String fallbackJpLink = '$kVoiceRepo/voice/$opId/$voiceId.mp3'.githubEncode();
 
-    manager.init(link, fallbackJpLink);
+    manager.init(link, fallbackJpLink, ref.read(effectiveIsConnectedProvider));
   }
 
   // not proud of this code

@@ -3,10 +3,10 @@ import 'package:sagahelper/providers/server_provider.dart';
 
 /// todo list
 /// TODO: feature: add favorite operator
-/// TODO: feature: add new badge to new operators
+/// TODO: color provider based on operator colors
+
 /// TODO: feature: filter by voice type (ex: operators that have spanish voicelines)
 /// TODO: feature: audio download by long press (context menu maybe?)
-/// TODO: feature: stream/provider to check internet status (so the home autocheck runs or not, also affects other auto checks)
 /// TODO: feature: show "new" badge on current version added operators
 
 /// bug list

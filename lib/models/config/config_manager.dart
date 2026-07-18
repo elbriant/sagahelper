@@ -62,7 +62,10 @@ enum ConfigKeys {
   checkGamedataUpdatesOnStart('settings_checkGamedataUpdatesOnStart'),
 
   /// Save [bool]
-  checkAppUpdatesOnStart('settings_checkAppUpdatesOnStart');
+  checkAppUpdatesOnStart('settings_checkAppUpdatesOnStart'),
+
+  /// Save [bool]
+  offlineMode('settings_offlineMode');
 
   final String key;
 
@@ -103,6 +106,7 @@ class ConfigManager {
       checkGamedataUpdatesOnStart:
           _prefs.getBool(ConfigKeys.checkGamedataUpdatesOnStart.key) ?? true,
       checkAppUpdatesOnStart: _prefs.getBool(ConfigKeys.checkAppUpdatesOnStart.key) ?? true,
+      offlineMode: _prefs.getBool(ConfigKeys.offlineMode.key) ?? false,
     );
   }
 

@@ -2,18 +2,23 @@ import 'package:sagahelper/pages/settings/about_page.dart';
 import 'package:sagahelper/pages/settings/appearance_page.dart';
 import 'package:sagahelper/pages/settings/datamanager_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sagahelper/models/config/config_manager.dart';
 import 'package:sagahelper/pages/settings/settings_page.dart';
+import 'package:sagahelper/providers/config_provider.dart';
 
-class SettingsPage extends StatefulWidget {
+class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
 
   @override
-  State<SettingsPage> createState() => _SettingsPageState();
+  ConsumerState<SettingsPage> createState() => _SettingsPageState();
 }
 
-class _SettingsPageState extends State<SettingsPage> {
+class _SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   Widget build(BuildContext context) {
+    final offlineMode = ref.watch(configProvider.select((p) => p.offlineMode));
+
     return Scaffold(
       extendBody: true,
       appBar: AppBar(
@@ -35,9 +40,11 @@ class _SettingsPageState extends State<SettingsPage> {
           SwitchListTile(
             secondary: const Icon(Icons.wifi_off),
             title: const Text('Offline mode'),
-            subtitle: const Text('WIP'),
-            value: false,
-            onChanged: (bools) {},
+            subtitle: const Text('Disable all network requests'),
+            value: offlineMode,
+            onChanged: (value) => ref
+                .read(configProvider.notifier)
+                .updateSettings(ConfigKeys.offlineMode, value),
           ),
           const Divider(), // top : quick switches / bot: more
           ListTile(
