@@ -1,5 +1,14 @@
+import 'dart:io';
+
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flowder/flowder.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:sagahelper/core/global_data.dart';
+import 'package:sagahelper/core/notification_service.dart';
+import 'package:sagahelper/models/config/local_data_manager.dart';
+import 'package:sagahelper/providers/connectivity_provider.dart';
 import 'package:sagahelper/providers/style_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:sagahelper/providers/config_provider.dart';
@@ -7,6 +16,7 @@ import 'package:sagahelper/utils/audio_player_manager.dart';
 import 'package:sagahelper/utils/extensions.dart';
 import 'package:styled_text/styled_text.dart';
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
+import 'dart:developer' as dev;
 
 class DialogBox extends ConsumerWidget {
   final String? title;
@@ -15,7 +25,8 @@ class DialogBox extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final useClassicDialogBox = ref.watch(configProvider.select((p) => p.useClassicDialogBox));
+    final useClassicDialogBox =
+        ref.watch(configProvider.select((p) => p.useClassicDialogBox));
     final tagsAsArknights = ref.watch(styleProvider).tagsAsHtml;
 
     return Stack(
@@ -99,7 +110,8 @@ class InkWellDialogBox extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final useClassicDialogBox = ref.watch(configProvider.select((p) => p.useClassicDialogBox));
+    final useClassicDialogBox =
+        ref.watch(configProvider.select((p) => p.useClassicDialogBox));
     final tagsAsArknights = ref.watch(styleProvider).tagsAsHtml;
 
     return Stack(
@@ -108,7 +120,8 @@ class InkWellDialogBox extends ConsumerWidget {
           children: [
             Container(
               margin: const EdgeInsets.only(top: 10.0, left: 4.0),
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
               width: double.maxFinite,
               decoration: BoxDecoration(
                 boxShadow: [
@@ -181,7 +194,8 @@ class InkWellDialogBox extends ConsumerWidget {
                         textScaler: title!.length > 42
                             ? TextScaler.linear(
                                 // ignore: deprecated_member_use
-                                MediaQuery.textScalerOf(context).textScaleFactor -
+                                MediaQuery.textScalerOf(context)
+                                        .textScaleFactor -
                                     ((title!.length - 42) / 100),
                               )
                             : null,
@@ -210,6 +224,8 @@ class AudioDialogBox extends ConsumerWidget {
   final Function()? fun;
   final bool isPlaying;
   final AudioPlayerManager manager;
+  final String? audioUrl;
+  final String? audioFilename;
   const AudioDialogBox({
     super.key,
     this.title,
@@ -217,6 +233,8 @@ class AudioDialogBox extends ConsumerWidget {
     this.fun,
     this.isPlaying = false,
     required this.manager,
+    this.audioUrl,
+    this.audioFilename,
   });
 
   StreamBuilder<DurationState> _progressBar() {
@@ -246,12 +264,152 @@ class AudioDialogBox extends ConsumerWidget {
     );
   }
 
+  void _showDownloadMenu(
+    BuildContext context,
+    WidgetRef ref,
+    LongPressStartDetails details,
+  ) {
+    final RenderBox? overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox?;
+
+    showMenu<String>(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        details.globalPosition.dx,
+        details.globalPosition.dy,
+        overlay!.size.width - details.globalPosition.dx,
+        overlay.size.height - details.globalPosition.dy,
+      ),
+      items: [
+        const PopupMenuItem<String>(
+          value: 'download',
+          child: Row(
+            children: [
+              Icon(Icons.download, size: 20),
+              SizedBox(width: 8),
+              Text('Download audio'),
+            ],
+          ),
+        ),
+      ],
+    ).then((value) {
+      if (!context.mounted) return;
+      if (value == 'download') {
+        _onDownloadTap(context, ref);
+      }
+    });
+  }
+
+  void _onDownloadTap(BuildContext context, WidgetRef ref) {
+    if (audioUrl == null || audioFilename == null) return;
+
+    final confirmEnabled = ref.read(configProvider).audioDownloadConfirmation;
+    if (confirmEnabled) {
+      _showConfirmDialog(context, ref);
+    } else {
+      _startDownload(context, ref);
+    }
+  }
+
+  void _showConfirmDialog(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Download audio'),
+        content: Text('Download "$audioFilename" to your Downloads folder?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _startDownload(context, ref);
+            },
+            child: const Text('Download'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _startDownload(BuildContext context, WidgetRef ref) async {
+    if (!ref.read(effectiveIsConnectedProvider)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No internet connection')),
+      );
+      return;
+    }
+
+    var sdkApi = (await DeviceInfoPlugin().androidInfo).version.sdkInt;
+    if (sdkApi < 29) {
+      await Permission.storage.request();
+    }
+
+    final notificationService = ref.read(notificationProvider);
+    final int id = notificationService.getUniqueId();
+    final String path = LocalDataManager.download.path;
+
+    notificationService.showDownloadNotification(
+      title: 'Downloading',
+      body: audioFilename!,
+      id: id,
+      ongoing: true,
+      indeterminate: true,
+    );
+
+    final downloaderUtils = DownloaderUtils(
+      progressCallback: (current, total) {
+        final progress = (current / total) * 100;
+        notificationService.showDownloadNotification(
+          title: 'Downloading',
+          body: audioFilename!,
+          id: id,
+          ongoing: true,
+          indeterminate: false,
+          progress: progress.round(),
+        );
+      },
+      file: File('$path/$audioFilename'),
+      progress: ProgressImplementation(),
+      onDone: () async {
+        await notificationService.flutterLocalNotificationsPlugin.cancel(id);
+        notificationService.showDownloadNotification(
+          title: 'Downloaded',
+          body: '$audioFilename finished',
+          id: id,
+          ongoing: false,
+        );
+        downloadsBackgroundCores.remove(id.toString());
+      },
+      deleteOnCancel: true,
+      onError: (e) async {
+        await notificationService.flutterLocalNotificationsPlugin.cancel(id);
+        notificationService.showDownloadNotification(
+          title: 'Download failed',
+          body: audioFilename!,
+          id: id,
+          ongoing: false,
+        );
+        downloadsBackgroundCores.remove(id.toString());
+        dev.log('audio download error: $e');
+      },
+    );
+
+    DownloaderCore core = await Flowder.download(audioUrl!, downloaderUtils);
+    downloadsBackgroundCores[id.toString()] = core;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final useClassicDialogBox = ref.watch(configProvider.select((p) => p.useClassicDialogBox));
+    final useClassicDialogBox =
+        ref.watch(configProvider.select((p) => p.useClassicDialogBox));
     final tagsAsArknights = ref.watch(styleProvider).tagsAsHtml;
 
-    return Stack(
+    final bool canDownload = audioUrl != null && audioFilename != null;
+
+    Widget content = Stack(
       children: [
         Container(
           margin: const EdgeInsets.only(top: 10.0, left: 4.0, bottom: 8.0),
@@ -304,32 +462,40 @@ class AudioDialogBox extends ConsumerWidget {
                               stream: manager.player.playerStateStream,
                               builder: (context, snapshot) {
                                 final playerState = snapshot.data;
-                                final processingState = playerState?.processingState;
+                                final processingState =
+                                    playerState?.processingState;
                                 final playing = playerState?.playing;
-                                if (processingState == ProcessingState.loading ||
-                                    processingState == ProcessingState.buffering) {
+                                if (processingState ==
+                                        ProcessingState.loading ||
+                                    processingState ==
+                                        ProcessingState.buffering) {
                                   return SizedBox.square(
                                     dimension: 24,
                                     child: CircularProgressIndicator(
-                                      color: Theme.of(context).colorScheme.primary,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
                                     ),
                                   );
                                 } else if (playing != true) {
                                   return Icon(
                                     Icons.play_arrow,
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
                                     size: 32,
                                   );
-                                } else if (processingState != ProcessingState.completed) {
+                                } else if (processingState !=
+                                    ProcessingState.completed) {
                                   return Icon(
                                     Icons.pause,
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
                                     size: 32,
                                   );
                                 } else {
                                   return Icon(
                                     Icons.replay,
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
                                     size: 32,
                                   );
                                 }
@@ -390,5 +556,14 @@ class AudioDialogBox extends ConsumerWidget {
             : null,
       ].nullParser(),
     );
+
+    if (canDownload) {
+      content = GestureDetector(
+        onLongPressStart: (details) => _showDownloadMenu(context, ref, details),
+        child: content,
+      );
+    }
+
+    return content;
   }
 }

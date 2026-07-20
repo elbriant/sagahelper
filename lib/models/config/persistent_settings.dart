@@ -38,6 +38,10 @@ class PersistentSettings {
   final bool favoritePriority;
   final bool showFavoriteBadge;
 
+  // feature toggles
+  final bool useOperatorColorTheme;
+  final bool audioDownloadConfirmation;
+
   int get customThemeIndex {
     return allCustomThemes.indexOf(customTheme);
   }
@@ -65,6 +69,8 @@ class PersistentSettings {
     required this.offlineMode,
     required this.favoritePriority,
     required this.showFavoriteBadge,
+    required this.useOperatorColorTheme,
+    required this.audioDownloadConfirmation,
   });
 
   PersistentSettings copyWith({
@@ -90,6 +96,8 @@ class PersistentSettings {
     bool? offlineMode,
     bool? favoritePriority,
     bool? showFavoriteBadge,
+    bool? useOperatorColorTheme,
+    bool? audioDownloadConfirmation,
   }) {
     return PersistentSettings(
       currentServer: currentServer ?? this.currentServer,
@@ -98,23 +106,32 @@ class PersistentSettings {
       homeShowSeconds: homeShowSeconds ?? this.homeShowSeconds,
       homeCompactMode: homeCompactMode ?? this.homeCompactMode,
       nickname: nickname ?? this.nickname,
-      operatorSearchDelegate: operatorSearchDelegate ?? this.operatorSearchDelegate,
+      operatorSearchDelegate:
+          operatorSearchDelegate ?? this.operatorSearchDelegate,
       operatorDisplayMode: operatorDisplayMode ?? this.operatorDisplayMode,
       operatorSortingType: operatorSortingType ?? this.operatorSortingType,
-      useOperatorSortingReversed: useOperatorSortingReversed ?? this.useOperatorSortingReversed,
+      useOperatorSortingReversed:
+          useOperatorSortingReversed ?? this.useOperatorSortingReversed,
       customTheme: customTheme ?? this.customTheme,
       themeMode: themeMode ?? this.themeMode,
       usePureDarkTheme: usePureDarkTheme ?? this.usePureDarkTheme,
       useTranslucentUi: useTranslucentUi ?? this.useTranslucentUi,
       useClassicDialogBox: useClassicDialogBox ?? this.useClassicDialogBox,
-      opInfoMenuShowAdvanced: opInfoMenuShowAdvanced ?? this.opInfoMenuShowAdvanced,
-      homeNotificationRequestAccepted:
-          homeNotificationRequestAccepted ?? this.homeNotificationRequestAccepted,
-      checkGamedataUpdatesOnStart: checkGamedataUpdatesOnStart ?? this.checkGamedataUpdatesOnStart,
-      checkAppUpdatesOnStart: checkAppUpdatesOnStart ?? this.checkAppUpdatesOnStart,
+      opInfoMenuShowAdvanced:
+          opInfoMenuShowAdvanced ?? this.opInfoMenuShowAdvanced,
+      homeNotificationRequestAccepted: homeNotificationRequestAccepted ??
+          this.homeNotificationRequestAccepted,
+      checkGamedataUpdatesOnStart:
+          checkGamedataUpdatesOnStart ?? this.checkGamedataUpdatesOnStart,
+      checkAppUpdatesOnStart:
+          checkAppUpdatesOnStart ?? this.checkAppUpdatesOnStart,
       offlineMode: offlineMode ?? this.offlineMode,
       favoritePriority: favoritePriority ?? this.favoritePriority,
       showFavoriteBadge: showFavoriteBadge ?? this.showFavoriteBadge,
+      useOperatorColorTheme:
+          useOperatorColorTheme ?? this.useOperatorColorTheme,
+      audioDownloadConfirmation:
+          audioDownloadConfirmation ?? this.audioDownloadConfirmation,
     );
   }
 }

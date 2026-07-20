@@ -2,16 +2,14 @@ import 'package:flowder/flowder.dart';
 import 'package:sagahelper/providers/server_provider.dart';
 
 /// todo list
-/// TODO: feature: add favorite operator
-/// TODO: color provider based on operator colors
-
 /// TODO: feature: filter by voice type (ex: operators that have spanish voicelines)
-/// TODO: feature: audio download by long press (context menu maybe?)
 /// TODO: feature: show "new" badge on current version added operators
+/// TODO: put ak news on home page
 
 /// bug list
 /// TODO: main cn server (¿¿??) (maybe home screen)
-
+/// TODO: integrate any md formatter in the update screen
+/// TODO: recruitment page, bottom sheet improving, cant scroll, annoying grouping, better do just titles
 // ----------------- run time flags
 
 Map<String, DownloaderCore> downloadsBackgroundCores = {};

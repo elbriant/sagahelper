@@ -72,8 +72,8 @@ class AppearanceSettings extends ConsumerWidget {
                   selected: {
                     config.themeMode,
                   },
-                  onSelectionChanged: (newSelection) =>
-                      updateSetting(ref, ConfigKeys.themeMode, newSelection.first),
+                  onSelectionChanged: (newSelection) => updateSetting(
+                      ref, ConfigKeys.themeMode, newSelection.first),
                 ),
                 Container(
                   margin: const EdgeInsets.fromLTRB(20, 30, 20, 10),
@@ -100,7 +100,8 @@ class AppearanceSettings extends ConsumerWidget {
                                 config.usePureDarkTheme,
                               )
                               .highlightColor,
-                          onTap: () => updateSetting(ref, ConfigKeys.customTheme, index),
+                          onTap: () =>
+                              updateSetting(ref, ConfigKeys.customTheme, index),
                         ),
                       ),
                     ),
@@ -117,17 +118,20 @@ class AppearanceSettings extends ConsumerWidget {
               subtitle: const Text('makes everything more darker'),
               title: const Text('Pure dark mode'),
               value: config.usePureDarkTheme,
-              onChanged: (state) => updateSetting(ref, ConfigKeys.usePureDarkTheme, state),
+              onChanged: (state) =>
+                  updateSetting(ref, ConfigKeys.usePureDarkTheme, state),
             ),
           SwitchListTile(
-            secondary:
-                config.useTranslucentUi ? const Icon(Icons.blur_on) : const Icon(Icons.blur_off),
+            secondary: config.useTranslucentUi
+                ? const Icon(Icons.blur_on)
+                : const Icon(Icons.blur_off),
             subtitle: const Text(
               'makes UI transparent and blurry (performance cost!)',
             ),
             title: const Text('Traslucent UI'),
             value: config.useTranslucentUi,
-            onChanged: (state) => updateSetting(ref, ConfigKeys.useTranslucentUi, state),
+            onChanged: (state) =>
+                updateSetting(ref, ConfigKeys.useTranslucentUi, state),
           ),
           ListTile(
             title: const Text('Home settings'),
@@ -137,23 +141,27 @@ class AppearanceSettings extends ConsumerWidget {
             secondary: const Icon(Icons.access_time),
             title: const Text('12-hour format'),
             value: config.homeHour12Format,
-            onChanged: (state) => updateSetting(ref, ConfigKeys.homeHour12Format, state),
+            onChanged: (state) =>
+                updateSetting(ref, ConfigKeys.homeHour12Format, state),
           ),
           SwitchListTile(
             secondary: const Icon(Icons.date_range),
             title: const Text('Show server date'),
             value: config.homeShowDate,
-            onChanged: (state) => updateSetting(ref, ConfigKeys.homeShowDate, state),
+            onChanged: (state) =>
+                updateSetting(ref, ConfigKeys.homeShowDate, state),
           ),
           SwitchListTile(
             title: const Text('Show seconds'),
             value: config.homeShowSeconds,
-            onChanged: (state) => updateSetting(ref, ConfigKeys.homeShowSeconds, state),
+            onChanged: (state) =>
+                updateSetting(ref, ConfigKeys.homeShowSeconds, state),
           ),
           SwitchListTile(
             title: const Text('Compact mode'),
             value: config.homeCompactMode,
-            onChanged: (state) => updateSetting(ref, ConfigKeys.homeCompactMode, state),
+            onChanged: (state) =>
+                updateSetting(ref, ConfigKeys.homeCompactMode, state),
           ),
           ListTile(
             title: const Text('Display'),
@@ -162,7 +170,16 @@ class AppearanceSettings extends ConsumerWidget {
           SwitchListTile(
             title: const Text('Classic dialog box color'),
             value: config.useClassicDialogBox,
-            onChanged: (state) => updateSetting(ref, ConfigKeys.useClassicDialogBox, state),
+            onChanged: (state) =>
+                updateSetting(ref, ConfigKeys.useClassicDialogBox, state),
+          ),
+          SwitchListTile(
+            secondary: const Icon(Icons.palette),
+            title: const Text('Dynamic operator theme'),
+            subtitle: const Text('Apply color theme based on operator avatar'),
+            value: config.useOperatorColorTheme,
+            onChanged: (state) =>
+                updateSetting(ref, ConfigKeys.useOperatorColorTheme, state),
           ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 16.0),

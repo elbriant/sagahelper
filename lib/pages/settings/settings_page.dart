@@ -33,13 +33,21 @@ class _SettingsSettingsState extends ConsumerState<SettingsSettings> {
 
   @override
   Widget build(BuildContext context) {
-    final String nickname = ref.watch(configProvider.select((p) => p.nickname)) ?? '';
-    final translucent = ref.watch(configProvider.select((p) => p.useTranslucentUi));
-    final gamedataUpdates = ref.watch(configProvider.select((p) => p.checkGamedataUpdatesOnStart));
-    final appUpdates = ref.watch(configProvider.select((p) => p.checkAppUpdatesOnStart));
+    final String nickname =
+        ref.watch(configProvider.select((p) => p.nickname)) ?? '';
+    final translucent =
+        ref.watch(configProvider.select((p) => p.useTranslucentUi));
+    final gamedataUpdates =
+        ref.watch(configProvider.select((p) => p.checkGamedataUpdatesOnStart));
+    final appUpdates =
+        ref.watch(configProvider.select((p) => p.checkAppUpdatesOnStart));
+    final audioDownloadConfirm =
+        ref.watch(configProvider.select((p) => p.audioDownloadConfirmation));
 
     void changeNickname() {
-      ref.read(configProvider.notifier).updateSettings(ConfigKeys.nickname, editedNickname);
+      ref
+          .read(configProvider.notifier)
+          .updateSettings(ConfigKeys.nickname, editedNickname);
     }
 
     return Scaffold(
@@ -53,8 +61,10 @@ class _SettingsSettingsState extends ConsumerState<SettingsSettings> {
             color: translucent ? Colors.transparent : null,
           ),
         ),
-        backgroundColor:
-            Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: translucent ? 0.5 : 1),
+        backgroundColor: Theme.of(context)
+            .colorScheme
+            .surfaceContainer
+            .withValues(alpha: translucent ? 0.5 : 1),
         title: const Text('Settings'),
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
@@ -69,7 +79,8 @@ class _SettingsSettingsState extends ConsumerState<SettingsSettings> {
           ),
           const ListTile(
             title: Text('Nickname'),
-            subtitle: Text('Is used to replace "Doctor" on operator\u2019s dialogs'),
+            subtitle:
+                Text('Is used to replace "Doctor" on operator\u2019s dialogs'),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 18.0),
@@ -79,7 +90,8 @@ class _SettingsSettingsState extends ConsumerState<SettingsSettings> {
                   child: TextField(
                     controller: nicknameTextController,
                     inputFormatters: [
-                      FilteringTextInputFormatter(RegExp("[a-zA-Z]"), allow: true),
+                      FilteringTextInputFormatter(RegExp("[a-zA-Z]"),
+                          allow: true),
                     ],
                     decoration: InputDecoration(
                       suffixIcon: IconButton(
@@ -94,13 +106,16 @@ class _SettingsSettingsState extends ConsumerState<SettingsSettings> {
                       border: const OutlineInputBorder(),
                     ),
                     maxLength: 12,
-                    onSubmitted: nickname != editedNickname ? (_) => changeNickname() : null,
+                    onSubmitted: nickname != editedNickname
+                        ? (_) => changeNickname()
+                        : null,
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16.0),
                   child: IconButton(
-                    onPressed: nickname != editedNickname ? changeNickname : null,
+                    onPressed:
+                        nickname != editedNickname ? changeNickname : null,
                     icon: const Icon(Icons.save),
                   ),
                 ),
@@ -130,6 +145,20 @@ class _SettingsSettingsState extends ConsumerState<SettingsSettings> {
             onChanged: (state) => ref
                 .read(configProvider.notifier)
                 .updateSettings(ConfigKeys.checkAppUpdatesOnStart, state),
+          ),
+          ListTile(
+            title: const Text('Downloads'),
+            textColor: Theme.of(context).colorScheme.primary,
+          ),
+          SwitchListTile(
+            subtitle: const Text(
+              'Show confirmation dialog before downloading audio',
+            ),
+            title: const Text('Audio download confirmation'),
+            value: audioDownloadConfirm,
+            onChanged: (state) => ref
+                .read(configProvider.notifier)
+                .updateSettings(ConfigKeys.audioDownloadConfirmation, state),
           ),
         ],
       ),

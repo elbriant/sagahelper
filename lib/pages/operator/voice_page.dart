@@ -19,7 +19,8 @@ class VoicePage extends ConsumerStatefulWidget {
   ConsumerState<VoicePage> createState() => _VoicePageState();
 }
 
-class _VoicePageState extends ConsumerState<VoicePage> with WidgetsBindingObserver {
+class _VoicePageState extends ConsumerState<VoicePage>
+    with WidgetsBindingObserver {
   final AudioPlayerManager manager = AudioPlayerManager();
   int selectedLang = 0;
   final List voicelines = [];
@@ -55,7 +56,8 @@ class _VoicePageState extends ConsumerState<VoicePage> with WidgetsBindingObserv
 
   void _init() {
     for (var key in (widget.operator.voiceLangDict['dict'] ??
-            widget.operator.voiceLangDict['voiceLangInfoDataDict'] as Map<String, dynamic>)
+            widget.operator.voiceLangDict['voiceLangInfoDataDict']
+                as Map<String, dynamic>)
         .keys) {
       langs.add(key.toLowerCase());
       if (key == 'JP') selectedLang = langs.indexOf('jp');
@@ -127,9 +129,37 @@ class _VoicePageState extends ConsumerState<VoicePage> with WidgetsBindingObserv
     }
 
     String link = '$kVoiceRepo/$voicelang/$opId/$voiceId.mp3'.githubEncode();
-    String fallbackJpLink = '$kVoiceRepo/voice/$opId/$voiceId.mp3'.githubEncode();
+    String fallbackJpLink =
+        '$kVoiceRepo/voice/$opId/$voiceId.mp3'.githubEncode();
 
     manager.init(link, fallbackJpLink, ref.read(effectiveIsConnectedProvider));
+  }
+
+  String _buildAudioUrl(String voiceId) {
+    String voicelang = switch (langs[selectedLang]) {
+      'jp' => 'voice',
+      'en' => 'voice_en',
+      'kr' => 'voice_kr',
+      'cn_mandarin' => 'voice_cn',
+      'linkage' => 'voice',
+      String() => 'voice_custom'
+    };
+
+    String opId = selectedVoicelines;
+    if (voicelang == 'voice_custom') {
+      opId += switch (langs[selectedLang]) {
+        'cn_topolect' => '_cn_topolect',
+        'ita' => '_ita',
+        String() => ''
+      };
+    }
+
+    return '$kVoiceRepo/$voicelang/$opId/$voiceId.mp3'.githubEncode();
+  }
+
+  String _buildAudioFilename(String voiceId) {
+    final lang = langs[selectedLang];
+    return '${selectedVoicelines}_${lang}_$voiceId.mp3';
   }
 
   // not proud of this code
@@ -170,7 +200,8 @@ class _VoicePageState extends ConsumerState<VoicePage> with WidgetsBindingObserv
 
   @override
   Widget build(BuildContext context) {
-    final translucent = ref.watch(configProvider.select((p) => p.useTranslucentUi));
+    final translucent =
+        ref.watch(configProvider.select((p) => p.useTranslucentUi));
     final nickname = ref.watch(configProvider.select((p) => p.nickname));
 
     List<Widget> langsButtons = List.generate(langs.length, (index) {
@@ -188,8 +219,9 @@ class _VoicePageState extends ConsumerState<VoicePage> with WidgetsBindingObserv
       };
 
       String va = ((widget.operator.voiceLangDict['dict'] ??
-              widget.operator.voiceLangDict['voiceLangInfoDataDict']
-                  as Map<String, dynamic>)[langs[index].toUpperCase()]["cvName"] as List)
+                  widget.operator.voiceLangDict['voiceLangInfoDataDict']
+                      as Map<String, dynamic>)[langs[index].toUpperCase()]
+              ["cvName"] as List)
           .join(', ');
 
       return StyledLangButton(
@@ -217,8 +249,10 @@ class _VoicePageState extends ConsumerState<VoicePage> with WidgetsBindingObserv
             ),
           ),
         ),
-        backgroundColor:
-            Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: translucent ? 0.5 : 1),
+        backgroundColor: Theme.of(context)
+            .colorScheme
+            .surfaceContainer
+            .withValues(alpha: translucent ? 0.5 : 1),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -274,7 +308,8 @@ class _VoicePageState extends ConsumerState<VoicePage> with WidgetsBindingObserv
                         ),
                         width: double.maxFinite,
                         onSelected: changeVoiceline,
-                        dropdownMenuEntries: voicelines.map<DropdownMenuEntry<String>>((name) {
+                        dropdownMenuEntries:
+                            voicelines.map<DropdownMenuEntry<String>>((name) {
                           return DropdownMenuEntry<String>(
                             value: name,
                             label: name,
@@ -295,6 +330,11 @@ class _VoicePageState extends ConsumerState<VoicePage> with WidgetsBindingObserv
                       .nicknameParser(nickname: nickname),
                   isPlaying: playingIndex == index,
                   manager: manager,
+                  audioUrl:
+                      _buildAudioUrl(filteredCharWord[index - 2]["voiceId"]),
+                  audioFilename: _buildAudioFilename(
+                    filteredCharWord[index - 2]["voiceId"],
+                  ),
                   fun: () {
                     play(filteredCharWord[index - 2]["voiceId"], index);
                   },

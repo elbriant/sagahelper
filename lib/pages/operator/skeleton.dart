@@ -13,6 +13,7 @@ import 'package:sagahelper/pages/operator/archive_page.dart';
 import 'package:sagahelper/pages/operator/art_page.dart';
 import 'package:sagahelper/pages/operator/voice_page.dart';
 import 'package:sagahelper/providers/config_provider.dart';
+import 'package:sagahelper/providers/operator_color_provider.dart';
 
 Future<Widget> buildOperatorInfo(operator) async {
   await Future.delayed(const Duration(milliseconds: 300));
@@ -81,7 +82,10 @@ class OperatorInfo extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final translucent = ref.watch(configProvider.select((p) => p.useTranslucentUi));
+    final translucent =
+        ref.watch(configProvider.select((p) => p.useTranslucentUi));
+    final operatorThemeAsync =
+        ref.watch(operatorColorThemeProvider(operator.id));
 
     List<Tab> tabs = <Tab>[
       const Tab(text: 'Archive', icon: Icon(Icons.file_present)),
@@ -89,7 +93,7 @@ class OperatorInfo extends ConsumerWidget {
       const Tab(text: 'Voice', icon: Icon(Icons.voice_chat)),
     ];
 
-    return DefaultTabController(
+    Widget scaffold = DefaultTabController(
       length: tabs.length,
       child: Scaffold(
         extendBody: true,
@@ -107,6 +111,17 @@ class OperatorInfo extends ConsumerWidget {
         ),
       ),
     );
+
+    final operatorTheme = operatorThemeAsync.value;
+    if (operatorTheme != null) {
+      final brightness = Theme.of(context).brightness;
+      scaffold = Theme(
+        data: operatorTheme.fromBrightness(brightness),
+        child: scaffold,
+      );
+    }
+
+    return scaffold;
   }
 }
 
@@ -116,7 +131,8 @@ class OperatorInfoPlaceholder extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final translucent = ref.watch(configProvider.select((p) => p.useTranslucentUi));
+    final translucent =
+        ref.watch(configProvider.select((p) => p.useTranslucentUi));
 
     return Scaffold(
       extendBody: true,
@@ -181,7 +197,9 @@ class OperatorInfoPlaceholder extends ConsumerWidget {
                                   ),
                                 ],
                                 border: Border.all(
-                                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onPrimaryContainer,
                                   width: 4.0,
                                   style: BorderStyle.solid,
                                 ),
@@ -345,7 +363,8 @@ class OperatorInfoPlaceholder extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    margin: const EdgeInsets.only(bottom: 8.0, left: 28.0, top: 8.0),
+                    margin: const EdgeInsets.only(
+                        bottom: 8.0, left: 28.0, top: 8.0),
                     decoration: BoxDecoration(
                       color: Colors.black,
                       borderRadius: BorderRadius.circular(8.0),
@@ -354,7 +373,8 @@ class OperatorInfoPlaceholder extends ConsumerWidget {
                     height: 46,
                   ),
                   Container(
-                    margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 28.0),
+                    margin: const EdgeInsets.symmetric(
+                        vertical: 8.0, horizontal: 28.0),
                     decoration: BoxDecoration(
                       color: Colors.black,
                       borderRadius: BorderRadius.circular(8.0),
@@ -370,7 +390,8 @@ class OperatorInfoPlaceholder extends ConsumerWidget {
       ),
       bottomNavigationBar: ShimmerLoadingMask(
         child: Container(
-          padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
           width: MediaQuery.sizeOf(context).width,
           height: 128,
           decoration: const BoxDecoration(

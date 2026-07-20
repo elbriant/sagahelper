@@ -71,7 +71,13 @@ enum ConfigKeys {
   favoritePriority('operator_favoritePriority'),
 
   /// Save [bool]
-  showFavoriteBadge('operator_showFavoriteBadge');
+  showFavoriteBadge('operator_showFavoriteBadge'),
+
+  /// Save [bool]
+  useOperatorColorTheme('settings_useOperatorColorTheme'),
+
+  /// Save [bool]
+  audioDownloadConfirmation('settings_audioDownloadConfirmation');
 
   final String key;
 
@@ -87,34 +93,51 @@ class ConfigManager {
     final settingNickname = _prefs.getString(ConfigKeys.nickname.key);
 
     return PersistentSettings(
-      currentServer: Server.values[_prefs.getInt(ConfigKeys.currentServer.key) ?? Server.en.index],
+      currentServer: Server.values[
+          _prefs.getInt(ConfigKeys.currentServer.key) ?? Server.en.index],
       homeCompactMode: _prefs.getBool(ConfigKeys.homeCompactMode.key) ?? false,
-      homeHour12Format: _prefs.getBool(ConfigKeys.homeHour12Format.key) ?? false,
+      homeHour12Format:
+          _prefs.getBool(ConfigKeys.homeHour12Format.key) ?? false,
       homeShowDate: _prefs.getBool(ConfigKeys.homeShowDate.key) ?? true,
       homeShowSeconds: _prefs.getBool(ConfigKeys.homeShowSeconds.key) ?? false,
       nickname: settingNickname == '' ? null : settingNickname,
       operatorDisplayMode: OperatorDisplayMode.values[
-          _prefs.getInt(ConfigKeys.operatorDisplayMode.key) ?? OperatorDisplayMode.avatar.index],
-      operatorSearchDelegate: _prefs.getInt(ConfigKeys.operatorSearchDelegate.key) ?? 4,
+          _prefs.getInt(ConfigKeys.operatorDisplayMode.key) ??
+              OperatorDisplayMode.avatar.index],
+      operatorSearchDelegate:
+          _prefs.getInt(ConfigKeys.operatorSearchDelegate.key) ?? 4,
       operatorSortingType: OperatorSortingType.values[
-          _prefs.getInt(ConfigKeys.operatorSortingType.key) ?? OperatorSortingType.rarity.index],
+          _prefs.getInt(ConfigKeys.operatorSortingType.key) ??
+              OperatorSortingType.rarity.index],
       useOperatorSortingReversed:
           _prefs.getBool(ConfigKeys.useOperatorSortingReversed.key) ?? false,
-      customTheme: allCustomThemes[_prefs.getInt(ConfigKeys.customTheme.key) ?? 0],
-      themeMode:
-          ThemeMode.values[_prefs.getInt(ConfigKeys.themeMode.key) ?? ThemeMode.system.index],
-      useClassicDialogBox: _prefs.getBool(ConfigKeys.useClassicDialogBox.key) ?? false,
-      usePureDarkTheme: _prefs.getBool(ConfigKeys.usePureDarkTheme.key) ?? false,
-      useTranslucentUi: _prefs.getBool(ConfigKeys.useTranslucentUi.key) ?? false,
+      customTheme:
+          allCustomThemes[_prefs.getInt(ConfigKeys.customTheme.key) ?? 0],
+      themeMode: ThemeMode.values[
+          _prefs.getInt(ConfigKeys.themeMode.key) ?? ThemeMode.system.index],
+      useClassicDialogBox:
+          _prefs.getBool(ConfigKeys.useClassicDialogBox.key) ?? false,
+      usePureDarkTheme:
+          _prefs.getBool(ConfigKeys.usePureDarkTheme.key) ?? false,
+      useTranslucentUi:
+          _prefs.getBool(ConfigKeys.useTranslucentUi.key) ?? false,
       homeNotificationRequestAccepted:
-          _prefs.getBool(ConfigKeys.homeNotificationRequestAccepted.key) ?? false,
-      opInfoMenuShowAdvanced: _prefs.getBool(ConfigKeys.opInfoMenuShowAdvanced.key) ?? false,
+          _prefs.getBool(ConfigKeys.homeNotificationRequestAccepted.key) ??
+              false,
+      opInfoMenuShowAdvanced:
+          _prefs.getBool(ConfigKeys.opInfoMenuShowAdvanced.key) ?? false,
       checkGamedataUpdatesOnStart:
           _prefs.getBool(ConfigKeys.checkGamedataUpdatesOnStart.key) ?? true,
-      checkAppUpdatesOnStart: _prefs.getBool(ConfigKeys.checkAppUpdatesOnStart.key) ?? true,
+      checkAppUpdatesOnStart:
+          _prefs.getBool(ConfigKeys.checkAppUpdatesOnStart.key) ?? true,
       offlineMode: _prefs.getBool(ConfigKeys.offlineMode.key) ?? false,
       favoritePriority: _prefs.getBool(ConfigKeys.favoritePriority.key) ?? true,
-      showFavoriteBadge: _prefs.getBool(ConfigKeys.showFavoriteBadge.key) ?? true,
+      showFavoriteBadge:
+          _prefs.getBool(ConfigKeys.showFavoriteBadge.key) ?? true,
+      useOperatorColorTheme:
+          _prefs.getBool(ConfigKeys.useOperatorColorTheme.key) ?? false,
+      audioDownloadConfirmation:
+          _prefs.getBool(ConfigKeys.audioDownloadConfirmation.key) ?? true,
     );
   }
 
@@ -133,7 +156,8 @@ class ConfigManager {
       case List<String> _:
         return await _prefs.setStringList(config.key, value);
       default:
-        throw ArgumentError('Tipo no soportado para SharedPreferences: ${value.runtimeType}');
+        throw ArgumentError(
+            'Tipo no soportado para SharedPreferences: ${value.runtimeType}');
     }
   }
 }
