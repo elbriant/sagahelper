@@ -2,8 +2,6 @@ import 'package:flowder/flowder.dart';
 import 'package:sagahelper/providers/server_provider.dart';
 
 /// todo list
-/// TODO: feature: filter by voice type (ex: operators that have spanish voicelines)
-/// TODO: filter by IS modules and RA modules
 /// TODO: feature: show "new" badge on current version added operators
 /// TODO: put ak news on home page
 

@@ -125,6 +125,7 @@ final filteredOperatorListProvider = FutureProvider<List<Operator>>(
     final sortingReversed = ref.watch(configProvider.select((p) => p.useOperatorSortingReversed));
     final favoritePriority = ref.watch(configProvider.select((p) => p.favoritePriority));
     final favorites = ref.watch(favoritesProvider);
+    final cacheProv = ref.read(cacheProvider);
     List<Operator> list = await ref.watch(operatorListProvider.future);
 
     // filter first then sort
@@ -195,8 +196,28 @@ final filteredOperatorListProvider = FutureProvider<List<Operator>>(
             case FilterType.extra:
               List<String> values = [];
               if (op.modules != null) values.add('has_module');
+              final equipDict = cacheProv.cachedModInfoTable?["equipDict"] as Map<String, dynamic>?;
+              if (op.modules != null && equipDict != null) {
+                for (final modCodename in op.modules!) {
+                  final modInfo = equipDict[modCodename] as Map<String, dynamic>?;
+                  if (modInfo != null) {
+                    final typeIcon = (modInfo["typeIcon"] as String?)?.toLowerCase() ?? '';
+                    if (typeIcon.startsWith('isw')) {
+                      values.add(CustomFilterTags.hasISModule.tag);
+                    }
+                    if (typeIcon.startsWith('ra')) {
+                      values.add(CustomFilterTags.hasRAModule.tag);
+                    }
+                  }
+                }
+              }
 
               test = values.any((e) => rule.value.contains(e.toLowerCase()));
+            case FilterType.voicelang:
+              final voiceDict = op.voiceLangDict['dict'] ??
+                  op.voiceLangDict['voiceLangInfoDataDict'] as Map<String, dynamic>?;
+              test = voiceDict != null &&
+                  rule.value.any((lang) => voiceDict.containsKey(lang.toUpperCase()));
             case FilterType.position:
               test = rule.value.contains(op.position.toLowerCase());
             case FilterType.tag:
@@ -230,8 +251,30 @@ final filteredOperatorListProvider = FutureProvider<List<Operator>>(
             case FilterType.extra:
               List<String> values = [];
               if (op.modules != null) values.add(CustomFilterTags.hasModule.tag);
+              final equipDict = cacheProv.cachedModInfoTable?["equipDict"] as Map<String, dynamic>?;
+              if (op.modules != null && equipDict != null) {
+                for (final modCodename in op.modules!) {
+                  final modInfo = equipDict[modCodename] as Map<String, dynamic>?;
+                  if (modInfo != null) {
+                    final typeIcon = (modInfo["typeIcon"] as String?)?.toLowerCase() ?? '';
+                    if (typeIcon.startsWith('isw')) {
+                      values.add(CustomFilterTags.hasISModule.tag);
+                    }
+                    if (typeIcon.startsWith('ra')) {
+                      values.add(CustomFilterTags.hasRAModule.tag);
+                    }
+                  }
+                }
+              }
 
               if (values.any((e) => rule.value.contains(e.toLowerCase()))) test = false;
+            case FilterType.voicelang:
+              final voiceDict = op.voiceLangDict['dict'] ??
+                  op.voiceLangDict['voiceLangInfoDataDict'] as Map<String, dynamic>?;
+              if (voiceDict != null &&
+                  rule.value.any((lang) => voiceDict.containsKey(lang.toUpperCase()))) {
+                test = false;
+              }
             case FilterType.position:
               if (rule.value.contains(op.position.toLowerCase())) test = false;
             case FilterType.tag:

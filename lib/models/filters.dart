@@ -39,14 +39,17 @@ enum FilterType {
   faction('faction'),
   position('position'),
   tag('taglist'),
-  extra('extra');
+  extra('extra'),
+  voicelang('voicelang');
 
   const FilterType(this.prefix);
   final String prefix;
 }
 
 enum CustomFilterTags {
-  hasModule('has_module');
+  hasModule('has_module'),
+  hasISModule('has_is_module'),
+  hasRAModule('has_ra_module');
 
   const CustomFilterTags(this.tag);
   final String tag;

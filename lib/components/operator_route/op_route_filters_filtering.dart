@@ -162,6 +162,52 @@ class OpRouteFiltersFiltering extends ConsumerWidget {
             ),
         showCheckmark: false,
       ),
+      FilterChip(
+        label: const Text('IS Module'),
+        selected: currentFilters
+            .containsKey('${FilterType.extra.prefix}_${CustomFilterTags.hasISModule.tag}'),
+        avatar: currentFilters
+                .containsKey('${FilterType.extra.prefix}_${CustomFilterTags.hasISModule.tag}')
+            ? Icon(
+                currentFilters['${FilterType.extra.prefix}_${CustomFilterTags.hasISModule.tag}']!
+                            .mode ==
+                        FilterMode.whitelist
+                    ? Icons.check
+                    : Icons.block,
+              )
+            : null,
+        onSelected: (_) => ref.read(operatorSearchProvider.notifier).toggleOperatorFilter(
+              FilterTag(
+                id: '${FilterType.extra.prefix}_${CustomFilterTags.hasISModule.tag}',
+                key: CustomFilterTags.hasISModule.tag,
+                type: FilterType.extra,
+              ),
+            ),
+        showCheckmark: false,
+      ),
+      FilterChip(
+        label: const Text('RA Module'),
+        selected: currentFilters
+            .containsKey('${FilterType.extra.prefix}_${CustomFilterTags.hasRAModule.tag}'),
+        avatar: currentFilters
+                .containsKey('${FilterType.extra.prefix}_${CustomFilterTags.hasRAModule.tag}')
+            ? Icon(
+                currentFilters['${FilterType.extra.prefix}_${CustomFilterTags.hasRAModule.tag}']!
+                            .mode ==
+                        FilterMode.whitelist
+                    ? Icons.check
+                    : Icons.block,
+              )
+            : null,
+        onSelected: (_) => ref.read(operatorSearchProvider.notifier).toggleOperatorFilter(
+              FilterTag(
+                id: '${FilterType.extra.prefix}_${CustomFilterTags.hasRAModule.tag}',
+                key: CustomFilterTags.hasRAModule.tag,
+                type: FilterType.extra,
+              ),
+            ),
+        showCheckmark: false,
+      ),
     ];
 
     List<Widget> taglistFilters() {
@@ -229,6 +275,52 @@ class OpRouteFiltersFiltering extends ConsumerWidget {
       return result;
     }
 
+    List<Widget> voiceLangFilters() {
+      final cachedOps = cacheProv.cachedListOperator;
+      if (cachedOps == null) return [];
+
+      final Set<String> allLangs = {};
+      for (var op in cachedOps) {
+        final voiceDict = op.voiceLangDict['dict'] ??
+            op.voiceLangDict['voiceLangInfoDataDict'] as Map<String, dynamic>?;
+        if (voiceDict != null) {
+          for (var key in voiceDict.keys) {
+            allLangs.add(key.toLowerCase());
+          }
+        }
+      }
+
+      final sortedLangs = allLangs.toList()..sort();
+
+      String langLabel(String lang) => switch (lang) {
+            'cn_mandarin' => 'CN Mandarin',
+            'cn_topolect' => 'CN Topolect',
+            'linkage' => 'CUSTOM',
+            String() => lang.toUpperCase(),
+          };
+
+      return sortedLangs.map((lang) {
+        final id = '${FilterType.voicelang.prefix}_$lang';
+        return FilterChip(
+          label: Text(langLabel(lang)),
+          selected: currentFilters.containsKey(id),
+          avatar: currentFilters.containsKey(id)
+              ? Icon(
+                  currentFilters[id]!.mode == FilterMode.whitelist ? Icons.check : Icons.block,
+                )
+              : null,
+          onSelected: (_) => ref.read(operatorSearchProvider.notifier).toggleOperatorFilter(
+                FilterTag(
+                  id: id,
+                  key: lang,
+                  type: FilterType.voicelang,
+                ),
+              ),
+          showCheckmark: false,
+        );
+      }).toList();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -281,6 +373,13 @@ class OpRouteFiltersFiltering extends ConsumerWidget {
           child: Wrap(
             spacing: 6.0,
             children: positionFilters(),
+          ),
+        ),
+        FilterTile(
+          title: 'Voice Language',
+          child: Wrap(
+            spacing: 6.0,
+            children: voiceLangFilters(),
           ),
         ),
         FilterTile(
