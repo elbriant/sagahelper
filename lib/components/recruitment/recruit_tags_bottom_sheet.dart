@@ -68,23 +68,23 @@ class RecruitTagsBottomSheet extends ConsumerWidget {
     // Group tags by category
     final grouped = <String, List<RecruitTagInfo>>{};
     for (final tag in tagMap.values) {
-      final cat = tag.tagCat ?? 'Affix';
+      final cat = tag.tagCat ?? 'Others';
       grouped.putIfAbsent(cat, () => []).add(tag);
     }
 
-    // Sort Affix alphabetically
-    grouped['Affix']?.sort((a, b) => a.tagName.compareTo(b.tagName));
+    // Sort Others alphabetically
+    grouped['Others']?.sort((a, b) => a.tagName.compareTo(b.tagName));
 
     // Define display order
-    const categoryOrder = ['Class', 'Position', 'Affix', 'Rarity'];
+    const categoryOrder = ['Rarity', 'Class', 'Position', 'Others'];
 
-    return ListView(
-      shrinkWrap: true,
+    return Column(
       children: [
         for (final category in categoryOrder) ...[
           if (grouped.containsKey(category))
             FilterTile(
               title: category,
+              initiallyExpanded: true,
               child: Wrap(
                 spacing: 6.0,
                 runSpacing: 4.0,

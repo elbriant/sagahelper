@@ -14,6 +14,7 @@ import 'package:sagahelper/providers/cache_provider.dart';
 import 'package:sagahelper/providers/style_provider.dart';
 import 'package:sagahelper/utils/extensions.dart';
 import 'package:sagahelper/utils/misc.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:styled_text/styled_text.dart';
 
 abstract final class PopupDialog {
@@ -112,61 +113,110 @@ abstract final class PopupDialog {
     String? newVersion,
     String? currentVersion,
   }) {
-    _show(
-      context: context,
-      title: Text(label),
-      content: Consumer(
-        builder: (context, ref, child) {
-          final tagsAsHtml = ref.watch(styleProvider).tagsAsHtml;
-
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (newVersion != null)
-                Text(
-                  'New version: $newVersion',
-                  textScaler: const TextScaler.linear(1.1),
-                ),
-              if (currentVersion != null)
-                Text(
-                  'Current: $currentVersion',
-                  style: const TextStyle(fontStyle: FontStyle.italic),
-                ),
-              if (currentVersion != null || newVersion != null)
-                const SizedBox(
-                  height: 10,
-                ),
-              const Text(
-                'Changelog:',
-                textScaler: TextScaler.linear(1.2),
-              ),
-              const SizedBox(
-                height: 6,
-              ),
-              StyledText(
-                text: body,
-                tags: tagsAsHtml,
-              ),
-            ],
-          );
-        },
+    showModalBottomSheet<void>(
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      actions: [
-        TextButton(
-          child: const Text('Dismiss'),
-          onPressed: () {
-            Navigator.of(context).pop();
+      enableDrag: true,
+      clipBehavior: Clip.hardEdge,
+      isScrollControlled: true,
+      context: context,
+      builder: (BuildContext context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.85,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (context, scrollController) {
+            return Column(
+              children: [
+                // Drag handle
+                Padding(
+                  padding: const EdgeInsets.only(top: 12, bottom: 4),
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                // Header
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          label,
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Version info
+                if (newVersion != null || currentVersion != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      children: [
+                        if (newVersion != null)
+                          Text(
+                            'New: $newVersion',
+                            textScaler: const TextScaler.linear(1.1),
+                          ),
+                        if (newVersion != null && currentVersion != null)
+                          const Text('  '),
+                        if (currentVersion != null)
+                          Text(
+                            'Current: $currentVersion',
+                            style: const TextStyle(fontStyle: FontStyle.italic),
+                          ),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: 4),
+                const Divider(height: 1),
+                // Scrollable markdown content
+                Expanded(
+                  child: SingleChildScrollView(
+                    controller: scrollController,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    child: MarkdownBody(data: body),
+                  ),
+                ),
+                const Divider(height: 1),
+                // Fixed bottom buttons
+                SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          child: const Text('Dismiss'),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        FilledButton(
+                          onPressed: () {
+                            openUrl(updateUrl);
+                          },
+                          child: const Text('Update'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            );
           },
-        ),
-        TextButton(
-          child: const Text('Update'),
-          onPressed: () {
-            openUrl(updateUrl);
-          },
-        ),
-      ],
+        );
+      },
     );
   }
 }

@@ -40,14 +40,15 @@ class _HomePageState extends ConsumerState<HomePage> {
     timer = Timer.periodic(const Duration(seconds: 1), (Timer t) => _getServerTime());
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      checkServer().then((_) {
-        _cacheDependencies();
-      });
-
       requestNotification();
-
-      checkForUpdates();
     });
+
+    ref.listenManual(effectiveIsConnectedProvider, (prev, next) {
+      if (next) {
+        checkServer().then((_) => _cacheDependencies());
+        checkForUpdates();
+      }
+    }, fireImmediately: false,);
   }
 
   @override
@@ -170,7 +171,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   Future<void> checkForUpdates() async {
     final shouldCheckUpdate = ref.read(configProvider).checkAppUpdatesOnStart;
     final hasConnection = ref.read(effectiveIsConnectedProvider);
-    if (flagCheckForAppUpdates || !shouldCheckUpdate) return;
+    if (flagCheckForAppUpdates || !shouldCheckUpdate || !hasConnection) return;
     flagCheckForAppUpdates = true;
     fetchUpdateAndAlert(hasConnection: hasConnection);
   }

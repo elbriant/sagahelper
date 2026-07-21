@@ -9,9 +9,14 @@ class GlobalOfflineNotifier extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isConnected = ref.watch(isConnectedProvider);
+    final connectivityAsync = ref.watch(connectivityProvider);
     final offlineMode = ref.watch(configProvider.select((p) => p.offlineMode));
 
+    if (connectivityAsync.isLoading) {
+      return const SizedBox.shrink();
+    }
+
+    final isConnected = ref.watch(isConnectedProvider);
     final bool showBanner = !isConnected || offlineMode;
     final String face = offlineMode
         ? RandomFaceGenerator.surpriseFace()

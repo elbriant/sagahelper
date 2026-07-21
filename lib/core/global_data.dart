@@ -3,6 +3,7 @@ import 'package:sagahelper/providers/server_provider.dart';
 
 /// todo list
 /// TODO: feature: filter by voice type (ex: operators that have spanish voicelines)
+/// TODO: filter by IS modules and RA modules
 /// TODO: feature: show "new" badge on current version added operators
 /// TODO: put ak news on home page
 
@@ -10,6 +11,7 @@ import 'package:sagahelper/providers/server_provider.dart';
 /// TODO: main cn server (¿¿??) (maybe home screen)
 /// TODO: integrate any md formatter in the update screen
 /// TODO: recruitment page, bottom sheet improving, cant scroll, annoying grouping, better do just titles
+
 // ----------------- run time flags
 
 Map<String, DownloaderCore> downloadsBackgroundCores = {};

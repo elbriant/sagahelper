@@ -48,7 +48,7 @@ final recruitTagMapProvider = FutureProvider.autoDispose<Map<int, RecruitTagInfo
     final tagId = tag['tagId'] as int;
     if (tagId == 1012 || tagId == 1013) continue;
     final tagName = tag['tagName'] as String;
-    final tagCat = tagCategories[tagId] ?? 'Affix';
+    final tagCat = tagCategories[tagId] ?? 'Others';
 
     result[tagId] = RecruitTagInfo(
       tagId: tagId,
