@@ -15,7 +15,7 @@ bool flagCheckForAppUpdates = false;
 
 // ------------- constants
 
-const String appVersion = "Beta 0.3.0";
+const String appVersion = "Beta 0.4.0";
 
 const Map<String, Map> credits = {
   "elbriant - Sagapi-gamedata": {
