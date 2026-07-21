@@ -9,8 +9,6 @@ import 'package:sagahelper/providers/server_provider.dart';
 
 /// bug list
 /// TODO: main cn server (¿¿??) (maybe home screen)
-/// TODO: integrate any md formatter in the update screen
-/// TODO: recruitment page, bottom sheet improving, cant scroll, annoying grouping, better do just titles
 
 // ----------------- run time flags
 

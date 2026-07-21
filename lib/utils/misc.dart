@@ -54,8 +54,7 @@ Future<UpdateStatus> fetchUpdateAndAlert({
       String version = packageInfo.version;
       String githubVersion = (json['tag_name'] as String).substring(1);
 
-      if (true) {
-        //if (isVersionGreaterThan(githubVersion, version)) {
+      if (isVersionGreaterThan(githubVersion, version)) {
         PopupDialog.appUpdateAlert(
           context: NavigationService.navigatorKey.currentContext!,
           label: json["name"],
