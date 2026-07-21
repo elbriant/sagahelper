@@ -3,7 +3,6 @@ import 'package:sagahelper/providers/server_provider.dart';
 
 /// todo list
 /// TODO: feature: show "new" badge on current version added operators
-/// TODO: put ak news on home page
 
 /// bug list
 /// TODO: main cn server (¿¿??) (maybe home screen)

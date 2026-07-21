@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:sagahelper/components/home/home_announcements.dart';
 import 'package:sagahelper/components/home/home_main_widget.dart';
 import 'package:sagahelper/components/home/home_orundum.dart';
 import 'package:sagahelper/components/home/home_unlocked_today.dart';
@@ -43,12 +44,16 @@ class _HomePageState extends ConsumerState<HomePage> {
       requestNotification();
     });
 
-    ref.listenManual(effectiveIsConnectedProvider, (prev, next) {
-      if (next) {
-        checkServer().then((_) => _cacheDependencies());
-        checkForUpdates();
-      }
-    }, fireImmediately: false,);
+    ref.listenManual(
+      effectiveIsConnectedProvider,
+      (prev, next) {
+        if (next) {
+          checkServer().then((_) => _cacheDependencies());
+          checkForUpdates();
+        }
+      },
+      fireImmediately: false,
+    );
   }
 
   @override
@@ -194,6 +199,8 @@ class _HomePageState extends ConsumerState<HomePage> {
       HomeUnlockedToday(
         serverTime: serverCurrentDatetime,
       ),
+      const SizedBox(height: 40),
+      const HomeAnnouncements(),
     ];
 
     return Scaffold(
